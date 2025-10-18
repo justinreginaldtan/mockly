@@ -1,0 +1,11 @@
+.persona-carousel::-webkit-scrollbar {
+  display: none;
+}
+.persona-carousel {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.persona-carousel-mask {
+  mask-image: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.95) 12%, rgba(255, 255, 255, 0.95) 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.95) 12%, rgba(255, 255, 255, 0.95) 88%, transparent 100%);
+}

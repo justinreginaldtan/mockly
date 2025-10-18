@@ -1,0 +1,148 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #0c0f19;
+  --foreground: #f3f5ff;
+  --card: #131b2e;
+  --card-foreground: #e3e9ff;
+  --popover: #101628;
+  --popover-foreground: #f3f5ff;
+  --primary: #4f61ff;
+  --primary-foreground: #ffffff;
+  --secondary: #152238;
+  --secondary-foreground: #d5dcff;
+  --muted: #1a2441;
+  --muted-foreground: #8a92b8;
+  --accent: #1f2d4d;
+  --accent-foreground: #d7dcff;
+  --destructive: #f87171;
+  --destructive-foreground: #0c0f19;
+  --border: #1f2944;
+  --input: #1f2944;
+  --ring: #6f7cff;
+  --chart-1: #4f61ff;
+  --chart-2: #5d8bff;
+  --chart-3: #7f9cff;
+  --chart-4: #a46eff;
+  --chart-5: #4ac6ff;
+  --radius: 0.75rem;
+  --sidebar: #101628;
+  --sidebar-foreground: #f3f5ff;
+  --sidebar-primary: #4f61ff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1a2441;
+  --sidebar-accent-foreground: #d7dcff;
+  --sidebar-border: #1f2944;
+  --sidebar-ring: #6f7cff;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter);
+  --color-background: 222 40% 9%;
+  --color-foreground: 227 83% 97%;
+  --color-card: 221 40% 12%;
+  --color-card-foreground: 227 83% 92%;
+  --color-popover: 220 43% 11%;
+  --color-popover-foreground: 227 83% 97%;
+  --color-primary: 233 100% 66%;
+  --color-primary-foreground: 0 0% 100%;
+  --color-secondary: 223 41% 14%;
+  --color-secondary-foreground: 227 58% 90%;
+  --color-muted: 225 35% 18%;
+  --color-muted-foreground: 227 30% 70%;
+  --color-accent: 224 42% 19%;
+  --color-accent-foreground: 227 58% 90%;
+  --color-destructive: 0 94% 71%;
+  --color-destructive-foreground: 0 0% 0%;
+  --color-border: 223 36% 22%;
+  --color-input: 223 36% 22%;
+  --color-ring: 233 100% 66%;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/40;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+/* Custom animations */
+@keyframes pulse-ring {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes wave {
+  0%,
+  100% {
+    transform: scaleY(0.5);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+.animate-wave {
+  animation: wave 1s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-flow 6s ease infinite;
+}
