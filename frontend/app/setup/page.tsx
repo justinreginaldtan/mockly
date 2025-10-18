@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Loader2,
   LucideIcon,
   MicVocal,
   Sparkles,
@@ -20,7 +21,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ProgressBar } from "@/components/progress-bar"
 import { Slider } from "@/components/ui/slider"
 import { cn } from "@/lib/utils"
-import type { InterviewSetupPayload } from "@/lib/gemini"
+import type { InterviewPlan, InterviewSetupPayload } from "@/lib/gemini"
+import { SETUP_CACHE_KEY, PLAN_CACHE_KEY } from "@/lib/cache-keys"
 
 type FocusAreaId =
   | "leadership"
@@ -172,14 +174,14 @@ const voiceStyles = [
 const gradientClass =
   "bg-[linear-gradient(120deg,_#4c6fff_0%,_#6b5bff_35%,_#a855f7_70%,_#38bdf8_100%)] text-white shadow-lg shadow-primary/40 animate-gradient"
 
-const SETUP_CACHE_KEY = "mi:setup"
-
 export default function SetupPage() {
   const router = useRouter()
   const [selectedPersonaId, setSelectedPersonaId] = useState<typeof allPersonas[number]["id"]>(allPersonas[0].id)
   const [technicalWeight, setTechnicalWeight] = useState([allPersonas[0].recommendedWeight])
   const [duration, setDuration] = useState<"short" | "standard">("standard")
   const [voiceStyle, setVoiceStyle] = useState<typeof voiceStyles[number]["id"]>(voiceStyles[0].id)
+  const [isStarting, setIsStarting] = useState(false)
+  const [startError, setStartError] = useState<string | null>(null)
   const [focusAreas, setFocusAreas] = useState<Record<FocusAreaId, boolean>>(() => {
     const defaultPersona = allPersonas[0]
     return focusAreaOptions.reduce((acc, option) => {
@@ -286,7 +288,11 @@ export default function SetupPage() {
     return selectedPersona.recommendedFocusAreas as FocusAreaId[]
   }, [focusAreas, selectedPersona.recommendedFocusAreas])
 
-  const handleStartMock = useCallback(() => {
+  const handleStartMock = useCallback(async () => {
+    if (isStarting) {
+      return
+    }
+
     const payload: InterviewSetupPayload = {
       persona: {
         personaId: selectedPersona.id,
@@ -300,6 +306,9 @@ export default function SetupPage() {
       },
     }
 
+    setIsStarting(true)
+    setStartError(null)
+
     if (typeof window !== "undefined") {
       try {
         window.sessionStorage.setItem(SETUP_CACHE_KEY, JSON.stringify(payload))
@@ -308,7 +317,48 @@ export default function SetupPage() {
       }
     }
 
-    router.push("/mock")
+    try {
+      const response = await fetch("/api/generate-interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        const message = await response.text().catch(() => "")
+        throw new Error(message || "Gemini could not shape the interview.")
+      }
+
+      const data = await response.json().catch(() => null) as { success?: boolean; plan?: unknown; error?: string } | null
+      if (!data?.success || !data.plan) {
+        throw new Error(data?.error ?? "Gemini returned an incomplete interview plan.")
+      }
+
+      if (typeof window !== "undefined") {
+        try {
+          window.sessionStorage.setItem(
+            PLAN_CACHE_KEY,
+            JSON.stringify({ ...(data.plan as InterviewPlan), cachePersonaId: payload.persona.personaId, cachedAt: Date.now() }),
+          )
+        } catch (error) {
+          console.warn("Failed to cache interview plan", error)
+        }
+      }
+
+      router.push("/mock")
+    } catch (error) {
+      console.error("Failed to prepare interview plan", error)
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : "Gemini is busy. Try again in a few seconds."
+      setStartError(message)
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem(PLAN_CACHE_KEY)
+      }
+    } finally {
+      setIsStarting(false)
+    }
   }, [
     selectedPersona.id,
     selectedPersona.company,
@@ -319,6 +369,7 @@ export default function SetupPage() {
     technicalPercent,
     duration,
     router,
+    isStarting,
   ])
 
   return (
@@ -617,11 +668,28 @@ export default function SetupPage() {
                 type="button"
                 onClick={handleStartMock}
                 size="lg"
-                className={`px-8 py-6 rounded-full font-semibold tracking-tight transition-transform duration-300 hover:scale-[1.03] focus-visible:scale-[1.02] ${gradientClass}`}
+                disabled={isStarting}
+                className={cn(
+                  "px-8 py-6 rounded-full font-semibold tracking-tight transition-transform duration-300 focus-visible:scale-[1.02]",
+                  gradientClass,
+                  isStarting ? "opacity-90 pointer-events-none" : "hover:scale-[1.03]",
+                )}
               >
-                Start mock interview
-                <ChevronRight className="ml-2 h-5 w-5" />
+                {isStarting ? (
+                  <span className="flex items-center gap-2 text-base">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Prepping your interviewer…
+                  </span>
+                ) : (
+                  <>
+                    Start mock interview
+                    <ChevronRight className="ml-2 h-5 w-5" />
+                  </>
+                )}
               </Button>
+              {startError && (
+                <p className="text-sm text-amber-300">{startError}</p>
+              )}
             </div>
           </div>
 

@@ -8,6 +8,7 @@ import { ControlBar, type ControlTheme } from "@/components/interview/control-ba
 import { InsightsDrawer } from "@/components/interview/insights-drawer"
 import { Settings2, ChevronDown } from "lucide-react"
 import type { InterviewPlan, InterviewSetupPayload, PersonaConfig } from "@/lib/gemini"
+import { SETUP_CACHE_KEY, PLAN_CACHE_KEY } from "@/lib/cache-keys"
 
 const mockQuestions = [
   {
@@ -143,7 +144,38 @@ const themeStyles: Record<
   },
 }
 
-const SETUP_CACHE_KEY = "mi:setup"
+type PlanStatus = "idle" | "loading" | "ready" | "refreshing" | "error"
+
+const PLAN_CACHE_TTL_MS = 2 * 60 * 1000
+
+const formatFocusAreaLabel = (value: string): string =>
+  value
+    .replace(/([A-Z])/g, " $1")
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+
+const buildPersonaGreetingLine = (persona: PersonaConfig): string => {
+  const primaryFocus = Array.isArray(persona.focusAreas) ? persona.focusAreas[0] : undefined
+  const focusCopy = primaryFocus ? formatFocusAreaLabel(primaryFocus) : null
+  const context = persona.additionalContext ?? `${persona.company} ${persona.role}`
+  if (focusCopy) {
+    return `Hey there! I'm channeling a ${context} today. Take a breath—I'm excited to hear your take on ${focusCopy.toLowerCase()}.`
+  }
+
+  return `Hey there! I'm channeling a ${context} today. Let's dive into your story when you're ready.`
+}
+
+const personaIdentityMap: Record<string, { interviewerName: string; interviewerTitle: string }> = {
+  "google-swe": { interviewerName: "Avery Chen", interviewerTitle: "Senior SWE · Google" },
+  "amazon-pm": { interviewerName: "Jordan Patel", interviewerTitle: "Product Lead · Amazon" },
+  "meta-data": { interviewerName: "Priya Singh", interviewerTitle: "Head of Analytics · Meta" },
+  "microsoft-cs": { interviewerName: "Chris Nguyen", interviewerTitle: "Customer Success Lead · Microsoft" },
+}
+
+const getPersonaIdentity = (persona: PersonaConfig) =>
+  personaIdentityMap[persona.personaId] ?? {
+    interviewerName: `${persona.company} Interviewer`,
+    interviewerTitle: `${persona.role} · ${persona.company}`,
+  }
 
 const fallbackPersona: PersonaConfig = {
   personaId: "google-swe",
@@ -190,7 +222,7 @@ const buildFallbackPlan = (persona: PersonaConfig): InterviewPlan => ({
 
 export default function MockInterviewPage() {
   const router = useRouter()
-  const [currentQuestionIndex] = useState(0)
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [isMuted, setIsMuted] = useState(true)
   const [isCameraOn, setIsCameraOn] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -200,8 +232,10 @@ export default function MockInterviewPage() {
   const [theme, setTheme] = useState<ThemeMode>("zoom")
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
   const [interviewPlan, setInterviewPlan] = useState<InterviewPlan | null>(null)
-  const [planLoading, setPlanLoading] = useState(true)
+  const [planStatus, setPlanStatus] = useState<PlanStatus>("idle")
   const [planError, setPlanError] = useState<string | null>(null)
+  const [fallbackPlanState, setFallbackPlanState] = useState<InterviewPlan | null>(null)
+  const [isGreetingActive, setIsGreetingActive] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -213,13 +247,17 @@ export default function MockInterviewPage() {
     setThemeMenuOpen(false)
   }, [])
 
-  const activePlan = interviewPlan ?? (planError ? fallbackPlan : null)
+  const activePlan = interviewPlan ?? fallbackPlanState
   const questions = activePlan?.questions?.length ? activePlan.questions : []
   const hasPlan = questions.length > 0
-  const clampedIndex = hasPlan ? Math.min(currentQuestionIndex, Math.max(questions.length - 1, 0)) : 0
+  const totalQuestions = questions.length
+  const clampedIndex = hasPlan ? Math.min(currentQuestionIndex, Math.max(totalQuestions - 1, 0)) : 0
   const currentQuestion = hasPlan ? questions[clampedIndex] ?? questions[0] : null
   const currentQuestionPrompt = currentQuestion?.prompt ?? ""
   const currentQuestionFocus = currentQuestion?.focusArea ?? ""
+  const displayFocusArea = currentQuestionFocus ? formatFocusAreaLabel(currentQuestionFocus) : ""
+  const planLoading = planStatus === "idle" || planStatus === "loading"
+  const questionPositionLabel = hasPlan ? `Question ${clampedIndex + 1} of ${totalQuestions}` : ""
   const questionHeading = planLoading
     ? "Gemini is shaping your interviewer…"
     : hasPlan
@@ -228,7 +266,7 @@ export default function MockInterviewPage() {
   const questionMetaText = planLoading
     ? "Loading AI-tailored questions based on your setup choices."
     : hasPlan
-      ? `JD anchor: ${currentQuestionFocus}`
+      ? `JD anchor: ${displayFocusArea}`
       : ""
   const personaSource = activePlan?.persona ?? fallbackPersona
   const personaVoiceLabel = personaSource.voiceStyle ?? fallbackPlan.persona.voiceStyle!
@@ -236,15 +274,37 @@ export default function MockInterviewPage() {
     if (!activePlan?.guidance) return defaultInsights
     return [activePlan.guidance, ...defaultInsights.filter((tip) => tip !== activePlan.guidance)]
   }, [activePlan])
+  const personaGreetingLine = useMemo(() => buildPersonaGreetingLine(personaSource), [personaSource])
+  const personaIdentity = useMemo(() => getPersonaIdentity(personaSource), [personaSource])
 
   useEffect(() => {
-    const stored =
-      typeof window !== "undefined" ? window.sessionStorage.getItem(SETUP_CACHE_KEY) : null
+    if (showIntro) {
+      setIsGreetingActive(false)
+      return
+    }
+
+    if (planLoading || !hasPlan) {
+      return
+    }
+
+    setIsGreetingActive(true)
+    const timer = window.setTimeout(() => setIsGreetingActive(false), 3400)
+    return () => window.clearTimeout(timer)
+  }, [showIntro, planLoading, hasPlan, activePlan?.persona?.personaId])
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const stored = window.sessionStorage.getItem(SETUP_CACHE_KEY)
 
     if (!stored) {
       setPlanError("Setup details missing. Using demo questions.")
+      setFallbackPlanState(fallbackPlan)
       setInterviewPlan(null)
-      setPlanLoading(false)
+      setCurrentQuestionIndex(0)
+      setPlanStatus("error")
       return
     }
 
@@ -254,20 +314,60 @@ export default function MockInterviewPage() {
     } catch (error) {
       console.error("Failed to parse stored setup payload", error)
       setPlanError("Invalid setup data. Using demo questions.")
+      setFallbackPlanState(fallbackPlan)
       setInterviewPlan(null)
-      setPlanLoading(false)
+      setCurrentQuestionIndex(0)
+      setPlanStatus("error")
       return
     }
 
     if (!payload?.persona) {
       setPlanError("Incomplete setup data. Using demo questions.")
+      setFallbackPlanState(fallbackPlan)
       setInterviewPlan(null)
-      setPlanLoading(false)
+      setCurrentQuestionIndex(0)
+      setPlanStatus("error")
       return
     }
 
     const controller = new AbortController()
-    setPlanLoading(true)
+    let usedCachedPlan = false
+    let shouldFetch = true
+    setPlanStatus((current) => (current === "ready" ? "refreshing" : "loading"))
+    setPlanError(null)
+
+    const cachedPlanRaw = window.sessionStorage.getItem(PLAN_CACHE_KEY)
+    if (cachedPlanRaw) {
+      try {
+        const cachedPlan = JSON.parse(cachedPlanRaw) as InterviewPlan & { cachePersonaId?: string; cachedAt?: number }
+        const personaId = cachedPlan.persona?.personaId ?? (cachedPlan as { cachePersonaId?: string }).cachePersonaId
+        const cachedAt = typeof cachedPlan.cachedAt === "number" ? cachedPlan.cachedAt : 0
+        const isFresh = cachedAt > 0 && Date.now() - cachedAt < PLAN_CACHE_TTL_MS
+        if (personaId && personaId === payload.persona.personaId) {
+          setInterviewPlan(cachedPlan)
+          setFallbackPlanState(null)
+          setCurrentQuestionIndex(0)
+          if (isFresh) {
+            setPlanStatus("ready")
+            shouldFetch = false
+          } else {
+            setPlanStatus("refreshing")
+            usedCachedPlan = true
+          }
+        } else {
+          window.sessionStorage.removeItem(PLAN_CACHE_KEY)
+        }
+      } catch (error) {
+        console.warn("Failed to read cached interview plan", error)
+        window.sessionStorage.removeItem(PLAN_CACHE_KEY)
+      }
+    }
+
+    if (!shouldFetch) {
+      return () => {
+        controller.abort("teardown")
+      }
+    }
 
     fetch("/api/generate-interview", {
       method: "POST",
@@ -284,11 +384,32 @@ export default function MockInterviewPage() {
       })
       .then((data) => {
         if (data?.success && data.plan) {
-          setInterviewPlan(data.plan as InterviewPlan)
+          const generatedPlan = data.plan as InterviewPlan
+          setInterviewPlan(generatedPlan)
+          setFallbackPlanState(null)
           setPlanError(null)
+          setPlanStatus("ready")
+          setCurrentQuestionIndex(0)
+          try {
+            window.sessionStorage.setItem(
+              PLAN_CACHE_KEY,
+              JSON.stringify({ ...generatedPlan, cachePersonaId: payload!.persona.personaId, cachedAt: Date.now() }),
+            )
+          } catch (error) {
+            console.warn("Failed to cache interview plan", error)
+          }
         } else {
           setPlanError(data?.error ?? "Unable to generate questions. Using demo fallback.")
-          setInterviewPlan(buildFallbackPlan(payload!.persona))
+          if (usedCachedPlan) {
+            setPlanStatus("ready")
+          } else {
+            const fallbackGenerated = buildFallbackPlan(payload!.persona)
+            setFallbackPlanState(fallbackGenerated)
+            setInterviewPlan(null)
+            setCurrentQuestionIndex(0)
+            window.sessionStorage.removeItem(PLAN_CACHE_KEY)
+            setPlanStatus("error")
+          }
         }
       })
       .catch((error) => {
@@ -302,11 +423,18 @@ export default function MockInterviewPage() {
           }
         }
         console.error("Failed to fetch interview plan", error)
-        setPlanError("Unable to reach Gemini. Using demo questions.")
-        setInterviewPlan(buildFallbackPlan(payload!.persona))
-      })
-      .finally(() => {
-        setPlanLoading(false)
+        if (usedCachedPlan) {
+          setPlanError("Unable to refresh Gemini questions. Using saved plan.")
+          setPlanStatus("ready")
+        } else {
+          setPlanError("Unable to reach Gemini. Using demo questions.")
+          const fallbackGenerated = buildFallbackPlan(payload!.persona)
+          setFallbackPlanState(fallbackGenerated)
+          setInterviewPlan(null)
+          setCurrentQuestionIndex(0)
+          window.sessionStorage.removeItem(PLAN_CACHE_KEY)
+          setPlanStatus("error")
+        }
       })
 
     return () => {
@@ -491,21 +619,63 @@ export default function MockInterviewPage() {
       {!showIntro && !planLoading && hasPlan && (
         <div className={liveBadgeClass}>
           <span className="inline-flex h-2 w-2 rounded-full bg-current animate-pulse" aria-hidden="true" />
-          Live · 00:25
+          Live · {questionPositionLabel}
         </div>
       )}
 
       <div className={questionBubbleClasses}>
-        <p className={questionTextClass}>{questionHeading}</p>
-        <p className={questionMetaClass}>{questionMetaText}</p>
+        {isGreetingActive && !planLoading && (
+          <div
+            className={cn(
+              "mb-3 text-center text-[0.7rem] uppercase tracking-[0.35em] opacity-80",
+              currentTheme.questionMeta,
+            )}
+          >
+            {personaIdentity.interviewerName} says
+            <p className={cn("mt-2 text-sm italic leading-relaxed normal-case tracking-normal", currentTheme.questionText)}>
+              {personaGreetingLine}
+            </p>
+          </div>
+        )}
+        {!planLoading && questionPositionLabel && (
+          <p className={cn("mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.35em] opacity-70", currentTheme.questionMeta)}>
+            {questionPositionLabel}
+          </p>
+        )}
+        <p className={questionTextClass}>
+          {planLoading ? (
+            <span
+              className="inline-flex h-5 w-48 animate-pulse rounded-full opacity-40 sm:w-64"
+              style={{ backgroundColor: "currentColor" }}
+            />
+          ) : (
+            questionHeading
+          )}
+        </p>
+        <p className={questionMetaClass}>
+          {planLoading ? (
+            <span
+              className="inline-flex h-3 w-40 animate-pulse rounded-full opacity-30 sm:w-52"
+              style={{ backgroundColor: "currentColor" }}
+            />
+          ) : (
+            questionMetaText
+          )}
+        </p>
         {planLoading && (
-          <div className="mt-3 flex items-center justify-center gap-2 text-xs text-white/60">
-            <span className="h-2 w-2 animate-ping rounded-full bg-white/80" />
+          <div className="mt-3 flex items-center justify-center gap-2 text-xs opacity-80">
+            <span className="h-2 w-2 animate-ping rounded-full bg-current/80" aria-hidden="true" />
             <span>Contacting Gemini…</span>
           </div>
         )}
-        {planError && !planLoading && (
-          <p className="mt-1 text-xs text-amber-300">{planError}</p>
+        {planStatus === "refreshing" && !planLoading && (
+          <div className="mt-3 flex items-center justify-center gap-2 text-xs opacity-80">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-current" aria-hidden="true" />
+            <span>Prepping your interviewer with fresh follow-ups…</span>
+          </div>
+        )}
+        {planStatus === "error" && planError && !planLoading && (
+          <p className="mt-2 text-xs text-amber-300">{planError}</p>
         )}
       </div>
 
@@ -526,8 +696,8 @@ export default function MockInterviewPage() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <InterviewerAvatar isSpeaking={!isMuted} />
               </div>
-              <div className={cn("absolute top-5 left-5", namePlateClass)}>Avery Chen</div>
-              <div className={cn("absolute bottom-5 left-5", statusPlateClass)}>Senior SWE · Google</div>
+              <div className={cn("absolute top-5 left-5", namePlateClass)}>{personaIdentity.interviewerName}</div>
+              <div className={cn("absolute bottom-5 left-5", statusPlateClass)}>{personaIdentity.interviewerTitle}</div>
             </div>
           </div>
 
@@ -595,7 +765,10 @@ export default function MockInterviewPage() {
               </div>
               <div>
                 <span className={introHighlightTextClass}>Focus:</span>{" "}
-                {hasPlan ? currentQuestionFocus : "Calibrating interviewer cues…"}
+                {hasPlan ? displayFocusArea : "Calibrating interviewer cues…"}
+              </div>
+              <div>
+                <span className={introHighlightTextClass}>Interviewer:</span> {personaIdentity.interviewerName}
               </div>
               <div>
                 <span className={introHighlightTextClass}>Voice persona:</span> {personaVoiceLabel}
@@ -609,7 +782,7 @@ export default function MockInterviewPage() {
                 Join interview
               </button>
             </div>
-            {planError && (
+            {planStatus === "error" && planError && (
               <p className="mt-3 text-xs text-amber-300">{planError}</p>
             )}
           </div>

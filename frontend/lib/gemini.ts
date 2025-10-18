@@ -74,7 +74,12 @@ async function generateContentText(parts: Array<{ text: string }>): Promise<stri
 
   for (const modelName of DEFAULT_GEMINI_MODELS) {
     try {
-      const model = geminiClient.getGenerativeModel({ model: modelName })
+      const model = geminiClient.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          responseMimeType: 'application/json',
+        },
+      })
       const result = await model.generateContent({
         contents: [
           {
