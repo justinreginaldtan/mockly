@@ -9,9 +9,12 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 })
 
 export const metadata = {
-  title: "Mock Interviewer - AI-Powered Interview Practice",
-  description: "Practice your interviews with AI-powered mock interviews tailored to your resume and job description",
-    generator: 'v0.app'
+  title: "Mockly – Your AI Interview Coach",
+  description: "Practice interviews with personalized voice feedback and real-time coaching.",
+  generator: "v0.app",
+  icons: {
+    icon: "/favicon.ico",
+  },
 }
 
 export default function RootLayout({
