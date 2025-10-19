@@ -534,16 +534,24 @@ export default function SetupPage() {
                               </li>
                             ))}
                           </ul>
-                          <button
-                            type="button"
+                          <div
+                            role="button"
+                            tabIndex={0}
                             onClick={(event) => {
                               event.preventDefault()
                               event.stopPropagation()
                               handlePreviewVoice(preset.id)
                             }}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                handlePreviewVoice(preset.id)
+                              }
+                            }}
                             className={cn(
-                              "group inline-flex items-center gap-2 self-start rounded-full border px-3 py-1 text-xs font-semibold transition",
-                              "border-white/15 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10",
+                              "group inline-flex items-center gap-2 self-start rounded-full border px-3 py-1 text-xs font-semibold transition outline-none",
+                              "border-white/15 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-[#4f61ff]",
                               previewingPersonaId === preset.id && "border-[#4f61ff] bg-[#4f61ff]/20 text-white",
                             )}
                           >
@@ -553,7 +561,7 @@ export default function SetupPage() {
                               <MicVocal className="h-3.5 w-3.5 text-[#9aa7ff]" />
                             )}
                             <span>{previewingPersonaId === preset.id ? "Stop preview" : "Preview voice"}</span>
-                          </button>
+                          </div>
                         </div>
                       </button>
                     )

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { InterviewerAvatar } from "@/components/interviewer-avatar"
 import { ControlBar, type ControlTheme } from "@/components/interview/control-bar"
 import { InsightsDrawer } from "@/components/interview/insights-drawer"
-import { Settings2, ChevronDown } from "lucide-react"
+import { Settings2, ChevronDown, ChevronRight } from "lucide-react"
 import type { InterviewPlan, InterviewSetupPayload, PersonaConfig } from "@/lib/gemini"
 import { SETUP_CACHE_KEY, PLAN_CACHE_KEY } from "@/lib/cache-keys"
 import { resolvePersonaVoice } from "@/lib/voices"
@@ -149,10 +149,24 @@ type PlanStatus = "idle" | "loading" | "ready" | "refreshing" | "error"
 
 const PLAN_CACHE_TTL_MS = 2 * 60 * 1000
 
-const formatFocusAreaLabel = (value: string): string =>
-  value
+const formatFocusAreaLabel = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => formatFocusAreaLabel(item))
+      .filter(Boolean)
+      .join(", ")
+  }
+  if (typeof value !== "string") {
+    return ""
+  }
+  return value
     .replace(/([A-Z])/g, " $1")
     .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim()
+}
+
+const PLAN_CACHE_KEY = "mi:plan"
+const PROGRESS_CACHE_KEY = "mi:progress"
 
 const buildPersonaGreetingLine = (persona: PersonaConfig): string => {
   const primaryFocus = Array.isArray(persona.focusAreas) ? persona.focusAreas[0] : undefined
@@ -225,6 +239,10 @@ const buildFallbackPlan = (persona: PersonaConfig): InterviewPlan => ({
 export default function MockInterviewPage() {
   const router = useRouter()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [questionStatuses, setQuestionStatuses] = useState<Array<"pending" | "active" | "answered">>([])
+  const [activeFollowUp, setActiveFollowUp] = useState<{ questionId: string; prompt: string } | null>(null)
+  const [followUpHistory, setFollowUpHistory] = useState<Record<string, number>>({})
+  const [showAgenda, setShowAgenda] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const [isCameraOn, setIsCameraOn] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -243,8 +261,13 @@ export default function MockInterviewPage() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const greetingAudioRef = useRef<HTMLAudioElement | null>(null)
+  const questionAudioRef = useRef<HTMLAudioElement | null>(null)
+  const followUpAudioRef = useRef<HTMLAudioElement | null>(null)
   const greetingFetchKeyRef = useRef<string | null>(null)
   const greetingPlaybackRef = useRef(false)
+  const speechCacheRef = useRef<Map<string, string>>(new Map())
+  const personaInitRef = useRef<string | null>(null)
+  const lastSpokenQuestionRef = useRef<string | null>(null)
   const [greetingAudioUrl, setGreetingAudioUrl] = useState<string | null>(null)
 
   const currentTheme = themeStyles[theme]
@@ -255,13 +278,19 @@ export default function MockInterviewPage() {
   }, [])
 
   const activePlan = interviewPlan ?? fallbackPlanState
-  const questions = activePlan?.questions?.length ? activePlan.questions : []
+  const questions = useMemo(() => (activePlan?.questions?.length ? activePlan.questions : []), [activePlan])
   const hasPlan = questions.length > 0
   const totalQuestions = questions.length
   const clampedIndex = hasPlan ? Math.min(currentQuestionIndex, Math.max(totalQuestions - 1, 0)) : 0
   const currentQuestion = hasPlan ? questions[clampedIndex] ?? questions[0] : null
   const currentQuestionPrompt = currentQuestion?.prompt ?? ""
   const currentQuestionFocus = currentQuestion?.focusArea ?? ""
+  const currentQuestionId = currentQuestion?.id ?? ""
+  const consumedFollowUps = currentQuestionId ? followUpHistory[currentQuestionId] ?? 0 : 0
+  const remainingFollowUps = currentQuestion ? (currentQuestion.followUps?.length ?? 0) - consumedFollowUps : 0
+  const answeredCount = Math.min(currentQuestionIndex, totalQuestions)
+  const progressPercent = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0
+  const progressLabel = hasPlan ? `Question ${clampedIndex + 1} of ${totalQuestions}` : ""
   const displayFocusArea = currentQuestionFocus ? formatFocusAreaLabel(currentQuestionFocus) : ""
   const planLoading = planStatus === "idle" || planStatus === "loading"
   const questionPositionLabel = hasPlan ? `Question ${clampedIndex + 1} of ${totalQuestions}` : ""
@@ -275,6 +304,16 @@ export default function MockInterviewPage() {
     : hasPlan
       ? `JD anchor: ${displayFocusArea}`
       : ""
+  const isFinalQuestion = hasPlan && clampedIndex === totalQuestions - 1
+  const advanceButtonLabel = activeFollowUp
+    ? "Ready to move on"
+    : remainingFollowUps > 0
+      ? "Continue"
+      : isFinalQuestion
+        ? "Wrap up interview"
+        : "Ready for next question"
+  const advanceButtonDisabled = planLoading || !hasPlan
+  const agendaToggleLabel = showAgenda ? "Hide agenda" : "View agenda"
   const personaSource = activePlan?.persona ?? fallbackPersona
   const personaVoiceProfile = useMemo(
     () => resolvePersonaVoice(personaSource.personaId, personaSource.voiceStyleId),
@@ -290,41 +329,242 @@ export default function MockInterviewPage() {
   }, [personaVoiceProfile, personaSource])
   const personaIdentity = useMemo(() => getPersonaIdentity(personaSource), [personaSource])
 
-  const fetchPersonaGreetingAudio = useCallback(async () => {
-    if (!personaSource.personaId) {
-      return null
+  useEffect(() => {
+    if (!hasPlan) {
+      setQuestionStatuses([])
+      setFollowUpHistory({})
+      setActiveFollowUp(null)
+      return
     }
 
-    try {
-      const response = await fetch("/api/voice-question", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          personaId: personaSource.personaId,
-          voiceStyleId: personaSource.voiceStyleId,
-          questionText: personaVoiceProfile.greetingText,
-        }),
-      })
+    const personaKey = `${personaSource.personaId}:${questions.length}`
+    if (personaInitRef.current !== personaKey) {
+      personaInitRef.current = personaKey
+      setCurrentQuestionIndex(0)
+      setFollowUpHistory({})
+      setActiveFollowUp(null)
+      setShowAgenda(false)
+      lastSpokenQuestionRef.current = null
+    }
+  }, [hasPlan, questions.length, personaSource.personaId])
 
-      if (!response.ok) {
-        const message = await response.text().catch(() => "")
-        throw new Error(message || "Unable to fetch greeting audio")
+  useEffect(() => {
+    if (!hasPlan) {
+      setQuestionStatuses([])
+      return
+    }
+
+    setQuestionStatuses(
+      questions.map((_, idx) => {
+        if (idx < currentQuestionIndex) return "answered"
+        if (idx === currentQuestionIndex) return "active"
+        return "pending"
+      }),
+    )
+  }, [hasPlan, questions, currentQuestionIndex])
+
+  useEffect(() => {
+    if (followUpAudioRef.current) {
+      followUpAudioRef.current.pause()
+      followUpAudioRef.current = null
+    }
+    if (questionAudioRef.current) {
+      questionAudioRef.current.pause()
+      questionAudioRef.current = null
+    }
+    setActiveFollowUp(null)
+    setIsVoicePlaying(false)
+  }, [currentQuestionIndex])
+
+  const requestPersonaSpeech = useCallback(
+    async (text: string): Promise<string | null> => {
+      const trimmed = text?.trim()
+      if (!trimmed) return null
+      const cacheKey = `${personaSource.personaId}:${personaSource.voiceStyleId ?? "default"}:${trimmed}`
+      const cached = speechCacheRef.current.get(cacheKey)
+      if (cached) {
+        return cached
       }
 
-      const data = (await response.json()) as { audioUrl?: string | null; mocked?: boolean; error?: string }
-      if (!data?.audioUrl) {
-        if (data?.mocked) {
+      try {
+        const response = await fetch("/api/voice-question", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            personaId: personaSource.personaId,
+            voiceStyleId: personaSource.voiceStyleId,
+            questionText: trimmed,
+          }),
+        })
+
+        if (!response.ok) {
+          const message = await response.text().catch(() => "")
+          throw new Error(message || "Unable to fetch persona speech")
+        }
+
+        const data = (await response.json()) as { audioUrl?: string | null; mocked?: boolean }
+        if (!data?.audioUrl) {
           return null
         }
-        throw new Error(data?.error ?? "Greeting audio missing from response")
+
+        speechCacheRef.current.set(cacheKey, data.audioUrl)
+        return data.audioUrl
+      } catch (error) {
+        console.error("Persona speech request failed", error)
+        return null
+      }
+    },
+    [personaSource.personaId, personaSource.voiceStyleId],
+  )
+
+  const playFollowUpLine = useCallback(
+    async (prompt: string) => {
+      if (!prompt?.trim()) {
+        return
       }
 
-      return data.audioUrl as string
-    } catch (error) {
-      console.error("Failed to prepare greeting audio", error)
-      return null
+      if (followUpAudioRef.current) {
+        followUpAudioRef.current.pause()
+        followUpAudioRef.current = null
+      }
+
+      const audioUrl = await requestPersonaSpeech(prompt)
+      if (!audioUrl) {
+        setIsVoicePlaying(false)
+        return
+      }
+
+      const audio = new Audio(audioUrl)
+      followUpAudioRef.current = audio
+      setIsVoicePlaying(true)
+
+      audio.play().catch((error) => {
+        console.error("Failed to play follow-up line", error)
+        if (followUpAudioRef.current === audio) {
+          followUpAudioRef.current = null
+        }
+        setIsVoicePlaying(false)
+      })
+
+      const reset = () => {
+        if (followUpAudioRef.current === audio) {
+          followUpAudioRef.current = null
+        }
+        setIsVoicePlaying(false)
+      }
+
+      audio.onended = reset
+      audio.onpause = reset
+    },
+    [requestPersonaSpeech],
+  )
+
+  const handleAdvance = useCallback(async () => {
+    if (!hasPlan || !questions.length) {
+      return
     }
-  }, [personaSource.personaId, personaSource.voiceStyleId, personaVoiceProfile.greetingText])
+
+    const question = questions[currentQuestionIndex]
+    if (!question) {
+      return
+    }
+
+    const followUps = Array.isArray(question.followUps) ? question.followUps : []
+    const consumed = followUpHistory[question.id] ?? 0
+
+    if (questionAudioRef.current) {
+      questionAudioRef.current.pause()
+      questionAudioRef.current = null
+    }
+
+    if (activeFollowUp && activeFollowUp.questionId === question.id) {
+      if (followUpAudioRef.current) {
+        followUpAudioRef.current.pause()
+        followUpAudioRef.current = null
+      }
+      setActiveFollowUp(null)
+      setIsVoicePlaying(false)
+    } else if (followUps.length > consumed) {
+      const nextFollowUp = followUps[consumed]
+      if (nextFollowUp) {
+        setActiveFollowUp({ questionId: question.id, prompt: nextFollowUp })
+        setFollowUpHistory((prev) => ({ ...prev, [question.id]: consumed + 1 }))
+        await playFollowUpLine(nextFollowUp)
+      }
+      return
+    }
+
+    const nextIndex = currentQuestionIndex + 1
+    if (nextIndex < questions.length) {
+      setCurrentQuestionIndex(nextIndex)
+      lastSpokenQuestionRef.current = null
+    } else {
+      router.push("/results")
+    }
+  }, [activeFollowUp, currentQuestionIndex, followUpHistory, hasPlan, playFollowUpLine, questions, router])
+
+  const playQuestionPrompt = useCallback(
+    async (prompt: string, questionId: string | null | undefined) => {
+      if (!prompt?.trim() || !questionId) {
+        return
+      }
+
+      if (questionAudioRef.current) {
+        questionAudioRef.current.pause()
+        questionAudioRef.current = null
+      }
+      if (followUpAudioRef.current) {
+        followUpAudioRef.current.pause()
+        followUpAudioRef.current = null
+      }
+
+      const audioUrl = await requestPersonaSpeech(prompt)
+      if (!audioUrl) {
+        return
+      }
+
+      const audio = new Audio(audioUrl)
+      questionAudioRef.current = audio
+      setIsVoicePlaying(true)
+
+      audio.play().catch((error) => {
+        console.error("Failed to play question prompt", error)
+        if (questionAudioRef.current === audio) {
+          questionAudioRef.current = null
+        }
+        setIsVoicePlaying(false)
+      })
+
+      const reset = () => {
+        if (questionAudioRef.current === audio) {
+          questionAudioRef.current = null
+        }
+        setIsVoicePlaying(false)
+      }
+
+      audio.onended = reset
+      audio.onpause = reset
+    },
+    [requestPersonaSpeech],
+  )
+
+  useEffect(() => {
+    if (!hasPlan || planLoading || showIntro || isGreetingActive) {
+      return
+    }
+
+    const question = questions[currentQuestionIndex]
+    if (!question) {
+      return
+    }
+
+    if (lastSpokenQuestionRef.current === question.id) {
+      return
+    }
+
+    lastSpokenQuestionRef.current = question.id
+    void playQuestionPrompt(question.prompt ?? "", question.id)
+  }, [currentQuestionIndex, hasPlan, isGreetingActive, planLoading, playQuestionPrompt, questions, showIntro])
 
   useEffect(() => {
     if (showIntro) {
@@ -508,7 +748,7 @@ export default function MockInterviewPage() {
     greetingFetchKeyRef.current = key
     greetingPlaybackRef.current = false
 
-    fetchPersonaGreetingAudio().then((audioUrl) => {
+    requestPersonaSpeech(personaGreetingLine).then((audioUrl) => {
       if (cancelled) return
       setGreetingAudioUrl(audioUrl)
     })
@@ -516,7 +756,7 @@ export default function MockInterviewPage() {
     return () => {
       cancelled = true
     }
-  }, [hasPlan, personaSource.personaId, personaSource.voiceStyleId, fetchPersonaGreetingAudio, greetingAudioUrl])
+  }, [hasPlan, personaSource.personaId, personaSource.voiceStyleId, personaGreetingLine, requestPersonaSpeech, greetingAudioUrl])
 
   useEffect(() => {
     if (showIntro || planLoading || !hasPlan) {
@@ -540,7 +780,7 @@ export default function MockInterviewPage() {
       try {
         let audioUrl = greetingAudioUrl
         if (!audioUrl) {
-          audioUrl = await fetchPersonaGreetingAudio()
+          audioUrl = await requestPersonaSpeech(personaGreetingLine)
           if (audioUrl) {
             setGreetingAudioUrl(audioUrl)
           } else {
@@ -579,7 +819,7 @@ export default function MockInterviewPage() {
     }
 
     void playGreeting()
-  }, [showIntro, planLoading, hasPlan, greetingAudioUrl, fetchPersonaGreetingAudio])
+  }, [showIntro, planLoading, hasPlan, greetingAudioUrl, personaGreetingLine, requestPersonaSpeech])
 
   useEffect(() => {
     let cancelled = false
@@ -635,6 +875,14 @@ export default function MockInterviewPage() {
       if (greetingAudioRef.current) {
         greetingAudioRef.current.pause()
         greetingAudioRef.current = null
+      }
+      if (questionAudioRef.current) {
+        questionAudioRef.current.pause()
+        questionAudioRef.current = null
+      }
+      if (followUpAudioRef.current) {
+        followUpAudioRef.current.pause()
+        followUpAudioRef.current = null
       }
     }
   }, [])
@@ -716,6 +964,10 @@ export default function MockInterviewPage() {
     theme === "google"
       ? "rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-blue-600/90"
       : "rounded-full bg-[#4b6bff] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[#4b6bff]/30 transition hover:bg-[#4b6bff]/90"
+  const advanceButtonClass = cn(
+    currentTheme.menuButton,
+    "w-full justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-transform duration-200 hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60",
+  )
 
   return (
     <div className={containerClasses}>
@@ -758,6 +1010,52 @@ export default function MockInterviewPage() {
           )}
         </div>
       </div>
+      {showAgenda && hasPlan && (
+        <div className="absolute right-6 top-24 z-30 w-64 rounded-2xl border border-white/15 bg-white/10 p-4 text-left text-xs shadow-xl shadow-black/30 backdrop-blur">
+          <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-white/70">Agenda</p>
+          <div className="mt-3 space-y-2">
+            {questions.map((question, idx) => {
+              const status = questionStatuses[idx] ?? "pending"
+              const canNavigate = idx <= clampedIndex
+              const label = idx === clampedIndex ? "Current" : status === "answered" ? "Answered" : "Pending"
+              return (
+                <div
+                  key={question.id ?? idx}
+                  role="button"
+                  tabIndex={canNavigate ? 0 : -1}
+                  aria-disabled={!canNavigate}
+                  onClick={() => {
+                    if (!canNavigate) return
+                    setShowAgenda(false)
+                    setCurrentQuestionIndex(idx)
+                  }}
+                  onKeyDown={(event) => {
+                    if (!canNavigate) return
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault()
+                      setShowAgenda(false)
+                      setCurrentQuestionIndex(idx)
+                    }
+                  }}
+                  className={cn(
+                    "w-full rounded-lg border px-3 py-2 text-left transition outline-none",
+                    canNavigate
+                      ? "border-white/20 bg-white/10 hover:border-white/40 hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/40"
+                      : "border-white/5 bg-white/5 cursor-not-allowed opacity-60",
+                    idx === clampedIndex && "ring-1 ring-white/40",
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[0.65rem] font-semibold text-white">Q{idx + 1}</span>
+                    <span className="text-[0.55rem] uppercase tracking-[0.25em] text-white/60">{label}</span>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-[0.7rem] text-white/70">{question.prompt}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {!showIntro && !planLoading && hasPlan && (
         <div className={liveBadgeClass}>
@@ -767,6 +1065,31 @@ export default function MockInterviewPage() {
       )}
 
       <div className={questionBubbleClasses}>
+        {!planLoading && hasPlan && (
+          <div className="mb-3 flex items-center justify-between text-[0.68rem] uppercase tracking-[0.35em]">
+            <span className={cn("font-semibold", currentTheme.questionMeta)}>{progressLabel}</span>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setShowAgenda((prev) => !prev)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault()
+                  setShowAgenda((prev) => !prev)
+                }
+              }}
+              className={cn(
+                "rounded-full px-3 py-1 text-[0.6rem] font-semibold transition outline-none",
+                "border border-transparent",
+                showAgenda
+                  ? "bg-white/20 text-white"
+                  : "bg-white/10 text-white/80 hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/40",
+              )}
+            >
+              {agendaToggleLabel}
+            </div>
+          </div>
+        )}
         {isGreetingActive && !planLoading && (
           <div
             className={cn(
@@ -779,11 +1102,6 @@ export default function MockInterviewPage() {
               {personaGreetingLine}
             </p>
           </div>
-        )}
-        {!planLoading && questionPositionLabel && (
-          <p className={cn("mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.35em] opacity-70", currentTheme.questionMeta)}>
-            {questionPositionLabel}
-          </p>
         )}
         <p className={questionTextClass}>
           {planLoading ? (
@@ -819,6 +1137,20 @@ export default function MockInterviewPage() {
         )}
         {planStatus === "error" && planError && !planLoading && (
           <p className="mt-2 text-xs text-amber-300">{planError}</p>
+        )}
+        {activeFollowUp && !planLoading && (
+          <div className="mt-4 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-left text-sm">
+            <p className="text-[0.65rem] uppercase tracking-[0.35em] text-white/60">Follow-up</p>
+            <p className={cn("mt-2 text-sm font-medium", currentTheme.questionText)}>{activeFollowUp.prompt}</p>
+          </div>
+        )}
+        {!planLoading && hasPlan && (
+          <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-white/20">
+            <div
+              className="h-full rounded-full bg-white/80 transition-all duration-500"
+              style={{ width: `${Math.min(progressPercent, 100)}%` }}
+            />
+          </div>
         )}
       </div>
 
@@ -876,6 +1208,33 @@ export default function MockInterviewPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div
+        className={cn(
+          "mt-6 w-full max-w-3xl px-4 transition-all duration-300",
+          showIntro ? "pointer-events-none opacity-0 translate-y-4" : "opacity-100 translate-y-0",
+        )}
+      >
+        <button
+          type="button"
+          className={advanceButtonClass}
+          onClick={() => void handleAdvance()}
+          disabled={advanceButtonDisabled}
+        >
+          <span>{advanceButtonLabel}</span>
+          <ChevronRight className="h-4 w-4" />
+        </button>
+        {activeFollowUp && (
+          <p className="mt-2 text-center text-xs text-white/70">
+            Answer the follow-up, then tap again to continue.
+          </p>
+        )}
+        {!activeFollowUp && remainingFollowUps > 0 && (
+          <p className="mt-2 text-center text-xs text-white/60">
+            Your interviewer may lean in with a follow-up before the next question.
+          </p>
+        )}
       </div>
 
       <div className={cn(showIntro && "opacity-0 pointer-events-none", "transition-opacity duration-300")}>
