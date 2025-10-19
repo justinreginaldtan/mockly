@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { ELEVENLABS_MODEL_ID, getVoiceStyleOption } from "@/lib/voices"
+import { sanitizeTextForTTS } from "@/lib/text-sanitizer"
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY ?? ""
 const ELEVENLABS_BASE_URL = process.env.ELEVENLABS_BASE_URL ?? "https://api.elevenlabs.io"
@@ -8,6 +9,7 @@ interface SayRequestPayload {
   text?: string
   voice?: string // maps to VoiceStyleOption id
 }
+
 
 async function synthesizeOnce(text: string, voiceId: string): Promise<Response> {
   return fetch(`${ELEVENLABS_BASE_URL}/v1/text-to-speech/${voiceId}`, {
@@ -27,15 +29,31 @@ async function synthesizeOnce(text: string, voiceId: string): Promise<Response> 
 export async function POST(request: Request) {
   try {
     const body = (await request.json().catch(() => ({}))) as SayRequestPayload
-    const text = (body?.text ?? "").trim()
+    const rawText = (body?.text ?? "").trim()
     const voiceStyleId = (body?.voice ?? "").trim() || undefined
 
-    if (!text) {
+    if (!rawText) {
       return NextResponse.json({ error: "Field 'text' is required." }, { status: 400 })
     }
 
     if (!ELEVENLABS_API_KEY) {
       return NextResponse.json({ error: "ElevenLabs API key missing" }, { status: 503 })
+    }
+
+    // Sanitize text for TTS
+    const text = sanitizeTextForTTS(rawText)
+    
+    // Log sanitization for debugging
+    if (text !== rawText) {
+      console.log("[Voice-Say] Text sanitized:", {
+        original: rawText.substring(0, 100) + (rawText.length > 100 ? "..." : ""),
+        sanitized: text.substring(0, 100) + (text.length > 100 ? "..." : ""),
+        lengthChange: rawText.length - text.length
+      })
+    }
+
+    if (!text) {
+      return NextResponse.json({ error: "Text became empty after sanitization" }, { status: 400 })
     }
 
     const style = getVoiceStyleOption(voiceStyleId)

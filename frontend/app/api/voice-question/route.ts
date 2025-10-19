@@ -6,6 +6,7 @@ import {
   resolvePersonaVoice,
   type PersonaVoiceConfig,
 } from "@/lib/voices"
+import { sanitizeTextForTTS } from "@/lib/text-sanitizer"
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY ?? ""
 const ELEVENLABS_BASE_URL = process.env.ELEVENLABS_BASE_URL ?? "https://api.elevenlabs.io"
@@ -27,14 +28,14 @@ function resolveVoiceConfig(payload: VoiceRequestPayload): { text: string; voice
   const trimmed = payload.questionText?.trim()
 
   if (trimmed && trimmed.length > 0) {
-    return { text: trimmed, voice }
+    return { text: sanitizeTextForTTS(trimmed), voice }
   }
 
   if (payload.preview) {
-    return { text: voice.previewText, voice }
+    return { text: sanitizeTextForTTS(voice.previewText), voice }
   }
 
-  return { text: voice.greetingText, voice }
+  return { text: sanitizeTextForTTS(voice.greetingText), voice }
 }
 
 export async function POST(request: Request) {

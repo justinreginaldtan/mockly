@@ -273,12 +273,44 @@ export function useSpeechRecorder({
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         if (!mountedRef.current) return
         clearSilenceTimer()
-        const message = event.error === "not-allowed"
-          ? "Microphone permission denied."
-          : event.error === "no-speech"
-            ? "No speech detected."
-            : event.message || "Speech recognition error."
+        
+        // Handle "aborted" as a normal state, not an error
+        if (event.error === "aborted") {
+          setStatus("idle")
+          setError(null)
+          stopDurationTimer()
+          return
+        }
+        
+        let message = "Speech recognition error."
+        
+        switch (event.error) {
+          case "not-allowed":
+            message = "Microphone permission denied."
+            break
+          case "no-speech":
+            message = "No speech detected."
+            break
+          case "audio-capture":
+            message = "Microphone not available or in use by another application."
+            break
+          case "network":
+            message = "Network error occurred during speech recognition."
+            break
+          case "service-not-allowed":
+            message = "Speech recognition service not allowed."
+            break
+          case "bad-grammar":
+            message = "Speech recognition grammar error."
+            break
+          case "language-not-supported":
+            message = "Language not supported for speech recognition."
+            break
+          default:
+            message = event.message || `Speech recognition error: ${event.error}`
+        }
 
+        console.warn("[SpeechRecorder] Error occurred:", event.error, message)
         setStatus("error")
         setError(message)
         stopDurationTimer()
