@@ -23,6 +23,7 @@ import { Slider } from "@/components/ui/slider"
 import { cn } from "@/lib/utils"
 import type { InterviewPlan, InterviewSetupPayload } from "@/lib/gemini"
 import { SETUP_CACHE_KEY, PLAN_CACHE_KEY } from "@/lib/cache-keys"
+import { resolvePersonaVoice, VOICE_STYLE_OPTIONS } from "@/lib/voices"
 
 type FocusAreaId =
   | "leadership"
@@ -150,27 +151,6 @@ const focusAreaOptions: Array<{ id: FocusAreaId; label: string; icon: LucideIcon
   },
 ]
 
-const voiceStyles = [
-  {
-    id: "mentor",
-    label: "Mentor · Calm guidance",
-    description: "Measured pace, warm tone. Great for easing nerves before day-of interview.",
-    elevelabsTag: "Avery (ElevenLabs)",
-  },
-  {
-    id: "recruiter",
-    label: "Recruiter · Energetic",
-    description: "Upbeat, keeps momentum high to mirror real phone-screens.",
-    elevelabsTag: "Josh (ElevenLabs)",
-  },
-  {
-    id: "principal",
-    label: "Principal Engineer · Direct",
-    description: "Fast-paced and analytical, tests your confidence under pressure.",
-    elevelabsTag: "Cam (ElevenLabs)",
-  },
-] as const
-
 const gradientClass =
   "bg-[linear-gradient(120deg,_#4c6fff_0%,_#6b5bff_35%,_#a855f7_70%,_#38bdf8_100%)] text-white shadow-lg shadow-primary/40 animate-gradient"
 
@@ -179,9 +159,11 @@ export default function SetupPage() {
   const [selectedPersonaId, setSelectedPersonaId] = useState<typeof allPersonas[number]["id"]>(allPersonas[0].id)
   const [technicalWeight, setTechnicalWeight] = useState([allPersonas[0].recommendedWeight])
   const [duration, setDuration] = useState<"short" | "standard">("standard")
-  const [voiceStyle, setVoiceStyle] = useState<typeof voiceStyles[number]["id"]>(voiceStyles[0].id)
+  const [voiceStyle, setVoiceStyle] = useState<string>(() => resolvePersonaVoice(allPersonas[0].id).styleId)
   const [isStarting, setIsStarting] = useState(false)
   const [startError, setStartError] = useState<string | null>(null)
+  const [previewingPersonaId, setPreviewingPersonaId] = useState<string | null>(null)
+  const [previewError, setPreviewError] = useState<string | null>(null)
   const [focusAreas, setFocusAreas] = useState<Record<FocusAreaId, boolean>>(() => {
     const defaultPersona = allPersonas[0]
     return focusAreaOptions.reduce((acc, option) => {
@@ -196,6 +178,7 @@ export default function SetupPage() {
   )
 
   const personaCarouselRef = useRef<HTMLDivElement | null>(null)
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
 
@@ -243,6 +226,15 @@ export default function SetupPage() {
     updateScrollState()
   }, [selectedPersonaId, updateScrollState])
 
+  useEffect(() => {
+    return () => {
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause()
+        previewAudioRef.current = null
+      }
+    }
+  }, [])
+
   const scrollCarousel = (direction: "left" | "right") => {
     const el = personaCarouselRef.current
     if (!el) return
@@ -255,11 +247,17 @@ export default function SetupPage() {
   }
 
   const handlePersonaSelect = (id: typeof allPersonas[number]["id"]) => {
+    if (previewAudioRef.current) {
+      previewAudioRef.current.pause()
+      previewAudioRef.current = null
+    }
+    setPreviewingPersonaId(null)
+    setPreviewError(null)
     setSelectedPersonaId(id)
     const persona = allPersonas.find((p) => p.id === id)
     if (persona) {
       setTechnicalWeight([persona.recommendedWeight])
-      setVoiceStyle(voiceStyles[0].id)
+      setVoiceStyle(resolvePersonaVoice(persona.id).styleId)
       setFocusAreas(
         focusAreaOptions.reduce((acc, option) => {
           acc[option.id] = persona.recommendedFocusAreas.includes(option.id)
@@ -277,7 +275,86 @@ export default function SetupPage() {
     })
   }
 
-  const activeVoice = voiceStyles.find((voice) => voice.id === voiceStyle) ?? voiceStyles[0]
+  const handlePreviewVoice = useCallback(
+    async (personaId: typeof allPersonas[number]["id"]) => {
+      if (previewingPersonaId === personaId) {
+        if (previewAudioRef.current) {
+          previewAudioRef.current.pause()
+          previewAudioRef.current = null
+        }
+        setPreviewingPersonaId(null)
+        return
+      }
+
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause()
+        previewAudioRef.current = null
+      }
+
+      setPreviewError(null)
+      setPreviewingPersonaId(personaId)
+
+      try {
+        const voiceConfig = resolvePersonaVoice(
+          personaId,
+          personaId === selectedPersona.id ? voiceStyle : undefined,
+        )
+
+        const response = await fetch("/api/voice-question", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            personaId,
+            voiceStyleId: voiceConfig.styleId,
+            preview: true,
+            questionText: voiceConfig.previewText,
+          }),
+        })
+
+        if (!response.ok) {
+          const message = await response.text().catch(() => "")
+          throw new Error(message || "Unable to generate preview audio.")
+        }
+
+        const data = (await response.json()) as { audioUrl?: string; error?: string }
+        if (!data?.audioUrl) {
+          throw new Error(data?.error ?? "No audio returned from ElevenLabs.")
+        }
+
+        const audio = new Audio(data.audioUrl)
+        previewAudioRef.current = audio
+        audio.play().catch((error) => {
+          throw error
+        })
+        audio.onended = () => {
+          if (previewAudioRef.current === audio) {
+            previewAudioRef.current = null
+          }
+          setPreviewingPersonaId((current) => (current === personaId ? null : current))
+        }
+        audio.onpause = () => {
+          if (previewAudioRef.current === audio) {
+            previewAudioRef.current = null
+          }
+          setPreviewingPersonaId((current) => (current === personaId ? null : current))
+        }
+      } catch (error) {
+        console.error("Voice preview failed", error)
+        setPreviewingPersonaId(null)
+        setPreviewError(
+          error instanceof Error && error.message
+            ? error.message
+            : "Couldn't play that preview. Try again.",
+        )
+      }
+    },
+    [previewingPersonaId, selectedPersona.id, voiceStyle],
+  )
+
+  const activeVoiceStyle = useMemo(
+    () => resolvePersonaVoice(selectedPersona.id, voiceStyle),
+    [selectedPersona.id, voiceStyle],
+  )
   const technicalPercent = technicalWeight[0]
   const behavioralPercent = 100 - technicalPercent
   const selectedFocusAreaIds = useMemo(() => {
@@ -293,13 +370,20 @@ export default function SetupPage() {
       return
     }
 
+    if (previewAudioRef.current) {
+      previewAudioRef.current.pause()
+      previewAudioRef.current = null
+    }
+    setPreviewingPersonaId(null)
+
     const payload: InterviewSetupPayload = {
       persona: {
         personaId: selectedPersona.id,
         company: selectedPersona.company,
         role: selectedPersona.role,
         focusAreas: selectedFocusAreaIds,
-        voiceStyle: activeVoice.label,
+        voiceStyle: activeVoiceStyle.label,
+        voiceStyleId: activeVoiceStyle.styleId,
         technicalWeight: technicalPercent,
         duration,
         additionalContext: selectedPersona.tagline,
@@ -365,7 +449,8 @@ export default function SetupPage() {
     selectedPersona.role,
     selectedPersona.tagline,
     selectedFocusAreaIds,
-    activeVoice.label,
+    activeVoiceStyle.label,
+    activeVoiceStyle.styleId,
     technicalPercent,
     duration,
     router,
@@ -465,6 +550,26 @@ export default function SetupPage() {
                               </li>
                             ))}
                           </ul>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                              handlePreviewVoice(preset.id)
+                            }}
+                            className={cn(
+                              "group inline-flex items-center gap-2 self-start rounded-full border px-3 py-1 text-xs font-semibold transition",
+                              "border-white/15 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10",
+                              previewingPersonaId === preset.id && "border-[#4f61ff] bg-[#4f61ff]/20 text-white",
+                            )}
+                          >
+                            {previewingPersonaId === preset.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <MicVocal className="h-3.5 w-3.5 text-[#9aa7ff]" />
+                            )}
+                            <span>{previewingPersonaId === preset.id ? "Stop preview" : "Preview voice"}</span>
+                          </button>
                         </div>
                       </button>
                     )
@@ -493,6 +598,9 @@ export default function SetupPage() {
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
+              {previewError && (
+                <p className="mt-2 text-xs text-amber-300">{previewError}</p>
+              )}
             </section>
 
             <section className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-black/30">
@@ -593,7 +701,7 @@ export default function SetupPage() {
                 </p>
               </div>
               <div className="grid gap-4 md:grid-cols-3">
-                {voiceStyles.map((voice) => (
+                {VOICE_STYLE_OPTIONS.map((voice) => (
                   <button
                     key={voice.id}
                     type="button"
@@ -609,7 +717,9 @@ export default function SetupPage() {
                       <p className="font-semibold leading-tight text-white">{voice.label}</p>
                       <p className="mt-2 text-sm text-white/70">{voice.description}</p>
                     </div>
-                    <span className="text-xs font-semibold text-[#9aa7ff]">{voice.elevelabsTag}</span>
+                    {voice.badge && (
+                      <span className="text-xs font-semibold text-[#9aa7ff]">{voice.badge}</span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -721,7 +831,8 @@ export default function SetupPage() {
                   </div>
                   <p className="mt-2 text-xs text-white/60">{selectedPersona.voiceBadge}</p>
                   <p className="mt-3 text-xs font-semibold text-[#9aa7ff]">
-                    Voice Selection: {activeVoice.label} · {activeVoice.elevelabsTag}
+                    Voice Selection: {activeVoiceStyle.label}
+                    {activeVoiceStyle.badge ? ` · ${activeVoiceStyle.badge}` : ""}
                   </p>
                 </div>
 

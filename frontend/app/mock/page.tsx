@@ -9,6 +9,7 @@ import { InsightsDrawer } from "@/components/interview/insights-drawer"
 import { Settings2, ChevronDown } from "lucide-react"
 import type { InterviewPlan, InterviewSetupPayload, PersonaConfig } from "@/lib/gemini"
 import { SETUP_CACHE_KEY, PLAN_CACHE_KEY } from "@/lib/cache-keys"
+import { resolvePersonaVoice } from "@/lib/voices"
 
 const mockQuestions = [
   {
@@ -185,6 +186,7 @@ const fallbackPersona: PersonaConfig = {
   technicalWeight: 70,
   duration: "standard",
   voiceStyle: "Calm technical mentor · ElevenLabs",
+  voiceStyleId: "mentor",
   additionalContext: "Fallback persona configuration without live Gemini data.",
 }
 
@@ -214,6 +216,7 @@ const buildFallbackPlan = (persona: PersonaConfig): InterviewPlan => ({
       typeof persona.technicalWeight === "number" ? persona.technicalWeight : fallbackPersona.technicalWeight,
     duration: persona.duration ?? fallbackPersona.duration,
     voiceStyle: persona.voiceStyle ?? fallbackPersona.voiceStyle,
+    voiceStyleId: persona.voiceStyleId ?? fallbackPersona.voiceStyleId,
     additionalContext: persona.additionalContext ?? fallbackPersona.additionalContext,
   },
   questions: fallbackPlan.questions,
@@ -236,9 +239,14 @@ export default function MockInterviewPage() {
   const [planError, setPlanError] = useState<string | null>(null)
   const [fallbackPlanState, setFallbackPlanState] = useState<InterviewPlan | null>(null)
   const [isGreetingActive, setIsGreetingActive] = useState(false)
+  const [isVoicePlaying, setIsVoicePlaying] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const greetingAudioRef = useRef<HTMLAudioElement | null>(null)
+  const greetingFetchKeyRef = useRef<string | null>(null)
+  const greetingPlaybackRef = useRef(false)
+  const [greetingAudioUrl, setGreetingAudioUrl] = useState<string | null>(null)
 
   const currentTheme = themeStyles[theme]
   const selectedThemeOption = themeOptions.find((option) => option.id === theme)
@@ -269,13 +277,55 @@ export default function MockInterviewPage() {
       ? `JD anchor: ${displayFocusArea}`
       : ""
   const personaSource = activePlan?.persona ?? fallbackPersona
-  const personaVoiceLabel = personaSource.voiceStyle ?? fallbackPlan.persona.voiceStyle!
+  const personaVoiceProfile = useMemo(
+    () => resolvePersonaVoice(personaSource.personaId, personaSource.voiceStyleId),
+    [personaSource.personaId, personaSource.voiceStyleId],
+  )
+  const personaVoiceLabel = personaVoiceProfile.label ?? personaSource.voiceStyle ?? fallbackPlan.persona.voiceStyle!
   const personaInsights = useMemo(() => {
     if (!activePlan?.guidance) return defaultInsights
     return [activePlan.guidance, ...defaultInsights.filter((tip) => tip !== activePlan.guidance)]
   }, [activePlan])
-  const personaGreetingLine = useMemo(() => buildPersonaGreetingLine(personaSource), [personaSource])
+  const personaGreetingLine = useMemo(() => {
+    return personaVoiceProfile.greetingText ?? buildPersonaGreetingLine(personaSource)
+  }, [personaVoiceProfile, personaSource])
   const personaIdentity = useMemo(() => getPersonaIdentity(personaSource), [personaSource])
+
+  const fetchPersonaGreetingAudio = useCallback(async () => {
+    if (!personaSource.personaId) {
+      return null
+    }
+
+    try {
+      const response = await fetch("/api/voice-question", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          personaId: personaSource.personaId,
+          voiceStyleId: personaSource.voiceStyleId,
+          questionText: personaVoiceProfile.greetingText,
+        }),
+      })
+
+      if (!response.ok) {
+        const message = await response.text().catch(() => "")
+        throw new Error(message || "Unable to fetch greeting audio")
+      }
+
+      const data = (await response.json()) as { audioUrl?: string | null; mocked?: boolean; error?: string }
+      if (!data?.audioUrl) {
+        if (data?.mocked) {
+          return null
+        }
+        throw new Error(data?.error ?? "Greeting audio missing from response")
+      }
+
+      return data.audioUrl as string
+    } catch (error) {
+      console.error("Failed to prepare greeting audio", error)
+      return null
+    }
+  }, [personaSource.personaId, personaSource.voiceStyleId, personaVoiceProfile.greetingText])
 
   useEffect(() => {
     if (showIntro) {
@@ -443,6 +493,96 @@ export default function MockInterviewPage() {
   }, [])
 
   useEffect(() => {
+    if (!hasPlan) {
+      setGreetingAudioUrl(null)
+      greetingFetchKeyRef.current = null
+      greetingPlaybackRef.current = false
+      return
+    }
+
+    const key = `${personaSource.personaId}-${personaSource.voiceStyleId ?? "default"}`
+    if (greetingFetchKeyRef.current === key && greetingAudioUrl) {
+      return
+    }
+
+    let cancelled = false
+    greetingFetchKeyRef.current = key
+    greetingPlaybackRef.current = false
+
+    fetchPersonaGreetingAudio().then((audioUrl) => {
+      if (cancelled) return
+      setGreetingAudioUrl(audioUrl)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [hasPlan, personaSource.personaId, personaSource.voiceStyleId, fetchPersonaGreetingAudio, greetingAudioUrl])
+
+  useEffect(() => {
+    if (showIntro || planLoading || !hasPlan) {
+      if (showIntro) {
+        greetingPlaybackRef.current = false
+        if (greetingAudioRef.current) {
+          greetingAudioRef.current.pause()
+          greetingAudioRef.current = null
+        }
+        setIsVoicePlaying(false)
+      }
+      return
+    }
+
+    if (greetingPlaybackRef.current) {
+      return
+    }
+
+    const playGreeting = async () => {
+      greetingPlaybackRef.current = true
+      try {
+        let audioUrl = greetingAudioUrl
+        if (!audioUrl) {
+          audioUrl = await fetchPersonaGreetingAudio()
+          if (audioUrl) {
+            setGreetingAudioUrl(audioUrl)
+          } else {
+            setIsVoicePlaying(false)
+            return
+          }
+        }
+
+        const audio = new Audio(audioUrl)
+        greetingAudioRef.current = audio
+        setIsVoicePlaying(true)
+        setIsGreetingActive(true)
+
+        audio.play().catch((error) => {
+          console.error("Failed to play greeting audio", error)
+          if (greetingAudioRef.current === audio) {
+            greetingAudioRef.current = null
+          }
+          setIsVoicePlaying(false)
+        })
+
+        const reset = () => {
+          if (greetingAudioRef.current === audio) {
+            greetingAudioRef.current = null
+          }
+          setIsVoicePlaying(false)
+          setIsGreetingActive(false)
+        }
+
+        audio.onended = reset
+        audio.onpause = reset
+      } catch (error) {
+        console.error("Greeting playback error", error)
+        setIsVoicePlaying(false)
+      }
+    }
+
+    void playGreeting()
+  }, [showIntro, planLoading, hasPlan, greetingAudioUrl, fetchPersonaGreetingAudio])
+
+  useEffect(() => {
     let cancelled = false
 
     const enableCamera = async () => {
@@ -492,6 +632,10 @@ export default function MockInterviewPage() {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop())
         streamRef.current = null
+      }
+      if (greetingAudioRef.current) {
+        greetingAudioRef.current.pause()
+        greetingAudioRef.current = null
       }
     }
   }, [])
@@ -694,10 +838,12 @@ export default function MockInterviewPage() {
             />
             <div className={videoInnerClass}>
               <div className="absolute inset-0 flex items-center justify-center">
-                <InterviewerAvatar isSpeaking={!isMuted} />
+                <InterviewerAvatar isSpeaking={isVoicePlaying} />
               </div>
               <div className={cn("absolute top-5 left-5", namePlateClass)}>{personaIdentity.interviewerName}</div>
-              <div className={cn("absolute bottom-5 left-5", statusPlateClass)}>{personaIdentity.interviewerTitle}</div>
+              <div className={cn("absolute bottom-5 left-5", statusPlateClass)}>
+                {isVoicePlaying ? "Now speaking" : personaIdentity.interviewerTitle}
+              </div>
             </div>
           </div>
 

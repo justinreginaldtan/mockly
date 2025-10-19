@@ -18,6 +18,7 @@ export interface PersonaConfig {
   role: string
   focusAreas: string[]
   voiceStyle?: string
+  voiceStyleId?: string
   technicalWeight: number
   duration: 'short' | 'standard'
   additionalContext?: string

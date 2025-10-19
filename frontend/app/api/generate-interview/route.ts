@@ -45,6 +45,7 @@ function validatePayload(body: unknown): InterviewSetupPayload {
             .map((item) => item.trim())
             .filter(Boolean),
       voiceStyle: persona.voiceStyle ? String(persona.voiceStyle) : undefined,
+      voiceStyleId: persona.voiceStyleId ? String(persona.voiceStyleId) : undefined,
       technicalWeight: Number(persona.technicalWeight),
       duration: persona.duration === "short" ? "short" : "standard",
       additionalContext: persona.additionalContext ? String(persona.additionalContext) : undefined,

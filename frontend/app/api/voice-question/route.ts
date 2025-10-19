@@ -1,56 +1,105 @@
 import { NextResponse } from "next/server"
 
-// TODO: Connect ElevenLabs TTS API for voice generation
-// This endpoint will convert interview questions to natural-sounding speech
+import {
+  ELEVENLABS_MODEL_ID,
+  hasElevenLabsApiKey,
+  resolvePersonaVoice,
+  type PersonaVoiceConfig,
+} from "@/lib/voices"
+
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY ?? ""
+const ELEVENLABS_BASE_URL = process.env.ELEVENLABS_BASE_URL ?? "https://api.elevenlabs.io"
+
+interface VoiceRequestPayload {
+  questionText?: string
+  personaId?: string
+  voiceStyleId?: string
+  preview?: boolean
+}
+
+function toBase64AudioUrl(buffer: ArrayBuffer, mimeType = "audio/mpeg"): string {
+  const base64 = Buffer.from(buffer).toString("base64")
+  return `data:${mimeType};base64,${base64}`
+}
+
+function resolveVoiceConfig(payload: VoiceRequestPayload): { text: string; voice: PersonaVoiceConfig } {
+  const voice = resolvePersonaVoice(payload.personaId ?? "google-swe", payload.voiceStyleId)
+  const trimmed = payload.questionText?.trim()
+
+  if (trimmed && trimmed.length > 0) {
+    return { text: trimmed, voice }
+  }
+
+  if (payload.preview) {
+    return { text: voice.previewText, voice }
+  }
+
+  return { text: voice.greetingText, voice }
+}
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { questionText, voiceId = "default" } = body
+    const body = (await request.json()) as VoiceRequestPayload
+    const { text, voice } = resolveVoiceConfig(body)
 
-    // Mock response - replace with actual ElevenLabs API call
-    // In production, this would return an audio URL or base64 audio data
-    const mockAudioUrl = "/mock-audio.mp3"
+    if (!text) {
+      return NextResponse.json(
+        { success: false, error: "No text provided for synthesis." },
+        { status: 400 },
+      )
+    }
+
+    if (!hasElevenLabsApiKey()) {
+      return NextResponse.json({
+        success: true,
+        mocked: true,
+        text,
+        audioUrl: null,
+        voiceStyleId: voice.styleId,
+        voiceLabel: voice.label,
+      })
+    }
+
+    const response = await fetch(`${ELEVENLABS_BASE_URL}/v1/text-to-speech/${voice.elevenLabsVoiceId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "audio/mpeg",
+        "xi-api-key": ELEVENLABS_API_KEY,
+      },
+      body: JSON.stringify({
+        text,
+        model_id: ELEVENLABS_MODEL_ID,
+        voice_settings: {
+          stability: voice.voiceSettings?.stability ?? 0.5,
+          similarity_boost: voice.voiceSettings?.similarityBoost ?? 0.75,
+          style: voice.voiceSettings?.style ?? 0.15,
+        },
+      }),
+    })
+
+    if (!response.ok) {
+      const message = await response.text().catch(() => "Failed to generate audio with ElevenLabs.")
+      return NextResponse.json(
+        {
+          success: false,
+          error: message || "Failed to generate audio with ElevenLabs.",
+        },
+        { status: 502 },
+      )
+    }
+
+    const arrayBuffer = await response.arrayBuffer()
 
     return NextResponse.json({
       success: true,
-      audioUrl: mockAudioUrl,
-      duration: 3.5, // seconds
-      text: questionText,
+      audioUrl: toBase64AudioUrl(arrayBuffer),
+      voiceStyleId: voice.styleId,
+      voiceLabel: voice.label,
+      text,
     })
   } catch (error) {
+    console.error("voice-question error", error)
     return NextResponse.json({ success: false, error: "Failed to generate voice" }, { status: 500 })
   }
 }
-
-/*
- * Integration Guide:
- *
- * 1. Install ElevenLabs SDK: npm install elevenlabs
- *
- * 2. Set up environment variable: ELEVENLABS_API_KEY
- *
- * 3. Example implementation:
- *
- * import { ElevenLabsClient } from "elevenlabs";
- *
- * const client = new ElevenLabsClient({
- *   apiKey: process.env.ELEVENLABS_API_KEY
- * });
- *
- * const audio = await client.generate({
- *   voice: voiceId || "Rachel", // Professional female voice
- *   text: questionText,
- *   model_id: "eleven_monolingual_v1"
- * });
- *
- * // Convert audio stream to URL or base64
- * const audioBuffer = await streamToBuffer(audio);
- * const audioUrl = await uploadToStorage(audioBuffer);
- *
- * return NextResponse.json({
- *   success: true,
- *   audioUrl: audioUrl,
- *   duration: calculateDuration(audioBuffer)
- * });
- */
