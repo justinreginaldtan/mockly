@@ -68,6 +68,13 @@ const cardVariants = {
   visible: { opacity: 1, y: 0 },
 }
 
+const hoverVariants = {
+  hover: { 
+    scale: 1.02,
+    transition: { duration: 0.2, ease: "easeOut" }
+  }
+}
+
 export default function ResultsPage() {
   const [showAnimation, setShowAnimation] = useState(true)
   const [showFollowUps, setShowFollowUps] = useState(false)
@@ -150,10 +157,10 @@ export default function ResultsPage() {
                 <Sparkles className="h-4 w-4 text-[#FF7A70]" />
                 Gemini analysis
               </div>
-              <h1 className="font-display text-4xl font-semibold tracking-tight text-[#1A1A1A] md:text-5xl">
-                You’re interview-ready.
+              <h1 className="font-display text-3xl font-semibold tracking-tight text-[#1A1A1A] md:text-4xl lg:text-5xl">
+                You're interview-ready.
               </h1>
-              <p className="max-w-2xl font-body text-base font-medium leading-relaxed max-sm:clamp-2 md:text-lg">
+              <p className="max-w-2xl font-body text-base font-medium leading-relaxed max-sm:text-sm max-sm:leading-snug md:text-lg">
                 Gemini mapped your answers against the Google SWE intern JD. Use this recap to tighten your story before the
                 real interview.
               </p>
@@ -171,8 +178,19 @@ export default function ResultsPage() {
           </div>
         </motion.section>
 
-        <section className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
-          <div className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+        <motion.section 
+          className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          <motion.div 
+            className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)] hover:border-[#FF7A70]/20"
+            whileHover="hover"
+            variants={hoverVariants}
+          >
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm font-semibold text-[#FF7A70]">
@@ -204,9 +222,13 @@ export default function ResultsPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          <aside className="animate-fade-up delay-100 space-y-4 rounded-2xl border border-[#EDE5E0] bg-white/95 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+          <motion.aside 
+            className="animate-fade-up delay-100 space-y-4 rounded-2xl border border-[#EDE5E0] bg-white/95 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)] hover:border-[#FF7A70]/20"
+            whileHover="hover"
+            variants={hoverVariants}
+          >
             <div className="flex items-center gap-2 text-sm font-semibold text-[#FF7A70]">
               <BadgeCheck className="h-4 w-4" />
               Quick wins
@@ -228,7 +250,7 @@ export default function ResultsPage() {
                 {evaluationSummary.weakAreas[0]} · {evaluationSummary.weakAreas[1]}
               </p>
             </div>
-          </aside>
+          </motion.aside>
         </motion.section>
 
         <motion.section
@@ -240,10 +262,12 @@ export default function ResultsPage() {
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           {evidenceSnippets.map((snippet, index) => (
-            <div
+            <motion.div
               key={snippet.skill}
-              className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]"
+              className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)] hover:border-[#FF7A70]/20"
               style={{ animationDelay: `${0.05 * index}s` }}
+              whileHover="hover"
+              variants={hoverVariants}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -266,12 +290,23 @@ export default function ResultsPage() {
               <div className="mt-4 rounded-2xl bg-[#FFF2ED] px-4 py-3 text-xs font-body font-semibold text-[#FF7A70]">
                 JD signal: {snippet.jdSignal}
               </div>
-            </div>
+            </motion.div>
           ))}
         </motion.section>
 
-        <section className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">
-          <div className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+        <motion.section 
+          className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          <motion.div 
+            className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)] hover:border-[#FF7A70]/20"
+            whileHover="hover"
+            variants={hoverVariants}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 font-body text-sm font-semibold text-[#FF7A70]">
                 <BarChart3 className="h-4 w-4" />
@@ -309,9 +344,13 @@ export default function ResultsPage() {
                 </p>
               </li>
             </ul>
-          </div>
+          </motion.div>
 
-          <aside className="animate-fade-up delay-100 space-y-4 rounded-2xl border border-[#EDE5E0] bg-white/95 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+          <motion.aside 
+            className="animate-fade-up delay-100 space-y-4 rounded-2xl border border-[#EDE5E0] bg-white/95 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)] hover:border-[#FF7A70]/20"
+            whileHover="hover"
+            variants={hoverVariants}
+          >
             <div className="flex items-center gap-2 font-body text-sm font-semibold text-[#FF7A70]">
               <MicVocal className="h-4 w-4" />
               ElevenLabs coach recap
@@ -326,10 +365,19 @@ export default function ResultsPage() {
               <Download className="mr-2 h-4 w-4" />
               Download report PDF
             </Button>
-          </aside>
+          </motion.aside>
         </motion.section>
 
-        <section className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+        <motion.section 
+          className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)] hover:border-[#FF7A70]/20"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          whileHover="hover"
+          variants={hoverVariants}
+        >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2 font-body text-sm font-semibold text-[#FF7A70]">
@@ -359,15 +407,24 @@ export default function ResultsPage() {
               Follow-up prompts will appear here once generated.
             </div>
           )}
-        </section>
+        </motion.section>
 
-        <section className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 px-8 py-10 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+        <motion.section 
+          className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 px-8 py-10 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)] hover:border-[#FF7A70]/20"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          whileHover="hover"
+          variants={hoverVariants}
+        >
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#EDE5E0] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#777777]">
                 Next steps
               </div>
-              <h2 className="font-display text-2xl font-semibold text-[#1A1A1A]">Keep your momentum going</h2>
+              <h2 className="font-display text-xl font-semibold text-[#1A1A1A] md:text-2xl">Keep your momentum going</h2>
               <p className="font-body text-sm font-medium">
                 Start a new interview with a fresh persona or revisit the setup to fine-tune Gemini’s focus.
               </p>
@@ -384,7 +441,7 @@ export default function ResultsPage() {
               </Link>
             </div>
           </div>
-        </section>
+        </motion.section>
       </motion.main>
     </div>
   )

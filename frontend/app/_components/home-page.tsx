@@ -48,7 +48,7 @@ const stepActionButtonClass =
   "rounded-xl px-8 py-4 bg-[#1A1A1A] text-white font-medium transition-transform duration-200 hover:-translate-y-0.5 hover:scale-[1.03] hover:bg-[#2E2E2E] shadow-[0_2px_20px_rgba(0,0,0,0.1)] focus-visible:ring-offset-[#FFF8F5]"
 
 const cardClass =
-  "rounded-2xl border border-[#EDE5E0] bg-white/95 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]"
+  "rounded-2xl border border-[#EDE5E0] bg-white/95 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)] hover:border-[#FF7A70]/20"
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 32 },
@@ -58,6 +58,13 @@ const sectionVariants = {
 const cardVariants = {
   hidden: { opacity: 0, y: 18 },
   visible: { opacity: 1, y: 0 },
+}
+
+const hoverVariants = {
+  hover: { 
+    scale: 1.02,
+    transition: { duration: 0.2, ease: "easeOut" }
+  }
 }
 
 const intakeSummary = {
@@ -132,7 +139,7 @@ const intakeSummary = {
 }
 
 interface HomePageProps {
-  HeroComponent?: (props: HeroProps) => JSX.Element
+  HeroComponent?: (props: HeroProps) => React.JSX.Element
 }
 
 export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
@@ -270,11 +277,11 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
             <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#E0D6CF] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
               Step 1
             </span>
-            <h2 className="font-display text-3xl font-semibold tracking-tight text-[#1A1A1A] md:text-4xl">
-              Upload your materials
-            </h2>
-            <p className="font-body text-base font-medium leading-relaxed max-sm:clamp-2">
-              Mockly calibrates every interview to the resume you provide and the job description you’re targeting. Gemini
+              <h2 className="font-display text-2xl font-semibold tracking-tight text-[#1A1A1A] md:text-3xl lg:text-4xl">
+                Upload your materials
+              </h2>
+            <p className="font-body text-base font-medium leading-relaxed max-sm:text-sm max-sm:leading-snug">
+              Mockly calibrates every interview to the resume you provide and the job description you're targeting. Gemini
               analyzes both so the Coach Card is ready before you enter the room.
             </p>
           </div>
@@ -352,12 +359,12 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 <Sparkles className="h-4 w-4 text-[#FF7A70]" /> AI interview brief
               </div>
               <h2
-                className="font-display text-3xl font-semibold tracking-tight text-[#1A1A1A] animate-fade-up md:text-4xl"
+                className="font-display text-2xl font-semibold tracking-tight text-[#1A1A1A] animate-fade-up md:text-3xl lg:text-4xl"
                 style={{ animationDelay: "0.1s" }}
               >
                 What Gemini prepared for you
               </h2>
-              <p className="max-w-3xl font-body text-base font-medium leading-relaxed animate-fade-up max-sm:clamp-2 md:text-lg" style={{ animationDelay: "0.2s" }}>
+              <p className="max-w-3xl font-body text-base font-medium leading-relaxed animate-fade-up max-sm:text-sm max-sm:leading-snug md:text-lg" style={{ animationDelay: "0.2s" }}>
                 Gemini reviews your resume, reads the job description, and scripts the first moments of the conversation. When you
                 enter the mock room, the interviewer, agenda, and Coach Card scoring pillars are already aligned.
               </p>
@@ -377,9 +384,10 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
             <div className="space-y-8">
               <motion.div
                 className={`${cardClass} p-6 md:p-8`}
-                variants={cardVariants}
+                variants={{ ...cardVariants, ...hoverVariants }}
                 initial="hidden"
                 whileInView="visible"
+                whileHover="hover"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
               >
@@ -409,9 +417,10 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
 
               <motion.div
                 className={`${cardClass} p-6 md:p-8`}
-                variants={cardVariants}
+                variants={{ ...cardVariants, ...hoverVariants }}
                 initial="hidden"
                 whileInView="visible"
+                whileHover="hover"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.12 }}
               >
@@ -444,9 +453,10 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
 
               <motion.div
                 className={`${cardClass} p-6 md:p-8`}
-                variants={cardVariants}
+                variants={{ ...cardVariants, ...hoverVariants }}
                 initial="hidden"
                 whileInView="visible"
+                whileHover="hover"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.18 }}
               >
@@ -497,9 +507,10 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
 
               <motion.div
                 className={`${cardClass} p-6 md:p-8`}
-                variants={cardVariants}
+                variants={{ ...cardVariants, ...hoverVariants }}
                 initial="hidden"
                 whileInView="visible"
+                whileHover="hover"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.24 }}
               >
@@ -528,7 +539,11 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.5, ease: "easeOut", delay: 0.18 }}
             >
-              <div className={`${cardClass} p-6 md:p-8`}>
+              <motion.div 
+                className={`${cardClass} p-6 md:p-8`}
+                whileHover="hover"
+                variants={hoverVariants}
+              >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
                   <MicVocal className="h-4 w-4 text-[#FF7A70]" /> Recommended interviewer
                 </div>
@@ -554,7 +569,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             </motion.aside>
           </motion.div>
         ) : (
@@ -585,11 +600,11 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#E0D6CF] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
               Step 3
             </span>
-              <h2 className="font-display text-3xl font-semibold tracking-tight text-[#1A1A1A] md:text-4xl">
+              <h2 className="font-display text-2xl font-semibold tracking-tight text-[#1A1A1A] md:text-3xl lg:text-4xl">
                 Enter the mock room
               </h2>
-              <p className="max-w-2xl font-body text-base font-medium leading-relaxed max-sm:clamp-2">
-              Your interviewer, agenda, and scoring pillars are ready. Step into the room when you’re prepared to speak and
+              <p className="max-w-2xl font-body text-base font-medium leading-relaxed max-sm:text-sm max-sm:leading-snug">
+              Your interviewer, agenda, and scoring pillars are ready. Step into the room when you're prepared to speak and
               receive a Coach Card moments after you finish.
             </p>
             </div>
