@@ -60,12 +60,27 @@ export const VOICE_STYLE_OPTIONS: VoiceStyleOption[] = [
       style: 0.1,
     },
   },
+  {
+    id: "security-coach",
+    label: "Security Coach · Measured",
+    elevenLabsVoiceId: "xMagNCpMgZ83QOEsHNre",
+    previewText: "Hi, I’m your Cisco SOC lead today. Let’s walk through your containment calls and automation wins together.",
+    greetingText: "Thanks for joining. I’ll treat this like a Cisco escalation—walk me through the incident and what you recommended.",
+    description: "Calm, analytical cadence that mirrors incident-review debriefs.",
+    badge: "Cisco SOC mentor",
+    voiceSettings: {
+      stability: 0.6,
+      similarityBoost: 0.55,
+      style: 0.18,
+    },
+  },
 ]
 
 export const PERSONA_VOICE_DEFAULTS: Record<string, VoiceStyleOption["id"]> = {
   "google-analyst": "mentor",
   "amazon-pm": "recruiter",
   "meta-swe": "principal",
+  "cisco-soc": "security-coach",
 }
 
 const voiceLookup = new Map(VOICE_STYLE_OPTIONS.map((option) => [option.id, option]))

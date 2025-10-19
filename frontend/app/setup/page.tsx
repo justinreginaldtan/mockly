@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   BrainCircuit,
   Building2,
@@ -86,6 +86,22 @@ const additionalPersonas = [
     ],
     jdSignals: ["Distributed systems depth", "Cross-team leadership", "Resolving ambiguity quickly"],
   },
+  {
+    id: "cisco-soc",
+    company: "Cisco",
+    role: "Security Operations Intern",
+    tagline: "Incident-response coach focused on calm triage, automation, and crisp exec comms.",
+    recommendedFocusAreas: ["timeManagement", "leadership", "communication"] as FocusAreaId[],
+    recommendedWeight: 60,
+    voiceStyle: "Security Coach · ElevenLabs",
+    voiceBadge: "Measured & exacting",
+    highlights: [
+      "Challenges you on containment decisions and timelines",
+      "Pushes automation stories that reduce response time",
+      "Keeps follow-ups anchored in stakeholder-ready recommendations",
+    ],
+    jdSignals: ["Incident response", "Automation storytelling", "Executive communication"],
+  },
 ] as const
 
 const allPersonas = [...personaPresets, ...additionalPersonas] as const
@@ -140,16 +156,26 @@ const gradientClass =
 
 export default function SetupPage() {
   const router = useRouter()
-  const [selectedPersonaId, setSelectedPersonaId] = useState<typeof allPersonas[number]["id"]>(allPersonas[0].id)
-  const [technicalWeight, setTechnicalWeight] = useState([allPersonas[0].recommendedWeight])
+  const searchParams = useSearchParams()
+  const recommendedPersonaId = searchParams.get("recommended")
+  const defaultPersonaId = useMemo(
+    () => allPersonas.find((persona) => persona.id === recommendedPersonaId)?.id ?? allPersonas[0].id,
+    [recommendedPersonaId],
+  )
+  const defaultPersona = useMemo(
+    () => allPersonas.find((persona) => persona.id === defaultPersonaId) ?? allPersonas[0],
+    [defaultPersonaId],
+  )
+
+  const [selectedPersonaId, setSelectedPersonaId] = useState<typeof allPersonas[number]["id"]>(defaultPersona.id)
+  const [technicalWeight, setTechnicalWeight] = useState([defaultPersona.recommendedWeight])
   const [duration, setDuration] = useState<"short" | "standard">("standard")
-  const [voiceStyle, setVoiceStyle] = useState<string>(() => resolvePersonaVoice(allPersonas[0].id).styleId)
+  const [voiceStyle, setVoiceStyle] = useState<string>(() => resolvePersonaVoice(defaultPersona.id).styleId)
   const [isStarting, setIsStarting] = useState(false)
   const [startError, setStartError] = useState<string | null>(null)
   const [previewingPersonaId, setPreviewingPersonaId] = useState<string | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [focusAreas, setFocusAreas] = useState<Record<FocusAreaId, boolean>>(() => {
-    const defaultPersona = allPersonas[0]
     return focusAreaOptions.reduce((acc, option) => {
       acc[option.id] = defaultPersona.recommendedFocusAreas.includes(option.id)
       return acc
