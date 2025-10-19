@@ -35,6 +35,10 @@ export default function SimPage() {
   const [showClickToStart, setShowClickToStart] = useState<boolean>(true)
   const [micStream, setMicStream] = useState<MediaStream | null>(null)
   const [micPermissionGranted, setMicPermissionGranted] = useState<boolean>(false)
+  const [nightmareMode, setNightmareMode] = useState<boolean>(false)
+  const [nightmareIntensity, setNightmareIntensity] = useState<number>(0)
+  const [audioChaos, setAudioChaos] = useState<boolean>(false)
+  const [visualEffects, setVisualEffects] = useState<boolean>(false)
   const devActivationTimerRef = useRef<number | null>(null)
   const devInactivityTimerRef = useRef<number | null>(null)
   const keysDownRef = useRef<{ d: boolean; b: boolean }>({ d: false, b: false })
@@ -44,6 +48,9 @@ export default function SimPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const isGeneratingScenarioRef = useRef<boolean>(false)
   const firstInteractionHandledRef = useRef<boolean>(false)
+  const nightmareAudioRefs = useRef<HTMLAudioElement[]>([])
+  const nightmareTimeoutRef = useRef<number | null>(null)
+  const visualEffectTimeoutRef = useRef<number | null>(null)
 
   // Only initialize speech recorder after first user interaction and audio finishes
   const shouldInitializeRecorder = !showClickToStart && firstInteractionHandledRef.current && audioFinished

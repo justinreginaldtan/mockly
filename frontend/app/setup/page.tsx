@@ -1,5 +1,6 @@
 "use client"
 
+import React, { Suspense } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -154,7 +155,7 @@ const focusAreaOptions: Array<{ id: FocusAreaId; label: string; icon: LucideIcon
 const gradientClass =
   "bg-[linear-gradient(120deg,_#4c6fff_0%,_#6b5bff_35%,_#a855f7_70%,_#38bdf8_100%)] text-white shadow-lg shadow-primary/40 animate-gradient"
 
-export default function SetupPage() {
+function SetupPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const recommendedPersonaId = searchParams.get("recommended")
@@ -907,5 +908,18 @@ export default function SetupPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function SetupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#FFF8F5]">
+      <div className="text-center">
+        <div className="h-16 w-16 animate-spin rounded-full border-4 border-[#FF7A70]/20 border-t-[#FF7A70] mx-auto mb-4"></div>
+        <p className="text-lg font-medium text-[#1A1A1A]">Loading setup...</p>
+      </div>
+    </div>}>
+      <SetupPageContent />
+    </Suspense>
   )
 }
