@@ -74,7 +74,7 @@ export default function Hero({ onAnalyzeClick }: HeroProps) {
 
   return (
     <section
-      className="relative isolate flex min-h-[28rem] flex-col items-center justify-center overflow-hidden rounded-[3rem] bg-gradient-to-b from-[#FFF8F5] to-[#FDFCFB] px-6 py-24 text-center shadow-[0_24px_80px_-60px_rgba(26,26,26,0.35)] md:min-h-[32rem] md:px-8 md:py-32"
+      className="relative isolate flex min-h-[26rem] flex-col items-center justify-center overflow-hidden rounded-[3rem] bg-gradient-to-b from-[#FFF8F5] to-[#FDFCFB] px-4 py-20 text-center shadow-[0_24px_80px_-60px_rgba(26,26,26,0.32)] md:min-h-[30rem] md:px-8 md:py-28"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -89,7 +89,7 @@ export default function Hero({ onAnalyzeClick }: HeroProps) {
           aria-hidden="true"
         />
       </div>
-      <div className="relative z-10 mx-auto flex max-w-xl flex-col items-center gap-8">
+      <div className="relative z-10 mx-auto flex max-w-xl flex-col items-center gap-6">
         <div className="animate-fade-up" style={{ animationDelay: "0s" }}>
           <div
             className="transition-transform duration-500 will-change-transform"
@@ -100,18 +100,15 @@ export default function Hero({ onAnalyzeClick }: HeroProps) {
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/mockly-head.svg" alt="Mockly mascot" className="h-28 w-28 sm:h-32 sm:w-32" />
+            <img src="/mockly-glow.png" alt="Mockly mascot" className="h-28 w-28 sm:h-32 sm:w-32" />
           </div>
         </div>
         <div className="space-y-4">
-          <h1
-            className="font-display text-4xl font-semibold tracking-tight text-[#1A1A1A] animate-fade-up md:text-5xl"
-            style={{ animationDelay: "0.1s" }}
-          >
+          <h1 className="font-display text-4xl font-semibold tracking-[-0.01em] text-[#1A1A1A] animate-fade-up md:text-5xl" style={{ animationDelay: "0.1s" }}>
             Your friendly AI coach for interviews that feel real.
           </h1>
           <p
-            className="font-body text-base font-medium leading-relaxed text-[#444444] animate-fade-up md:text-lg"
+            className="font-body text-base font-medium leading-relaxed animate-fade-up md:text-lg"
             style={{ animationDelay: "0.2s" }}
           >
             Mockly listens, learns, and delivers instant voice feedback so every practice rep builds confidence where it counts.

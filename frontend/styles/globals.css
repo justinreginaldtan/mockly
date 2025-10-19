@@ -120,7 +120,18 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background font-body text-foreground text-neutral-600;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display tracking-[-0.01em] text-[#1A1A1A];
+  }
+  p {
+    @apply font-body text-neutral-600 leading-relaxed;
   }
 }
 

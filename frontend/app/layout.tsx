@@ -1,18 +1,19 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter, Manrope } from "next/font/google"
+import { Inter, DM_Sans } from "next/font/google"
 import "./globals.css"
 import "../styles/persona-scroll.css"
 
-const inter = Inter({
+const heading = Inter({
   subsets: ["latin"],
-  variable: "--font-body",
+  variable: "--font-heading",
   display: "swap",
 })
 
-const manrope = Manrope({
+const body = DM_Sans({
   subsets: ["latin"],
-  variable: "--font-display",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
   display: "swap",
 })
 
@@ -67,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${manrope.variable} ${inter.variable} antialiased`}>
+    <html lang="en" className={`${heading.variable} ${body.variable} antialiased`}>
       <body className="font-body">{children}</body>
     </html>
   )

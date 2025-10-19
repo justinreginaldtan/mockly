@@ -5,6 +5,7 @@ import { ArrowRight, BarChart3, CheckCircle2, FileText, Link2, MicVocal, Sparkle
 import Image from "next/image"
 import Link from "next/link"
 import Hero, { HeroProps } from "@/components/Hero"
+import { StepIndicator } from "@/components/step-indicator"
 import { Button } from "@/components/ui/button"
 import { ProgressBar } from "@/components/progress-bar"
 
@@ -37,7 +38,7 @@ Knowledge of IT systems, networking concepts, TCP/IP protocols, network devices 
 Able to legally live and work in the country for which you're applying, without visa support or sponsorship`
 
 const primaryCtaClass =
-  "rounded-xl px-8 py-4 bg-[#FF7A70] text-white font-medium shadow-[0_2px_20px_rgba(0,0,0,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.03] hover:bg-[#ff695c] hover:shadow-[0_4px_32px_rgba(0,0,0,0.12)] focus-visible:ring-offset-[#FFF8F5]"
+  "rounded-xl px-8 py-4 bg-[#FF6F65] text-white font-medium shadow-[0_2px_20px_rgba(0,0,0,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.03] hover:bg-[#ff6157] hover:shadow-[0_4px_28px_rgba(0,0,0,0.12)] focus-visible:ring-offset-[#FFF8F5]"
 
 const outlineButtonClass =
   "rounded-xl px-6 py-3 border border-[#EDE5E0] bg-white text-sm font-medium text-[#1A1A1A] shadow-[0_2px_16px_rgba(0,0,0,0.04)] transition-all duration-200 hover:bg-[#FFF2ED] hover:shadow-[0_4px_28px_rgba(0,0,0,0.08)] focus-visible:ring-offset-[#FFF8F5]"
@@ -185,6 +186,8 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
   }, [])
 
   const effectiveResumeName = uploadedResumeName ?? (analysisComplete ? SAMPLE_RESUME_NAME : undefined)
+  const stepItems = ["Upload", "Review brief", "Mock room", "Coach Card"]
+  const currentStepIndex = analysisComplete ? 1 : 0
 
   return (
     <div className="relative flex min-h-screen flex-col bg-gradient-to-b from-[#FFF8F5] to-[#FDFCFB] text-[#1A1A1A]">
@@ -202,11 +205,11 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
       )}
 
       <header className="sticky top-0 z-30 border-b border-[#EDE5E0] bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-6 py-4 md:px-8">
+        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-4 py-4 md:px-8">
           <div className="flex items-center gap-3">
             <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[#E0D6CF] bg-white/80 shadow-[0_10px_20px_-16px_rgba(26,26,26,0.45)]">
               <Image
-                src="/mockly-head.svg"
+                src="/mockly-glow.png"
                 alt="Mockly mascot"
                 width={44}
                 height={44}
@@ -231,17 +234,18 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
       </header>
 
       <main
-        className={`flex-1 space-y-28 pb-20 transition-opacity duration-500 md:pb-28 ${
+        className={`flex-1 space-y-20 pb-16 transition-opacity duration-500 md:pb-24 ${
           showCalibrating ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >
-        <div className="mx-auto max-w-screen-lg px-6 pt-20 md:px-8 md:pt-24">
+        <div className="mx-auto max-w-screen-lg px-4 pt-16 md:px-8 md:pt-20">
+          <StepIndicator steps={stepItems} currentIndex={currentStepIndex} />
           <HeroComponent onAnalyzeClick={handleScrollToIntake} />
         </div>
 
         <section
           id="intake-form"
-          className={`${cardClass} relative isolate mx-auto max-w-4xl px-8 py-12 md:px-12 md:py-14 animate-fade-up`}
+          className={`${cardClass} relative isolate mx-auto max-w-4xl px-6 py-10 md:px-10 md:py-12 animate-fade-up`}
         >
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 -translate-y-1/3 rounded-full bg-[#FF7A70]/5 blur-3xl" />
@@ -253,7 +257,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
             <h2 className="font-display text-3xl font-semibold tracking-tight text-[#1A1A1A] md:text-4xl">
               Upload your materials
             </h2>
-            <p className="font-body text-base font-medium leading-relaxed text-[#444444]">
+            <p className="font-body text-base font-medium leading-relaxed">
               Mockly calibrates every interview to the resume you provide and the job description you’re targeting. Gemini
               analyzes both so the Coach Card is ready before you enter the room.
             </p>
@@ -267,7 +271,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                   type="file"
                   accept=".pdf,.doc,.docx"
                   onChange={handleResumeUpload}
-                  className="rounded-lg border border-[#E3D8D2] bg-[#F9F3EF] px-3 py-2 text-sm text-[#1A1A1A] placeholder:text-[#B9AAA1] file:mr-4 file:rounded-md file:border-0 file:bg-white/90 file:px-3 file:py-2 file:text-sm file:font-medium file:text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#FF7A70] focus:ring-offset-2 focus:ring-offset-white"
+                  className="rounded-lg border border-[#E3D8D2] bg-[#F9F3EF] px-3 py-2 text-sm text-[#1A1A1A] placeholder:text-[#B9AAA1] file:mr-4 file:rounded-md file:border-0 file:bg-white/90 file:px-3 file:py-2 file:text-sm file:font-medium file:text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#94A3B8] focus:ring-offset-2 focus:ring-offset-white"
                 />
                 <span className="text-xs font-medium text-[#777777]">
                   {resumeFile?.name ?? uploadedResumeName ?? "No file selected yet."}
@@ -281,7 +285,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                   value={jobDescriptionInput}
                   onChange={(event) => setJobDescriptionInput(event.target.value)}
                   placeholder="Paste the Cisco Security Consulting Engineer Intern posting here…"
-                  className="rounded-lg border border-[#E3D8D2] bg-[#F9F3EF] px-3 py-2 text-sm text-[#1A1A1A] placeholder:text-[#B9AAA1] focus:outline-none focus:ring-2 focus:ring-[#FF7A70] focus:ring-offset-2 focus:ring-offset-white"
+                  className="rounded-lg border border-[#E3D8D2] bg-[#F9F3EF] px-3 py-2 text-sm text-[#1A1A1A] placeholder:text-[#B9AAA1] focus:outline-none focus:ring-2 focus:ring-[#94A3B8] focus:ring-offset-2 focus:ring-offset-white"
                 />
                 <span className="text-xs font-medium text-[#777777]">
                   Paste a full posting or include a link with key responsibilities.
@@ -307,8 +311,8 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
           </form>
         </section>
 
-        <section id="interview-brief" className="mx-auto max-w-screen-lg px-6 md:px-8">
-          <div className="relative isolate overflow-hidden rounded-[32px] bg-gradient-to-b from-white/90 to-white/70 px-8 py-12 shadow-[0_2px_24px_rgba(0,0,0,0.05)] backdrop-blur">
+        <section id="interview-brief" className="mx-auto max-w-screen-lg px-4 md:px-8">
+          <div className="relative isolate overflow-hidden rounded-[32px] bg-gradient-to-b from-white/95 to-white/70 px-8 py-10 shadow-[0_2px_24px_rgba(0,0,0,0.05)] backdrop-blur">
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute left-12 top-10 h-40 w-40 rounded-full bg-[#FF7A70]/5 blur-3xl" />
               <div className="absolute right-16 bottom-12 h-48 w-48 rounded-full bg-[#FF7A70]/5 blur-3xl" />
@@ -329,10 +333,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               >
                 What Gemini prepared for you
               </h2>
-              <p
-                className="max-w-3xl font-body text-base font-medium leading-relaxed text-[#444444] animate-fade-up md:text-lg"
-                style={{ animationDelay: "0.2s" }}
-              >
+              <p className="max-w-3xl font-body text-base font-medium leading-relaxed animate-fade-up md:text-lg" style={{ animationDelay: "0.2s" }}>
                 Gemini reviews your resume, reads the job description, and scripts the first moments of the conversation. When you
                 enter the mock room, the interviewer, agenda, and Coach Card scoring pillars are already aligned.
               </p>
@@ -341,7 +342,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
         </section>
 
         {analysisComplete ? (
-          <div className="mx-auto grid max-w-screen-lg gap-10 px-6 md:px-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+          <div className="mx-auto grid max-w-screen-lg gap-8 px-4 md:px-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
             <div className="space-y-8 animate-fade-up" style={{ animationDelay: "0.15s" }}>
               <div className={`${cardClass} p-6 md:p-8`}>
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
@@ -350,7 +351,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 <h3 className="mt-4 font-display text-2xl font-semibold text-[#1A1A1A]">
                   {intakeSummary.resume.headline}
                 </h3>
-                <p className="mt-3 font-body text-sm font-medium leading-relaxed text-[#444444]">
+                <p className="mt-3 font-body text-sm font-medium leading-relaxed">
                   {intakeSummary.resume.summary}
                 </p>
                 {effectiveResumeName && (
@@ -358,7 +359,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                     Analyzed file: <span className="text-[#1A1A1A]">{effectiveResumeName}</span>
                   </div>
                 )}
-                <ul className="mt-4 space-y-2 font-body text-sm font-medium text-[#444444]">
+                <ul className="mt-4 space-y-2 font-body text-sm font-medium">
                   {intakeSummary.resume.highlights.map((item) => (
                     <li key={item} className="flex items-start gap-2">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#FF7A70]" />
@@ -375,10 +376,10 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 <h3 className="mt-4 font-display text-2xl font-semibold text-[#1A1A1A]">
                   {intakeSummary.job.company} · {intakeSummary.job.role}
                 </h3>
-                <p className="mt-3 font-body text-sm font-medium leading-relaxed text-[#444444]">
+                <p className="mt-3 font-body text-sm font-medium leading-relaxed">
                   {intakeSummary.job.summary}
                 </p>
-                <ul className="mt-4 space-y-2 font-body text-sm font-medium text-[#444444]">
+                <ul className="mt-4 space-y-2 font-body text-sm font-medium">
                   {intakeSummary.job.signals.map((signal) => (
                     <li key={signal} className="flex items-start gap-2">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#FF7A70]" />
@@ -389,7 +390,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 {jobDescriptionSource && (
                   <div className="mt-4 rounded-2xl border border-[#EDE5E0] bg-white/95 px-4 py-3 text-xs font-medium text-[#777777]">
                     <p className="font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">JD excerpt</p>
-                    <p className="mt-2 max-h-48 overflow-y-auto whitespace-pre-wrap font-body text-sm font-medium leading-relaxed text-[#444444]">
+                    <p className="mt-2 max-h-48 overflow-y-auto whitespace-pre-wrap font-body text-sm font-medium leading-relaxed">
                       {jobDescriptionSource}
                     </p>
                   </div>
@@ -400,7 +401,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
                   <Target className="h-4 w-4 text-[#FF7A70]" /> Gemini brief
                 </div>
-                <p className="mt-4 font-body text-sm font-medium leading-relaxed text-[#444444]">
+                <p className="mt-4 font-body text-sm font-medium leading-relaxed">
                   {intakeSummary.focusSummary}
                 </p>
                 <div className="mt-6 space-y-4">
@@ -433,7 +434,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                   {intakeSummary.focusAreas.map((area) => (
                     <div
                       key={area.label}
-                      className="rounded-2xl border border-[#E4D6CE] bg-[#F9F2ED] px-4 py-3 font-body text-sm font-medium text-[#444444]"
+                      className="rounded-2xl border border-[#E4D6CE] bg-[#F9F2ED] px-4 py-3 font-body text-sm font-medium"
                     >
                       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#8F7A6F]">{area.label}</p>
                       <p className="mt-2">{area.detail}</p>
@@ -453,7 +454,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                         <span>Q{index + 1}</span>
                         <span className="text-[#7A6C64]">{question.focus}</span>
                       </div>
-                      <p className="mt-2 font-body text-sm font-medium leading-relaxed text-[#444444]">{question.prompt}</p>
+                      <p className="mt-2 font-body text-sm font-medium leading-relaxed">{question.prompt}</p>
                     </li>
                   ))}
                 </ul>
@@ -468,18 +469,18 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 <h3 className="mt-4 font-display text-3xl font-semibold text-[#1A1A1A]">
                   {intakeSummary.persona.name}
                 </h3>
-                <p className="font-body text-sm font-medium text-[#444444]">{intakeSummary.persona.title}</p>
-                <div className="mt-4 rounded-2xl border border-[#E4D6CE] bg-[#F9F2ED] p-4 font-body text-sm font-medium text-[#444444]">
+                <p className="font-body text-sm font-medium">{intakeSummary.persona.title}</p>
+                <div className="mt-4 rounded-2xl border border-[#E4D6CE] bg-[#F9F2ED] p-4 font-body text-sm font-medium">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">Voice persona</p>
                   <p className="mt-2 font-semibold text-[#1A1A1A]">{intakeSummary.persona.voiceLabel}</p>
                   <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-[#7A6C64]">
                     {intakeSummary.persona.voiceBadge}
                   </span>
                 </div>
-                <p className="mt-4 font-body text-sm font-medium leading-relaxed text-[#444444]">
+                <p className="mt-4 font-body text-sm font-medium leading-relaxed">
                   {intakeSummary.persona.opener}
                 </p>
-                <div className="mt-4 space-y-3 font-body text-sm font-medium text-[#444444]">
+                <div className="mt-4 space-y-3 font-body text-sm font-medium">
                   {intakeSummary.persona.reasons.map((reason) => (
                     <div key={reason} className="flex items-start gap-2">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#FF7A70]" />
@@ -492,7 +493,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
           </div>
         ) : (
           <div
-            className={`${cardClass} mx-auto max-w-4xl px-8 py-12 text-center font-body text-sm font-medium text-[#444444] md:px-12 animate-fade-up`}
+            className={`${cardClass} mx-auto max-w-4xl px-8 py-12 text-center font-body text-sm font-medium md:px-12 animate-fade-up`}
           >
             Upload a resume PDF and the job description you’re targeting, then select{" "}
             <span className="font-semibold text-[#1A1A1A]">Analyze with Gemini</span> to generate your personalized interview
@@ -500,7 +501,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
           </div>
         )}
 
-        <section className="mx-auto max-w-screen-lg px-6 pb-24 md:px-8">
+        <section className="mx-auto max-w-screen-lg px-4 pb-16 md:px-8">
           <div className="animate-fade-up" style={{ animationDelay: "0.2s" }}>
             <div className="flex flex-col items-start gap-4">
               <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#E0D6CF] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
@@ -509,7 +510,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               <h2 className="font-display text-3xl font-semibold tracking-tight text-[#1A1A1A] md:text-4xl">
                 Enter the mock room
               </h2>
-              <p className="max-w-2xl font-body text-base font-medium leading-relaxed text-[#444444]">
+              <p className="max-w-2xl font-body text-base font-medium leading-relaxed">
               Your interviewer, agenda, and scoring pillars are ready. Step into the room when you’re prepared to speak and
               receive a Coach Card moments after you finish.
             </p>

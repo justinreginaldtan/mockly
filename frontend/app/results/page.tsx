@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { ProgressBar } from "@/components/progress-bar"
 import { SuccessAnimation } from "@/components/success-animation"
+import { StepIndicator } from "@/components/step-indicator"
 
 const evaluationSummary = {
   overallScore: 82,
@@ -85,12 +86,14 @@ export default function ResultsPage() {
     setTimeout(() => setIsGeneratingAudio(false), 2500)
   }
 
+  const progressSteps = ["Upload", "Review brief", "Mock room", "Coach Card"]
+
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-[#FFF8F5] to-[#FDFCFB] text-[#1A1A1A]">
       {showAnimation && <SuccessAnimation onComplete={() => setShowAnimation(false)} />}
 
       <header className="sticky top-0 z-30 border-b border-[#EDE5E0] bg-white/85 backdrop-blur">
-        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-6 py-4 md:px-8">
+        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-4 py-4 md:px-8">
           <div className="flex items-center gap-3">
             <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[#E0D6CF] bg-white/90 shadow-[0_10px_24px_-16px_rgba(26,26,26,0.45)]">
               <span className="font-display text-sm font-semibold text-[#1A1A1A]">Mock</span>
@@ -110,7 +113,8 @@ export default function ResultsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-screen-lg space-y-16 px-6 py-20 md:px-8 md:py-28">
+      <main className="mx-auto max-w-screen-lg space-y-12 px-4 py-16 md:px-8 md:py-24">
+        <StepIndicator steps={progressSteps} currentIndex={3} />
         <section className="relative isolate overflow-hidden rounded-[32px] border border-[#EDE5E0] bg-white/95 px-8 py-12 shadow-[0_24px_80px_rgba(0,0,0,0.08)] backdrop-blur">
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute left-10 top-8 h-48 w-48 rounded-full bg-[#FF7A70]/8 blur-[120px]" />
@@ -125,7 +129,7 @@ export default function ResultsPage() {
               <h1 className="font-display text-4xl font-semibold tracking-tight text-[#1A1A1A] md:text-5xl">
                 You’re interview-ready.
               </h1>
-              <p className="max-w-2xl font-body text-base font-medium leading-relaxed text-[#444444] md:text-lg">
+              <p className="max-w-2xl font-body text-base font-medium leading-relaxed md:text-lg">
                 Gemini mapped your answers against the Google SWE intern JD. Use this recap to tighten your story before the
                 real interview.
               </p>
@@ -151,7 +155,7 @@ export default function ResultsPage() {
                   <TrendingUp className="h-4 w-4" />
                   JD coverage breakdown
                 </div>
-                <p className="font-body text-sm font-medium text-[#444444]">
+                <p className="font-body text-sm font-medium">
                   Gemini highlighted where your responses hit the mark and where to reinforce them.
                 </p>
               </div>
@@ -183,7 +187,7 @@ export default function ResultsPage() {
               <BadgeCheck className="h-4 w-4" />
               Quick wins
             </div>
-            <ul className="space-y-3 font-body text-sm font-medium text-[#444444]">
+            <ul className="space-y-3 font-body text-sm font-medium">
               {evaluationSummary.strengths.map((strength) => (
                 <li key={strength} className="flex items-start gap-2">
                   <span className="mt-1 inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -196,7 +200,7 @@ export default function ResultsPage() {
                 <AlertCircle className="h-4 w-4" />
                 Focus next
               </div>
-              <p className="mt-2 font-body text-sm font-medium text-[#444444]">
+              <p className="mt-2 font-body text-sm font-medium">
                 {evaluationSummary.weakAreas[0]} · {evaluationSummary.weakAreas[1]}
               </p>
             </div>
@@ -225,7 +229,7 @@ export default function ResultsPage() {
                   Gemini cite
                 </span>
               </div>
-              <p className="mt-4 font-body text-sm font-medium leading-relaxed text-[#444444] italic">
+              <p className="mt-4 font-body text-sm font-medium leading-relaxed italic">
                 “{snippet.quote}”
               </p>
               <div className="mt-4 rounded-2xl bg-[#FFF2ED] px-4 py-3 text-xs font-body font-semibold text-[#FF7A70]">
@@ -251,7 +255,7 @@ export default function ResultsPage() {
                 <span className="font-display text-sm font-semibold text-[#1A1A1A]">
                   Quantify ambiguous projects
                 </span>
-                <p className="mt-1 font-body text-sm font-medium text-[#444444]">
+                <p className="mt-1 font-body text-sm font-medium">
                   Add a metric when discussing the scope change (e.g., “Reduced onboarding time from 3 weeks to 8 days by
                   centralizing documentation.”)
                 </p>
@@ -260,7 +264,7 @@ export default function ResultsPage() {
                 <span className="font-display text-sm font-semibold text-[#1A1A1A]">
                   Tie leadership to customer outcomes
                 </span>
-                <p className="mt-1 font-body text-sm font-medium text-[#444444]">
+                <p className="mt-1 font-body text-sm font-medium">
                   Highlight how your decisions impacted students/end users to mirror Google’s customer focus.
                 </p>
               </li>
@@ -268,7 +272,7 @@ export default function ResultsPage() {
                 <span className="font-display text-sm font-semibold text-[#1A1A1A]">
                   Plan for scale follow-ups
                 </span>
-                <p className="mt-1 font-body text-sm font-medium text-[#444444]">
+                <p className="mt-1 font-body text-sm font-medium">
                   Prepare a sentence on scaling your robotics pipeline to 10× more devices—Gemini flagged this as a likely
                   follow-up.
                 </p>
@@ -281,7 +285,7 @@ export default function ResultsPage() {
               <MicVocal className="h-4 w-4" />
               ElevenLabs coach recap
             </div>
-            <p className="font-body text-sm font-medium leading-relaxed text-[#444444]">
+            <p className="font-body text-sm font-medium leading-relaxed">
               Hear a 30-second voice note summarizing your performance for a quick refresh before the real interview.
             </p>
             <Button disabled={isGeneratingAudio} onClick={handleGenerateAudio} className="w-full">
@@ -301,7 +305,7 @@ export default function ResultsPage() {
                 <RefreshCcw className="h-4 w-4" />
                 Practice weak areas
               </div>
-              <p className="font-body text-sm font-medium text-[#444444]">
+              <p className="font-body text-sm font-medium">
                 Gemini spun up follow-ups targeting the JD signals that need another rep.
               </p>
             </div>
@@ -313,7 +317,7 @@ export default function ResultsPage() {
           {showFollowUps ? (
             <div className="mt-6 grid gap-3 rounded-2xl border border-[#EDE5E0] bg-white px-6 py-5">
               {followUps.map((item, index) => (
-                <div key={item} className="flex items-start gap-3 font-body text-sm font-medium text-[#444444]">
+                <div key={item} className="flex items-start gap-3 font-body text-sm font-medium">
                   <span className="mt-1 inline-flex h-2 w-2 rounded-full bg-[#FF7A70]" />
                   <span>{item}</span>
                 </div>
@@ -333,7 +337,7 @@ export default function ResultsPage() {
                 Next steps
               </div>
               <h2 className="font-display text-2xl font-semibold text-[#1A1A1A]">Keep your momentum going</h2>
-              <p className="font-body text-sm font-medium text-[#444444]">
+              <p className="font-body text-sm font-medium">
                 Start a new interview with a fresh persona or revisit the setup to fine-tune Gemini’s focus.
               </p>
             </div>
