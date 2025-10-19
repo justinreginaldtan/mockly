@@ -23,7 +23,7 @@ function toBase64AudioUrl(buffer: ArrayBuffer, mimeType = "audio/mpeg"): string 
 }
 
 function resolveVoiceConfig(payload: VoiceRequestPayload): { text: string; voice: PersonaVoiceConfig } {
-  const voice = resolvePersonaVoice(payload.personaId ?? "google-swe", payload.voiceStyleId)
+  const voice = resolvePersonaVoice(payload.personaId ?? "google-analyst", payload.voiceStyleId)
   const trimmed = payload.questionText?.trim()
 
   if (trimmed && trimmed.length > 0) {

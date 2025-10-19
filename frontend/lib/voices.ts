@@ -22,10 +22,10 @@ export const VOICE_STYLE_OPTIONS: VoiceStyleOption[] = [
     id: "mentor",
     label: "Mentor · Calm guidance",
     elevenLabsVoiceId: "1t1EeRixsJrKbiF1zwM6",
-    previewText: "Hey there! I'm Ellie, your calm technical mentor. Let's walk through your stories together and dig into the impact you drove.",
-    greetingText: "Hey there! I'm Ellie, your Google mentor for today. Take a breath and get ready to walk me through your proudest work.",
+    previewText: "Hey there! I'm Avery, your calm technical mentor. Let's walk through your stories together and dig into the impact you drove.",
+    greetingText: "Hey there! I'm Avery, your Google mentor for today. Take a breath and get ready to walk me through your proudest work.",
     description: "Measured pace, warm tone. Great for easing nerves before day-of interview.",
-    badge: "Ellie · Mentor",
+    badge: "Avery · Mentor",
     voiceSettings: {
       stability: 0.45,
       similarityBoost: 0.75,
@@ -63,10 +63,9 @@ export const VOICE_STYLE_OPTIONS: VoiceStyleOption[] = [
 ]
 
 export const PERSONA_VOICE_DEFAULTS: Record<string, VoiceStyleOption["id"]> = {
-  "google-swe": "mentor",
+  "google-analyst": "mentor",
   "amazon-pm": "recruiter",
-  "meta-data": "mentor",
-  "microsoft-cs": "mentor",
+  "meta-swe": "principal",
 }
 
 const voiceLookup = new Map(VOICE_STYLE_OPTIONS.map((option) => [option.id, option]))

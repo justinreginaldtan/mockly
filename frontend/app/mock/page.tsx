@@ -166,10 +166,9 @@ const buildPersonaGreetingLine = (persona: PersonaConfig): string => {
 }
 
 const personaIdentityMap: Record<string, { interviewerName: string; interviewerTitle: string }> = {
-  "google-swe": { interviewerName: "Avery Chen", interviewerTitle: "Senior SWE · Google" },
+  "google-analyst": { interviewerName: "Avery Chen", interviewerTitle: "Analytics Mentor · Google" },
   "amazon-pm": { interviewerName: "Jordan Patel", interviewerTitle: "Product Lead · Amazon" },
-  "meta-data": { interviewerName: "Priya Singh", interviewerTitle: "Head of Analytics · Meta" },
-  "microsoft-cs": { interviewerName: "Chris Nguyen", interviewerTitle: "Customer Success Lead · Microsoft" },
+  "meta-swe": { interviewerName: "Arjun Patel", interviewerTitle: "Principal Engineer · Meta" },
 }
 
 const getPersonaIdentity = (persona: PersonaConfig) =>
@@ -179,13 +178,13 @@ const getPersonaIdentity = (persona: PersonaConfig) =>
   }
 
 const fallbackPersona: PersonaConfig = {
-  personaId: "google-swe",
+  personaId: "google-analyst",
   company: "Google",
-  role: "Software Engineering Intern",
-  focusAreas: ["leadership", "systemDesign", "communication"],
-  technicalWeight: 70,
+  role: "Data Analyst Intern",
+  focusAreas: ["communication", "productThinking", "adaptability"],
+  technicalWeight: 40,
   duration: "standard",
-  voiceStyle: "Calm technical mentor · ElevenLabs",
+  voiceStyle: "Calm metrics mentor · ElevenLabs",
   voiceStyleId: "mentor",
   additionalContext: "Fallback persona configuration without live Gemini data.",
 }

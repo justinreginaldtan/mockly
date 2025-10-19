@@ -36,20 +36,20 @@ type FocusAreaId =
 
 const personaPresets = [
   {
-    id: "google-swe",
+    id: "google-analyst",
     company: "Google",
-    role: "Software Engineering Intern",
-    tagline: "Technical mentor persona leaning on your project impact and debugging process.",
-    recommendedFocusAreas: ["leadership", "systemDesign", "communication"] as FocusAreaId[],
-    recommendedWeight: 70,
-    voiceStyle: "Tech Mentor · ElevenLabs",
-    voiceBadge: "Steady & encouraging",
+    role: "Data Analyst Intern",
+    tagline: "Analytical mentor focused on metrics storytelling and experimentation insights.",
+    recommendedFocusAreas: ["communication", "productThinking", "adaptability"] as FocusAreaId[],
+    recommendedWeight: 40,
+    voiceStyle: "Data Coach · ElevenLabs",
+    voiceBadge: "Calm & inquisitive",
     highlights: [
-      "Dives into your robotics and hackathon projects",
-      "Expects metrics on performance and teamwork",
-      "Pushes system design fundamentals with follow-ups",
+      "Dives into how you turn raw data into clear narratives",
+      "Explores experiment design and measurement clarity",
+      "Coaches you on stakeholder-ready dashboards",
     ],
-    jdSignals: ["Collaborative problem solving", "Impact metrics", "System scale awareness"],
+    jdSignals: ["Analytical rigor", "Experimentation mindset", "Storytelling with metrics"],
   },
   {
     id: "amazon-pm",
@@ -71,36 +71,20 @@ const personaPresets = [
 
 const additionalPersonas = [
   {
-    id: "meta-data",
+    id: "meta-swe",
     company: "Meta",
-    role: "Data Analyst Intern",
-    tagline: "Insights-driven analyst probing for storytelling with metrics and experimentation.",
-    recommendedFocusAreas: ["communication", "productThinking", "adaptability"] as FocusAreaId[],
-    recommendedWeight: 40,
-    voiceStyle: "Head of Analytics · ElevenLabs",
-    voiceBadge: "Curious & data-obsessed",
+    role: "Software Engineer",
+    tagline: "Principal-level mentor drilling into system design trade-offs and leadership signals.",
+    recommendedFocusAreas: ["systemDesign", "leadership", "communication"] as FocusAreaId[],
+    recommendedWeight: 65,
+    voiceStyle: "Principal Engineer · ElevenLabs",
+    voiceBadge: "Direct & technical",
     highlights: [
-      "Challenges you to explain dashboards with business narrative",
-      "Pushes for statistical rigor and experiment design",
-      "Connects metrics to product strategy and stakeholders",
+      "Pushes you to articulate scaling strategies and edge cases",
+      "Digs into leadership signals from complex launches",
+      "Holds you to crisp reasoning under time pressure",
     ],
-    jdSignals: ["Data visualization clarity", "Experimentation mindset", "Cross-team influence"],
-  },
-  {
-    id: "microsoft-cs",
-    company: "Microsoft",
-    role: "Customer Success Intern",
-    tagline: "Customer-centric coach focusing on empathy, onboarding, and impact stories.",
-    recommendedFocusAreas: ["communication", "teamwork", "timeManagement"] as FocusAreaId[],
-    recommendedWeight: 25,
-    voiceStyle: "Success Coach · ElevenLabs",
-    voiceBadge: "Empathetic & structured",
-    highlights: [
-      "Guides you to articulate customer empathy and journey mapping",
-      "Examines how you balance multiple accounts and deadlines",
-      "Looks for playbooks to handle blockers and escalations",
-    ],
-    jdSignals: ["Customer advocacy", "Stakeholder coordination", "Process improvement"],
+    jdSignals: ["Distributed systems depth", "Cross-team leadership", "Resolving ambiguity quickly"],
   },
 ] as const
 
@@ -853,22 +837,16 @@ export default function SetupPage() {
                         <span>Lean on STAR stories tied to Amazon Leadership Principles.</span>
                       </li>
                     )}
-                    {selectedPersona.id === "google-swe" && (
+                    {selectedPersona.id === "google-analyst" && (
                       <li className="flex items-start gap-2">
                         <Sparkles className="h-4 w-4 text-[#4b6bff] mt-0.5" />
-                        <span>Outline your debugging approach step-by-step before diving into code.</span>
+                        <span>Explain the story behind your metrics and how you validated the data.</span>
                       </li>
                     )}
-                    {selectedPersona.id === "meta-data" && (
+                    {selectedPersona.id === "meta-swe" && (
                       <li className="flex items-start gap-2">
                         <Sparkles className="h-4 w-4 text-[#a855f7] mt-0.5" />
-                        <span>Explain the why behind metrics and tie insights back to product decisions.</span>
-                      </li>
-                    )}
-                    {selectedPersona.id === "microsoft-cs" && (
-                      <li className="flex items-start gap-2">
-                        <Sparkles className="h-4 w-4 text-[#34d399] mt-0.5" />
-                        <span>Walk through how you escalated customer issues and communicated resolutions.</span>
+                        <span>Walk through the architecture decisions and how you guided teams through trade-offs.</span>
                       </li>
                     )}
                   </ul>
