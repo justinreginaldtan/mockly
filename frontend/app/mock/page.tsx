@@ -6,10 +6,12 @@ import { cn } from "@/lib/utils"
 import { InterviewerAvatar } from "@/components/interviewer-avatar"
 import { ControlBar, type ControlTheme } from "@/components/interview/control-bar"
 import { InsightsDrawer } from "@/components/interview/insights-drawer"
-import { Settings2, ChevronDown, ChevronRight } from "lucide-react"
+import { Settings2, ChevronDown, ChevronRight, Square, Timer } from "lucide-react"
 import type { InterviewPlan, InterviewSetupPayload, PersonaConfig } from "@/lib/gemini"
 import { SETUP_CACHE_KEY, PLAN_CACHE_KEY } from "@/lib/cache-keys"
 import { resolvePersonaVoice } from "@/lib/voices"
+import { useSpeechRecorder, type RecorderStatus } from "@/hooks/use-speech-recorder"
+import { Waveform } from "@/components/waveform"
 
 const mockQuestions = [
   {
@@ -167,6 +169,23 @@ const formatFocusAreaLabel = (value: unknown): string => {
 
 const PLAN_CACHE_KEY = "mi:plan"
 const PROGRESS_CACHE_KEY = "mi:progress"
+const RESPONSES_CACHE_KEY = "mi:responses"
+
+type QuestionResponseRecord = {
+  transcript: string
+  durationMs: number
+  updatedAt: number
+}
+
+const formatDuration = (ms: number): string => {
+  if (!ms || ms <= 0) {
+    return "0:00"
+  }
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`
+}
 
 const buildPersonaGreetingLine = (persona: PersonaConfig): string => {
   const primaryFocus = Array.isArray(persona.focusAreas) ? persona.focusAreas[0] : undefined
@@ -258,6 +277,10 @@ export default function MockInterviewPage() {
   const [isGreetingActive, setIsGreetingActive] = useState(false)
   const [isVoicePlaying, setIsVoicePlaying] = useState(false)
   const [greetingCompleted, setGreetingCompleted] = useState(false)
+  const [questionResponses, setQuestionResponses] = useState<Record<string, QuestionResponseRecord>>({})
+  const [pendingRecorderStart, setPendingRecorderStart] = useState(false)
+  const [recorderError, setRecorderError] = useState<string | null>(null)
+  const [showUnmuteHint, setShowUnmuteHint] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -271,6 +294,9 @@ export default function MockInterviewPage() {
   const lastSpokenQuestionRef = useRef<string | null>(null)
   const currentQuestionIndexRef = useRef(0)
   const questionsRef = useRef<Array<InterviewPlan["questions"][number]>>([])
+  const responsesRef = useRef<Record<string, QuestionResponseRecord>>({})
+  const activeQuestionIdRef = useRef<string | null>(null)
+  const lastRecorderStatusRef = useRef<RecorderStatus>("idle")
   const [greetingAudioUrl, setGreetingAudioUrl] = useState<string | null>(null)
 
   const currentTheme = themeStyles[theme]
@@ -289,6 +315,9 @@ export default function MockInterviewPage() {
   useEffect(() => {
     questionsRef.current = questions
   }, [questions])
+  useEffect(() => {
+    responsesRef.current = questionResponses
+  }, [questionResponses])
   const hasPlan = questions.length > 0
   const totalQuestions = questions.length
   const clampedIndex = hasPlan ? Math.min(currentQuestionIndex, Math.max(totalQuestions - 1, 0)) : 0
@@ -296,6 +325,85 @@ export default function MockInterviewPage() {
   const currentQuestionPrompt = currentQuestion?.prompt ?? ""
   const currentQuestionFocus = currentQuestion?.focusArea ?? ""
   const currentQuestionId = currentQuestion?.id ?? ""
+  useEffect(() => {
+    activeQuestionIdRef.current = currentQuestionId || null
+  }, [currentQuestionId])
+  const personaSource = activePlan?.persona ?? fallbackPersona
+  const personaVoiceProfile = useMemo(
+    () => resolvePersonaVoice(personaSource.personaId, personaSource.voiceStyleId),
+    [personaSource.personaId, personaSource.voiceStyleId],
+  )
+  const personaVoiceLabel = personaVoiceProfile.label ?? personaSource.voiceStyle ?? fallbackPlan.persona.voiceStyle!
+  const personaInsights = useMemo(() => {
+    if (!activePlan?.guidance) return defaultInsights
+    return [activePlan.guidance, ...defaultInsights.filter((tip) => tip !== activePlan.guidance)]
+  }, [activePlan])
+  const personaGreetingLine = useMemo(() => {
+    return personaVoiceProfile.greetingText ?? buildPersonaGreetingLine(personaSource)
+  }, [personaVoiceProfile, personaSource])
+  const personaIdentity = useMemo(() => getPersonaIdentity(personaSource), [personaSource])
+  const personaPlanKey = useMemo(
+    () => `${personaSource.personaId}:${questions.length}`,
+    [personaSource.personaId, questions.length],
+  )
+
+  const handleRecorderStart = useCallback(() => {
+    setRecorderError(null)
+  }, [])
+
+  const handleRecorderError = useCallback((message: string) => {
+    setRecorderError(message)
+  }, [])
+
+  const speechRecorder = useSpeechRecorder({
+    language: "en-US",
+    continuous: true,
+    interimResults: true,
+    onStarted: handleRecorderStart,
+    onError: handleRecorderError,
+  })
+  const {
+    isSupported: isSpeechSupported,
+    status: recorderStatus,
+    transcript: recorderTranscript,
+    interimTranscript: recorderInterim,
+    error: recorderHookError,
+    durationMs: recorderDurationMs,
+    isSpeechDetected,
+    start: startRecorder,
+    stop: stopRecorder,
+    reset: resetRecorder,
+  } = speechRecorder
+
+  const activeResponse = currentQuestionId ? questionResponses[currentQuestionId] : undefined
+  const liveTranscript = useMemo(() => {
+    const base = recorderTranscript.trim()
+    const interim = recorderInterim.trim()
+    if (interim) {
+      return `${base ? `${base} ` : ""}${interim}`
+    }
+    return base
+  }, [recorderInterim, recorderTranscript])
+  const isMicLive = !isMuted && recorderStatus === "listening"
+  const hasTranscript = Boolean(activeResponse?.transcript?.length)
+  const displayedDurationMs = isMicLive
+    ? recorderDurationMs
+    : activeResponse?.durationMs ?? recorderDurationMs
+  const micStatusLabel = useMemo(() => {
+    if (recorderStatus === "error") {
+      return "Mic unavailable"
+    }
+    if (isMicLive) {
+      return "Mic live"
+    }
+    if (isMuted) {
+      return "Mic muted"
+    }
+    if (hasTranscript) {
+      return "Response captured"
+    }
+    return "Mic ready"
+  }, [hasTranscript, isMicLive, isMuted, recorderStatus])
   const consumedFollowUps = currentQuestionId ? followUpHistory[currentQuestionId] ?? 0 : 0
   const remainingFollowUps = currentQuestion ? (currentQuestion.followUps?.length ?? 0) - consumedFollowUps : 0
   const answeredCount = Math.min(currentQuestionIndex, totalQuestions)
@@ -322,22 +430,14 @@ export default function MockInterviewPage() {
       : isFinalQuestion
         ? "Wrap up interview"
         : "Ready for next question"
-  const advanceButtonDisabled = planLoading || !hasPlan
+  const advanceButtonDisabled = planLoading || !hasPlan || recorderStatus === "listening"
   const agendaToggleLabel = showAgenda ? "Hide agenda" : "View agenda"
-  const personaSource = activePlan?.persona ?? fallbackPersona
-  const personaVoiceProfile = useMemo(
-    () => resolvePersonaVoice(personaSource.personaId, personaSource.voiceStyleId),
-    [personaSource.personaId, personaSource.voiceStyleId],
-  )
-  const personaVoiceLabel = personaVoiceProfile.label ?? personaSource.voiceStyle ?? fallbackPlan.persona.voiceStyle!
-  const personaInsights = useMemo(() => {
-    if (!activePlan?.guidance) return defaultInsights
-    return [activePlan.guidance, ...defaultInsights.filter((tip) => tip !== activePlan.guidance)]
-  }, [activePlan])
-  const personaGreetingLine = useMemo(() => {
-    return personaVoiceProfile.greetingText ?? buildPersonaGreetingLine(personaSource)
-  }, [personaVoiceProfile, personaSource])
-  const personaIdentity = useMemo(() => getPersonaIdentity(personaSource), [personaSource])
+
+  useEffect(() => {
+    if (recorderHookError) {
+      setRecorderError(recorderHookError)
+    }
+  }, [recorderHookError])
 
   useEffect(() => {
     if (!hasPlan) {
@@ -347,17 +447,65 @@ export default function MockInterviewPage() {
       return
     }
 
-    const personaKey = `${personaSource.personaId}:${questions.length}`
-    if (personaInitRef.current !== personaKey) {
-      personaInitRef.current = personaKey
+    if (personaInitRef.current !== personaPlanKey) {
+      personaInitRef.current = personaPlanKey
       setCurrentQuestionIndex(0)
       setFollowUpHistory({})
       setActiveFollowUp(null)
       setShowAgenda(false)
       lastSpokenQuestionRef.current = null
       setGreetingCompleted(false)
+      setQuestionResponses({})
+      responsesRef.current = {}
+      setShowUnmuteHint(false)
     }
-  }, [hasPlan, questions.length, personaSource.personaId])
+  }, [hasPlan, personaPlanKey])
+
+  useEffect(() => {
+    if (!hasPlan || typeof window === "undefined") {
+      return
+    }
+    if (Object.keys(questionResponses).length > 0) {
+      return
+    }
+    try {
+      const raw = window.sessionStorage.getItem(RESPONSES_CACHE_KEY)
+      if (!raw) {
+        return
+      }
+      const parsed = JSON.parse(raw) as {
+        cacheKey?: string
+        responses?: Record<string, QuestionResponseRecord>
+      } | null
+      if (!parsed || parsed.cacheKey !== personaPlanKey || !parsed.responses) {
+        return
+      }
+      const restored = parsed.responses
+      if (Object.keys(restored).length === 0) {
+        return
+      }
+      setQuestionResponses(restored)
+      responsesRef.current = restored
+    } catch (error) {
+      console.warn("Failed to restore cached responses", error)
+    }
+  }, [hasPlan, personaPlanKey, questionResponses])
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+    try {
+      const payload = {
+        cacheKey: personaPlanKey,
+        responses: questionResponses,
+        updatedAt: Date.now(),
+      }
+      window.sessionStorage.setItem(RESPONSES_CACHE_KEY, JSON.stringify(payload))
+    } catch (error) {
+      console.warn("Failed to persist responses", error)
+    }
+  }, [personaPlanKey, questionResponses])
 
   useEffect(() => {
     if (!hasPlan) {
@@ -386,6 +534,96 @@ export default function MockInterviewPage() {
     setActiveFollowUp(null)
     setIsVoicePlaying(false)
   }, [currentQuestionIndex])
+
+  useEffect(() => {
+    if (
+      !pendingRecorderStart ||
+      showIntro ||
+      planLoading ||
+      isVoicePlaying ||
+      recorderStatus === "listening" ||
+      !currentQuestionId ||
+      !isSpeechSupported
+    ) {
+      return
+    }
+
+    if (isMuted) {
+      setShowUnmuteHint(true)
+      return
+    }
+
+    const started = startRecorder()
+    if (!started) {
+      setPendingRecorderStart(false)
+    } else {
+      activeQuestionIdRef.current = currentQuestionId
+      setRecorderError(null)
+      setPendingRecorderStart(false)
+      setShowUnmuteHint(false)
+    }
+  }, [
+    currentQuestionId,
+    isMuted,
+    isSpeechSupported,
+    isVoicePlaying,
+    pendingRecorderStart,
+    planLoading,
+    recorderStatus,
+    showIntro,
+    startRecorder,
+  ])
+
+  useEffect(() => {
+    if (isMuted && recorderStatus === "listening") {
+      stopRecorder()
+    }
+  }, [isMuted, recorderStatus, stopRecorder])
+
+  useEffect(() => {
+    if (isMicLive) {
+      setShowUnmuteHint(false)
+    }
+  }, [isMicLive])
+
+  useEffect(() => {
+    const previous = lastRecorderStatusRef.current
+    if (
+      (previous === "listening" || previous === "stopping") &&
+      recorderStatus === "idle" &&
+      currentQuestionId
+    ) {
+      const finalTranscript = recorderTranscript.trim()
+      const duration = recorderDurationMs
+      setQuestionResponses((prev) => {
+        const existing = prev[currentQuestionId]
+        if (!finalTranscript) {
+          if (!existing) {
+            return prev
+          }
+          const next = { ...prev }
+          delete next[currentQuestionId]
+          return next
+        }
+
+        const nextRecord: QuestionResponseRecord = {
+          transcript: finalTranscript,
+          durationMs: duration,
+          updatedAt: Date.now(),
+        }
+        if (
+          existing &&
+          existing.transcript === nextRecord.transcript &&
+          existing.durationMs === nextRecord.durationMs
+        ) {
+          return prev
+        }
+        return { ...prev, [currentQuestionId]: nextRecord }
+      })
+      resetRecorder()
+    }
+    lastRecorderStatusRef.current = recorderStatus
+  }, [currentQuestionId, recorderDurationMs, recorderStatus, recorderTranscript, resetRecorder])
 
   const requestPersonaSpeech = useCallback(
     async (text: string): Promise<string | null> => {
@@ -434,6 +672,11 @@ export default function MockInterviewPage() {
         return
       }
 
+      if (recorderStatus === "listening") {
+        stopRecorder()
+      }
+      setPendingRecorderStart(false)
+
       if (questionAudioRef.current) {
         questionAudioRef.current.pause()
         questionAudioRef.current = null
@@ -445,6 +688,10 @@ export default function MockInterviewPage() {
 
       const audioUrl = await requestPersonaSpeech(prompt)
       if (!audioUrl) {
+        setPendingRecorderStart(true)
+        if (isMuted) {
+          setShowUnmuteHint(true)
+        }
         return
       }
 
@@ -472,12 +719,16 @@ export default function MockInterviewPage() {
         if (lastSpokenQuestionRef.current === questionId) {
           lastSpokenQuestionRef.current = null
         }
+        setPendingRecorderStart(true)
+        if (isMuted) {
+          setShowUnmuteHint(true)
+        }
       }
 
       audio.onended = reset
       audio.onpause = reset
     },
-    [requestPersonaSpeech],
+    [isMuted, recorderStatus, requestPersonaSpeech, stopRecorder],
   )
 
   const playFollowUpLine = useCallback(
@@ -485,6 +736,11 @@ export default function MockInterviewPage() {
       if (!prompt?.trim()) {
         return
       }
+
+      if (recorderStatus === "listening") {
+        stopRecorder()
+      }
+      setPendingRecorderStart(false)
 
       if (followUpAudioRef.current) {
         followUpAudioRef.current.pause()
@@ -494,6 +750,10 @@ export default function MockInterviewPage() {
       const audioUrl = await requestPersonaSpeech(prompt)
       if (!audioUrl) {
         setIsVoicePlaying(false)
+        setPendingRecorderStart(true)
+        if (isMuted) {
+          setShowUnmuteHint(true)
+        }
         return
       }
 
@@ -514,12 +774,16 @@ export default function MockInterviewPage() {
           followUpAudioRef.current = null
         }
         setIsVoicePlaying(false)
+        setPendingRecorderStart(true)
+        if (isMuted) {
+          setShowUnmuteHint(true)
+        }
       }
 
       audio.onended = reset
       audio.onpause = reset
     },
-    [requestPersonaSpeech],
+    [isMuted, recorderStatus, requestPersonaSpeech, stopRecorder],
   )
 
   const handleAdvance = useCallback(async () => {
@@ -531,6 +795,8 @@ export default function MockInterviewPage() {
     if (!question) {
       return
     }
+
+    setPendingRecorderStart(false)
 
     const followUps = Array.isArray(question.followUps) ? question.followUps : []
     const consumed = followUpHistory[question.id] ?? 0
@@ -566,6 +832,23 @@ export default function MockInterviewPage() {
     }
   }, [activeFollowUp, currentQuestionIndex, followUpHistory, hasPlan, playFollowUpLine, questions, router])
 
+  const handleToggleMute = useCallback(() => {
+    setIsMuted((prev) => {
+      const next = !prev
+      if (next) {
+        stopRecorder()
+        setShowUnmuteHint(false)
+      } else {
+        setRecorderError(null)
+        setShowUnmuteHint(false)
+        if (!isVoicePlaying && recorderStatus !== "listening") {
+          setPendingRecorderStart(true)
+        }
+      }
+      return next
+    })
+  }, [isVoicePlaying, recorderStatus, stopRecorder])
+
   useEffect(() => {
     if (!hasPlan || planLoading || showIntro || isGreetingActive || !greetingCompleted) {
       return
@@ -586,6 +869,8 @@ export default function MockInterviewPage() {
   useEffect(() => {
     if (showIntro) {
       setIsGreetingActive(false)
+      setPendingRecorderStart(false)
+      setShowUnmuteHint(false)
       return
     }
 
@@ -1004,6 +1289,18 @@ export default function MockInterviewPage() {
         insights={personaInsights}
       />
 
+      {!isSpeechSupported && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/90 px-6 text-center backdrop-blur-xl">
+          <div className="w-full max-w-md space-y-4 rounded-3xl border border-white/15 bg-[#141c2f]/95 px-8 py-10 text-white shadow-2xl shadow-black/40">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">Voice practice</p>
+            <h2 className="text-2xl font-semibold">Use Chrome or Edge for live speech</h2>
+            <p className="text-sm text-white/70">
+              Real-time capture relies on the Web Speech API. Reopen Mock Interviewer in the latest Chrome or Microsoft Edge to continue.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="absolute top-6 right-6 z-30">
         <div className="relative">
           <button
@@ -1044,6 +1341,8 @@ export default function MockInterviewPage() {
               const status = questionStatuses[idx] ?? "pending"
               const canNavigate = idx <= clampedIndex
               const label = idx === clampedIndex ? "Current" : status === "answered" ? "Answered" : "Pending"
+              const response = questionResponses[question.id ?? ""]
+              const transcriptCaptured = Boolean(response?.transcript)
               return (
                 <div
                   key={question.id ?? idx}
@@ -1076,6 +1375,11 @@ export default function MockInterviewPage() {
                     <span className="text-[0.55rem] uppercase tracking-[0.25em] text-white/60">{label}</span>
                   </div>
                   <p className="mt-1 line-clamp-2 text-[0.7rem] text-white/70">{question.prompt}</p>
+                  {transcriptCaptured && (
+                    <p className="mt-1 text-[0.6rem] text-emerald-300">
+                      Captured · {formatDuration(response?.durationMs ?? 0)}
+                    </p>
+                  )}
                 </div>
               )
             })}
@@ -1149,6 +1453,21 @@ export default function MockInterviewPage() {
             questionMetaText
           )}
         </p>
+        {!planLoading && hasPlan && (isMicLive || liveTranscript || hasTranscript) && (
+          <div className="mt-4 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-left">
+            <p className="text-[0.6rem] uppercase tracking-[0.35em] text-white/60">Your response</p>
+            <p className={cn("mt-2 text-sm leading-relaxed", currentTheme.questionText)}>
+              {isMicLive
+                ? liveTranscript || "Listening…"
+                : hasTranscript
+                  ? activeResponse?.transcript
+                  : "Waiting for your answer…"}
+            </p>
+          </div>
+        )}
+        {recorderError && !planLoading && (
+          <p className="mt-3 text-xs text-amber-300">{recorderError}</p>
+        )}
         {planLoading && (
           <div className="mt-3 flex items-center justify-center gap-2 text-xs opacity-80">
             <span className="h-2 w-2 animate-ping rounded-full bg-current/80" aria-hidden="true" />
@@ -1229,8 +1548,15 @@ export default function MockInterviewPage() {
               )}
               <div className={cn("absolute top-5 left-5", namePlateClass)}>You</div>
               <div className={cn("absolute bottom-5 left-5", statusPlateClass)}>
-                {isMuted ? "Mic muted" : "Mic live"}
+                {micStatusLabel}
               </div>
+              {(
+                isMicLive
+              ) && (
+                <div className="pointer-events-none absolute inset-x-10 bottom-10 flex justify-center">
+                  <Waveform isActive />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1242,6 +1568,57 @@ export default function MockInterviewPage() {
           showIntro ? "pointer-events-none opacity-0 translate-y-4" : "opacity-100 translate-y-0",
         )}
       >
+        {!planLoading && hasPlan && (
+          <div
+            className={cn(
+              "mb-4 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80 sm:flex-row sm:items-center sm:justify-between",
+              showUnmuteHint && "border-amber-400/70 bg-amber-500/15 text-amber-50/90",
+            )}
+          >
+            <div>
+              <p
+                className={cn(
+                  "text-[0.6rem] uppercase tracking-[0.3em]",
+                  showUnmuteHint ? "text-amber-200" : "text-white/60",
+                )}
+              >
+                {micStatusLabel}
+              </p>
+              <div className="mt-1 flex items-center gap-2 text-sm">
+                <Timer className={cn("h-4 w-4", showUnmuteHint ? "text-amber-200" : "text-white/60")} />
+                <span className={cn("font-semibold", showUnmuteHint ? "text-amber-50" : "text-white")}>
+                  {formatDuration(displayedDurationMs)}
+                </span>
+                {isMicLive && (
+                  <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-emerald-400" aria-hidden="true" />
+                )}
+              </div>
+            </div>
+            {isMicLive ? (
+              <button
+                type="button"
+                onClick={() => stopRecorder()}
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              >
+                <Square className="h-4 w-4" />
+                Stop recording
+              </button>
+            ) : hasTranscript ? (
+              <span className="text-xs text-white/60">
+                Response captured · {formatDuration(activeResponse?.durationMs ?? 0)}
+              </span>
+            ) : showUnmuteHint ? (
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-amber-200">
+                <span className="inline-flex h-2 w-2 animate-ping rounded-full bg-amber-300" aria-hidden="true" />
+                Unmute to answer
+              </span>
+            ) : (
+              <span className="text-xs text-white/60">
+                Your mic activates after each interviewer prompt.
+              </span>
+            )}
+          </div>
+        )}
         <button
           type="button"
           className={advanceButtonClass}
@@ -1266,7 +1643,7 @@ export default function MockInterviewPage() {
       <div className={cn(showIntro && "opacity-0 pointer-events-none", "transition-opacity duration-300")}>
         <ControlBar
           isMuted={isMuted}
-          onToggleMute={() => setIsMuted((prev) => !prev)}
+          onToggleMute={handleToggleMute}
           isCameraOn={isCameraOn}
           onToggleCamera={() => setIsCameraOn((prev) => !prev)}
           insightsOpen={drawerOpen}
