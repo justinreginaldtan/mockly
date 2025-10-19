@@ -4,6 +4,7 @@ import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from "react"
 import { ArrowRight, BarChart3, CheckCircle2, FileText, Link2, MicVocal, Sparkles, Target } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import Hero, { HeroProps } from "@/components/Hero"
 import { Button } from "@/components/ui/button"
 import { ProgressBar } from "@/components/progress-bar"
 
@@ -118,7 +119,11 @@ const intakeSummary = {
   ],
 }
 
-export default function HomePage() {
+interface HomePageProps {
+  HeroComponent?: (props: HeroProps) => JSX.Element
+}
+
+export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [uploadedResumeName, setUploadedResumeName] = useState<string | null>(null)
   const [jobDescriptionInput, setJobDescriptionInput] = useState("")
@@ -230,66 +235,9 @@ export default function HomePage() {
           showCalibrating ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >
-        <section className="py-16 md:py-24">
-          <div className="mx-auto max-w-screen-lg px-6 md:px-8">
-            <div className="mx-auto max-w-3xl space-y-6 text-center animate-slide-up">
-              <span className="inline-flex items-center justify-center gap-2 rounded-full border border-[#E0D6CF] bg-white/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[#8F7A6F]">
-                Meet Mockly
-              </span>
-              <h1 className="text-4xl font-semibold tracking-tight text-[#1A1A1A] md:text-5xl">
-                Confident mock interviews with coaching that lands right where you need it.
-              </h1>
-              <p className="text-lg text-[#6F5F58]">
-                Upload your resume and target job. Gemini shapes the scenario, ElevenLabs brings the interviewer to life, and
-                Mockly’s Coach Card delivers instant feedback on confidence, structure, clarity, and what to do next.
-              </p>
-              <div className="flex flex-col items-center gap-4">
-                <Button size="lg" className={primaryCtaClass} onClick={handleScrollToIntake}>
-                  Analyze with Gemini
-                </Button>
-                <div className="flex items-center gap-2 text-sm text-[#7A6C64]">
-                  <MicVocal className="h-4 w-4 text-[#A58C80]" />
-                  <span>Voice-led interviews with transcripts, scoring, and clear next steps.</span>
-                </div>
-              </div>
-              <ul className="grid gap-4 text-left text-sm text-[#5D544D] md:grid-cols-3">
-                <li className="rounded-2xl border border-[#EDE5E0] bg-white/85 p-4">
-                  <CheckCircle2 className="mb-3 h-4 w-4 text-[#FF7A70]" />
-                  Gemini personalizes every conversation using your resume and chosen job description.
-                </li>
-                <li className="rounded-2xl border border-[#EDE5E0] bg-white/85 p-4">
-                  <CheckCircle2 className="mb-3 h-4 w-4 text-[#FF7A70]" />
-                  Coach Card scores confidence, structure, clarity, and next steps seconds after you speak.
-                </li>
-                <li className="rounded-2xl border border-[#EDE5E0] bg-white/85 p-4">
-                  <CheckCircle2 className="mb-3 h-4 w-4 text-[#FF7A70]" />
-                  ElevenLabs voices the interviewer so rehearsals feel natural and grounded in real conversations.
-                </li>
-              </ul>
-              <div className={`${cardClass} mx-auto max-w-xl p-6 text-left`}>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">Coach Card preview</p>
-                <div className="mt-4 space-y-4 text-sm text-[#6F5F58]">
-                  <div className="flex items-center justify-between text-[#1A1A1A]">
-                    <span className="font-semibold">Confidence</span>
-                    <span className="font-semibold text-[#FF7A70]">8 / 10</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-[#1A1A1A]">Structure</p>
-                    <p>Lead with the incident frame, move through STAR, and close on your measurable outcome.</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-[#1A1A1A]">Clarity</p>
-                    <p>Guide the listener through containment, automation, and the executive takeaway in under 90 seconds.</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-[#1A1A1A]">Next step</p>
-                    <p>Open with the impact metric, then tie your tooling to how Cisco stays ahead of similar threats.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <div className="mx-auto max-w-screen-lg px-6 md:px-8">
+          <HeroComponent onAnalyzeClick={handleScrollToIntake} />
+        </div>
 
         <div className="mx-auto w-full max-w-screen-lg px-6 md:px-8">
           <div className="border-t border-[#EDE5E0]" />
