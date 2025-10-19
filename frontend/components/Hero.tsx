@@ -108,15 +108,53 @@ export default function Hero({ onAnalyzeClick }: HeroProps) {
             <img src="/mockly-glow.png" alt="Mockly mascot" className="mascot-blink h-28 w-28 sm:h-32 sm:w-32" />
           </div>
         </motion.div>
-        <motion.div className="space-y-4" variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }} transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}>
-          <h1 className="font-display text-4xl font-semibold tracking-[-0.01em] text-[#1A1A1A] md:text-5xl">
-            Your friendly AI coach for interviews that feel real.
-          </h1>
-          <p
-            className="font-body text-base font-medium leading-relaxed max-sm:clamp-2 md:text-lg"
-          >
-            Mockly listens, learns, and delivers instant voice feedback so every practice rep builds confidence where it counts.
-          </p>
+        <motion.div className="space-y-6" variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }} transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}>
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#FF7A70]/10 px-4 py-2 text-sm font-semibold text-[#FF7A70]">
+              <span className="h-2 w-2 rounded-full bg-[#FF7A70] animate-pulse"></span>
+              AI-Powered Customer Service Training
+            </div>
+            <h1 className="font-display text-4xl font-bold tracking-[-0.02em] text-[#1A1A1A] md:text-6xl lg:text-7xl">
+              Master customer service with
+              <span className="block bg-gradient-to-r from-[#FF7A70] to-[#FF9F70] bg-clip-text text-transparent">
+                real conversations
+              </span>
+            </h1>
+            <p className="max-w-2xl font-body text-lg font-medium leading-relaxed text-[#666666] md:text-xl">
+              Practice with AI customers that adapt to your skill level. Get instant voice feedback, 
+              detailed coaching, and watch your empathy, clarity, and resolution scores improve in real-time.
+            </p>
+          </div>
+          
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="flex items-center gap-3 rounded-2xl bg-white/60 px-4 py-3 backdrop-blur-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF7A70]/10">
+                <span className="text-lg">🎯</span>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-[#1A1A1A]">Adaptive Difficulty</div>
+                <div className="text-xs text-[#666666]">AI adjusts to your level</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl bg-white/60 px-4 py-3 backdrop-blur-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6EC8FF]/10">
+                <span className="text-lg">🎤</span>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-[#1A1A1A]">Voice Practice</div>
+                <div className="text-xs text-[#666666]">Real-time speech training</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl bg-white/60 px-4 py-3 backdrop-blur-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7ED2B8]/10">
+                <span className="text-lg">📊</span>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-[#1A1A1A]">Instant Feedback</div>
+                <div className="text-xs text-[#666666]">Detailed performance metrics</div>
+              </div>
+            </div>
+          </div>
         </motion.div>
         <motion.div
           className="flex flex-col items-center gap-3"
@@ -126,15 +164,21 @@ export default function Hero({ onAnalyzeClick }: HeroProps) {
           <Button
             size="lg"
             onClick={onAnalyzeClick}
-            className="bg-[#FF6F65] px-8 py-4 text-white shadow-[0_2px_20px_rgba(0,0,0,0.08)] transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:scale-[1.03] hover:bg-[#ff6157] md:px-10"
+            className="bg-gradient-to-r from-[#FF7A70] to-[#FF9F70] px-10 py-5 text-white font-semibold text-lg shadow-[0_8px_32px_rgba(255,122,112,0.3)] transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(255,122,112,0.4)] md:px-12"
           >
-            Analyze with Gemini
+            Start Training Now
+            <span className="ml-2 text-xl">→</span>
           </Button>
-          <span
-            className="font-body text-sm font-medium text-[#777777]"
-          >
-            No setup. Start coaching instantly.
-          </span>
+          <div className="flex items-center gap-6 text-sm text-[#666666]">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <span>No setup required</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+              <span>Instant AI feedback</span>
+            </div>
+          </div>
         </motion.div>
       </div>
     </motion.section>

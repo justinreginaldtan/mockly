@@ -10,33 +10,31 @@ import { StepIndicator } from "@/components/step-indicator"
 import { Button } from "@/components/ui/button"
 import { ProgressBar } from "@/components/progress-bar"
 
-const SAMPLE_RESUME_NAME = "justin-tan-resume.pdf"
-const SAMPLE_JOB_DESCRIPTION = `Responsibilities
-Applications are accepted until further notice.
+const SAMPLE_COMPANY_NAME = "TechCorp Customer Service"
+const SAMPLE_TRAINING_SCENARIOS = `Customer Service Training Scenarios
 
-Please note this posting is to advertise potential job opportunities. This exact role may not be open today but could open in the near future. When you apply, a Cisco representative may contact you directly if a relevant position opens.
+Welcome to TechCorp's customer service excellence program. These scenarios are designed to help you master real-world customer interactions across different difficulty levels.
 
-Meet the Team
+Training Focus Areas:
+- Empathy and emotional intelligence
+- Clear communication and problem-solving
+- Resolution strategies and follow-up
+- Handling difficult customers
+- Product knowledge and troubleshooting
 
-Cisco Security Customer Experience (CX) organization supports customers through the entire lifecycle of a security solution: from understanding business needs to deploying custom solutions, from optimizing existing solutions to developing applications that meets specific needs; from helping customers to maintain their solutions to helping them investigate potential security incidents. As a Security Consulting Engineer Intern, you will be able to interact with customers and learn how Cisco plan, design, deploy and optimize Security Solution while acquiring the technical and consultative skills required to accurately delight Cisco customers. During the internship you will also have the opportunity to interact with other Cisco organizations and learn how they contribute to enable our customers to achieve their business goals.
+Scenario Types:
+1. Technical Support - Help customers with product issues
+2. Billing Inquiries - Resolve payment and account questions  
+3. Returns & Refunds - Process returns and handle complaints
+4. Product Information - Provide guidance on features and usage
+5. Escalation Management - Know when and how to escalate issues
 
-Your Impact
+Performance Metrics:
+- Empathy Score: How well you understand and address customer emotions
+- Clarity Score: How clearly you communicate solutions
+- Resolution Score: How effectively you solve the customer's problem
 
-Everything is converging on the Internet, making networked connections more relevant than ever. Our employees have groundbreaking ideas that impact everything imaginable - from entertainment, retail, healthcare, and education, to public and private sectors, smart cities, smart cars, and everyday devices in our homes. Here, that means you'll take creative ideas from the drawing board to powerful solutions that have real world impact. You'll collaborate with Cisco leaders, partner with expert mentors, and develop incredible relationships with colleagues who share your interest in connecting the unconnected. You'll be part of a team that cares about its customers, enjoys having fun, and you'll participate in changing the lives of those in our local communities. Come prepared to be inspired.
-
-You will attend on-site design and configuration sessions with a Security Consulting mentor
-You will collect requirements from customers for projects to meet critical business goals
-You will work with a team mentor to define the business goals and requirements for integration efforts
-You will aid in analyzing and designing policy creation for Identity Services, Firewalls, Visibility Solutions and Cloud-based solutions.
-You will analyze customer configurations and provide feedback on possible improvements to the configuration to improve alignment with customer business goals
-You will learn and understand Security Policies, Standards, Procedures and Guidelines
-You will be able to demonstrate programming languages (Java/Python/C++) and open source automation platforms (Ansible/Chef/Terraform) to develop tailor-made automation capabilities to customers using Cisco application programming interfaces
-
-Minimum Qualifications
-
-Currently enrolled in a certification program (e.g., Boot Camp, Apprenticeship, Community College), or currently enrolled in an undergraduate degree program. Relevant fields include: in Information Systems, Cyber Security, Computer Networking, Computer Science or Engineering
-Knowledge of IT systems, networking concepts, TCP/IP protocols, network devices and applications, OSI 7-layer model, or code development
-Able to legally live and work in the country for which you're applying, without visa support or sponsorship`
+Each scenario adapts to your skill level, getting more challenging as you improve. The AI customer will respond naturally to your approach, testing your ability to handle various personality types and situations.`
 
 const primaryCtaClass =
   "rounded-xl px-8 py-4 bg-[#FF6F65] text-white font-medium shadow-[0_2px_20px_rgba(0,0,0,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.03] hover:bg-[#ff6157] hover:shadow-[0_4px_28px_rgba(0,0,0,0.12)] focus-visible:ring-offset-[#FFF8F5]"
@@ -67,73 +65,80 @@ const hoverVariants = {
   }
 }
 
-const intakeSummary = {
-  resume: {
-    headline: "Justin Tan · Senior CIS Student · University of Houston",
+const trainingSummary = {
+  company: {
+    name: "TechCorp Customer Service",
+    department: "Customer Success & Support",
     summary:
-      "Focused on offensive security and AI system hardening. Runs daily capture-the-flag reps and prototypes tooling that stress-tests RAG pipelines under adversarial pressure.",
-    highlights: [
-      "Completed the DailyCTF streak—30 consecutive days of challenge solving with a consistent top-5% leaderboard finish.",
-      "Built Parapet, a harness that probes retrieval-augmented generation systems for prompt injection, data leakage, and resiliency gaps.",
-      "Co-led CougarSec incident response drills, coordinating red/blue teams through three full-fidelity attack simulations each semester.",
+      "Leading technology company focused on delivering exceptional customer experiences through innovative support solutions and personalized service.",
+    focusAreas: [
+      "Technical troubleshooting and product support",
+      "Billing inquiries and account management", 
+      "Returns, refunds, and complaint resolution",
+      "Product education and feature guidance",
+      "Escalation management and team coordination",
     ],
   },
-  job: {
-    company: "Cisco",
-    role: "Cybersecurity Intern · Security Operations",
+  scenarios: {
+    difficulty: "Adaptive AI Training",
     summary:
-      "Internship prioritizes cloud incident response, malware triage, and communicating risk to engineering partners within 30-minute SLAs.",
-    signals: [
-      "Demonstrate how you detected, contained, and documented high-severity alerts under time pressure.",
-      "Highlight automation or tooling—like Parapet or custom scripts—that accelerated response or exposed blind spots.",
-      "Translate deep technical findings into stakeholder-ready recommendations leadership can act on quickly.",
+      "AI-powered scenarios that automatically adjust difficulty based on your performance, ensuring optimal learning progression.",
+    types: [
+      "Technical Support - Product troubleshooting and issue resolution",
+      "Billing & Accounts - Payment processing and account inquiries",
+      "Returns & Refunds - Complaint handling and policy enforcement", 
+      "Product Education - Feature guidance and usage assistance",
+      "Escalation Management - Complex issue routing and follow-up",
     ],
   },
-  focusAreas: [
+  metrics: [
     {
-      label: "Incident response",
-      detail: "Show how you scoped blast radius, contained spread, and handled post-incident reviews.",
+      label: "Empathy",
+      detail: "How well you understand and address customer emotions and concerns.",
+      weight: 35,
     },
     {
-      label: "Automation wins",
-      detail: "Connect Parapet or scripting projects to measurable response-time reductions.",
+      label: "Clarity", 
+      detail: "How clearly you communicate solutions and next steps.",
+      weight: 30,
     },
     {
-      label: "Executive comms",
-      detail: "Practice briefing Cisco leadership on risk, mitigations, and next-step ownership.",
+      label: "Resolution",
+      detail: "How effectively you solve the customer's core problem.",
+      weight: 35,
     },
   ],
-  weights: { technical: 60, behavioral: 40 },
+  weights: { empathy: 35, clarity: 30, resolution: 35 },
   focusSummary:
-    "Lead with the incident timeline, quantify containment impact, and close with a clear recommendation a Cisco stakeholder could execute immediately.",
+    "Master the art of customer service through realistic AI conversations that adapt to your skill level, providing instant feedback on empathy, clarity, and resolution.",
   persona: {
-    id: "cisco-soc",
-    name: "Aisha Rahman",
-    title: "Security Operations Lead · Cisco",
-    voiceLabel: "Security Coach · ElevenLabs",
-    voiceBadge: "Calm, exacting, SOC-tier scrutiny",
+    id: "ai-customer",
+    name: "Alex Chen",
+    title: "AI Customer Simulation · ElevenLabs",
+    voiceLabel: "Realistic Customer Voice · ElevenLabs",
+    voiceBadge: "Natural, varied, emotionally responsive",
     opener:
-      "I’m treating this like a Cisco escalations review—expect probing questions on your containment choices and handoff notes.",
+      "I'm your AI training customer. I'll present realistic scenarios and respond naturally to your approach, helping you master real-world customer interactions.",
     reasons: [
-      "Mirrors Cisco’s incident review cadence: direct, data-driven, and time-boxed.",
-      "Pushes you to map DailyCTF and Parapet learnings to enterprise threat surfaces.",
-      "Keeps follow-ups anchored in MTTR, containment metrics, and stakeholder alignment.",
+      "Provides realistic customer interactions across different personality types and situations.",
+      "Adapts difficulty based on your performance, ensuring optimal learning progression.",
+      "Offers instant feedback on empathy, clarity, and resolution skills.",
     ],
   },
-  questionPreview: [
+  scenarioPreview: [
     {
-      prompt: "Walk me through the highest-severity alert you contained in the last six months. How did you triage and escalate?",
-      focus: "Incident narrative",
+      prompt: "I'm frustrated because my order arrived damaged and customer service isn't responding to my emails. I need this fixed today!",
+      focus: "Angry customer",
     },
     {
       prompt:
-        "Explain how Parapet, or a similar tool you built, changed the way your team detects or responds to threats. Quantify the impact.",
-      focus: "Automation impact",
+        "I'm not very technical, but I think there's something wrong with my account settings. Can you help me figure out what's going on?",
+      focus: "Confused customer",
     },
     {
       prompt:
-        "A Cisco VP joins the bridge midway through the incident. In 45 seconds, brief them on status, risk, and what you need.",
-      focus: "Executive clarity",
+        "I want to cancel my subscription and get a full refund. I've been a customer for 3 years and this is unacceptable service.",
+      focus: "Cancellation request",
     },
   ],
 }
@@ -143,35 +148,35 @@ interface HomePageProps {
 }
 
 export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
-  const [resumeFile, setResumeFile] = useState<File | null>(null)
-  const [uploadedResumeName, setUploadedResumeName] = useState<string | null>(null)
-  const [jobDescriptionInput, setJobDescriptionInput] = useState("")
-  const [jobDescriptionSource, setJobDescriptionSource] = useState<string>("")
+  const [companyFile, setCompanyFile] = useState<File | null>(null)
+  const [uploadedCompanyName, setUploadedCompanyName] = useState<string | null>(null)
+  const [trainingScenariosInput, setTrainingScenariosInput] = useState("")
+  const [trainingScenariosSource, setTrainingScenariosSource] = useState<string>("")
   const [analysisComplete, setAnalysisComplete] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [showCalibrating, setShowCalibrating] = useState(false)
 
   useEffect(() => {
     if (analysisComplete) {
-      const briefSection = document.getElementById("interview-brief")
+      const briefSection = document.getElementById("training-brief")
       briefSection?.scrollIntoView({ behavior: "smooth", block: "start" })
     }
   }, [analysisComplete])
 
-  const handleResumeUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+  const handleCompanyUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null
-    setResumeFile(file)
+    setCompanyFile(file)
     if (file) {
-      setUploadedResumeName(file.name)
+      setUploadedCompanyName(file.name)
     }
   }, [])
 
   const handleUsePracticePack = useCallback(() => {
-    setResumeFile(null)
-    setUploadedResumeName(SAMPLE_RESUME_NAME)
-    setJobDescriptionInput(SAMPLE_JOB_DESCRIPTION)
+    setCompanyFile(null)
+    setUploadedCompanyName(SAMPLE_COMPANY_NAME)
+    setTrainingScenariosInput(SAMPLE_TRAINING_SCENARIOS)
     setAnalysisComplete(false)
-    setJobDescriptionSource("")
+    setTrainingScenariosSource("")
   }, [])
 
   const handleAnalyzeMaterials = useCallback(
@@ -180,11 +185,11 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
       if (isAnalyzing) {
         return
       }
-      const resolvedResumeName = resumeFile?.name ?? uploadedResumeName ?? SAMPLE_RESUME_NAME
-      const resolvedJobDescription = jobDescriptionInput.trim() || SAMPLE_JOB_DESCRIPTION
+      const resolvedCompanyName = companyFile?.name ?? uploadedCompanyName ?? SAMPLE_COMPANY_NAME
+      const resolvedTrainingScenarios = trainingScenariosInput.trim() || SAMPLE_TRAINING_SCENARIOS
 
-      setUploadedResumeName(resolvedResumeName)
-      setJobDescriptionSource(resolvedJobDescription)
+      setUploadedCompanyName(resolvedCompanyName)
+      setTrainingScenariosSource(resolvedTrainingScenarios)
       setIsAnalyzing(true)
       setAnalysisComplete(false)
       setShowCalibrating(true)
@@ -195,7 +200,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
         setShowCalibrating(false)
       }, 1400)
     },
-    [isAnalyzing, jobDescriptionInput, resumeFile, uploadedResumeName],
+    [isAnalyzing, trainingScenariosInput, companyFile, uploadedCompanyName],
   )
 
   const handleScrollToIntake = useCallback(() => {
@@ -203,8 +208,8 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
     section?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
 
-  const effectiveResumeName = uploadedResumeName ?? (analysisComplete ? SAMPLE_RESUME_NAME : undefined)
-  const stepItems = ["Upload", "Review brief", "Mock room", "Coach Card"]
+  const effectiveCompanyName = uploadedCompanyName ?? (analysisComplete ? SAMPLE_COMPANY_NAME : undefined)
+  const stepItems = ["Setup", "Review training", "Start simulation", "Get feedback"]
   const currentStepIndex = analysisComplete ? 1 : 0
 
   return (
@@ -237,7 +242,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-lg font-semibold tracking-tight text-[#1A1A1A]">Mockly</span>
-              <span className="text-xs text-[#777777]">Your AI interview coach</span>
+              <span className="text-xs text-[#777777]">AI Customer Service Training</span>
             </div>
           </div>
           <div className="hidden items-center gap-6 md:flex">
@@ -278,56 +283,56 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               Step 1
             </span>
               <h2 className="font-display text-2xl font-semibold tracking-tight text-[#1A1A1A] md:text-3xl lg:text-4xl">
-                Upload your materials
+                Configure your training
               </h2>
             <p className="font-body text-base font-medium leading-relaxed max-sm:text-sm max-sm:leading-snug">
-              Mockly calibrates every interview to the resume you provide and the job description you're targeting. Gemini
-              analyzes both so the Coach Card is ready before you enter the room.
+              Mockly customizes every training session to your company's specific scenarios and customer service standards. 
+              Our AI analyzes your materials to create personalized training experiences.
             </p>
           </div>
 
           <form className="relative mt-8 space-y-8" onSubmit={handleAnalyzeMaterials}>
             <div className="grid gap-5 md:grid-cols-2">
               <label className="flex flex-col gap-3 rounded-2xl border border-[#EDE5E0] bg-white px-5 py-5 text-sm text-[#1A1A1A] shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">Resume (.pdf)</span>
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">Company Profile (.pdf)</span>
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx"
-                  onChange={handleResumeUpload}
+                  onChange={handleCompanyUpload}
                   className="rounded-lg border border-[#E3D8D2] bg-[#F9F3EF] px-3 py-2 text-sm text-[#1A1A1A] placeholder:text-[#B9AAA1] file:mr-4 file:rounded-md file:border-0 file:bg-white/90 file:px-3 file:py-2 file:text-sm file:font-medium file:text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#94A3B8] focus:ring-offset-2 focus:ring-offset-white"
                 />
                 <span className="text-xs font-medium text-[#777777]">
-                  {resumeFile?.name ?? uploadedResumeName ?? "No file selected yet."}
+                  {companyFile?.name ?? uploadedCompanyName ?? "No file selected yet."}
                 </span>
               </label>
 
               <label className="flex flex-col gap-3 rounded-2xl border border-[#EDE5E0] bg-white px-5 py-5 text-sm text-[#1A1A1A] shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">Job description</span>
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">Training scenarios</span>
                 <textarea
                   rows={8}
-                  value={jobDescriptionInput}
-                  onChange={(event) => setJobDescriptionInput(event.target.value)}
-                  placeholder="Paste the Cisco Security Consulting Engineer Intern posting here…"
+                  value={trainingScenariosInput}
+                  onChange={(event) => setTrainingScenariosInput(event.target.value)}
+                  placeholder="Paste your customer service training scenarios, policies, or common issues here…"
                   className="rounded-lg border border-[#E3D8D2] bg-[#F9F3EF] px-3 py-2 text-sm text-[#1A1A1A] placeholder:text-[#B9AAA1] focus:outline-none focus:ring-2 focus:ring-[#94A3B8] focus:ring-offset-2 focus:ring-offset-white"
                 />
                 <span className="text-xs font-medium text-[#777777]">
-                  Paste a full posting or include a link with key responsibilities.
+                  Include common customer issues, company policies, or specific scenarios you want to practice.
                 </span>
               </label>
             </div>
 
             <div className="flex flex-wrap items-center gap-4">
               <Button type="submit" size="lg" className={primaryCtaClass} disabled={isAnalyzing}>
-                {isAnalyzing ? "Analyzing…" : "Analyze with Gemini"}
+                {isAnalyzing ? "Analyzing…" : "Configure Training"}
               </Button>
               <Button type="button" variant="outline" className={outlineButtonClass} onClick={handleUsePracticePack}>
-                Use practice pack
+                Use sample scenarios
               </Button>
               <span className="font-body text-sm font-medium text-[#777777] max-sm:clamp-2">
                 {analysisComplete
-                  ? `Interview brief ready for ${effectiveResumeName ?? SAMPLE_RESUME_NAME}.`
+                  ? `Training configured for ${effectiveCompanyName ?? SAMPLE_COMPANY_NAME}.`
                   : isAnalyzing
-                    ? "Preparing your interview plan…"
+                    ? "Preparing your training plan…"
                     : "Uploads stay private to this session."}
               </span>
             </div>
@@ -335,7 +340,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
         </motion.section>
 
         <motion.section
-          id="interview-brief"
+          id="training-brief"
           className="mx-auto max-w-screen-lg px-2 md:px-8"
           variants={sectionVariants}
           initial="hidden"
@@ -356,17 +361,17 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 className="inline-flex w-fit items-center gap-2 rounded-full border border-[#E0D6CF] bg-[#FFF0EA] px-4 py-1 text-sm font-semibold text-[#7A6C64] animate-fade-up"
                 style={{ animationDelay: "0.05s" }}
               >
-                <Sparkles className="h-4 w-4 text-[#FF7A70]" /> AI interview brief
+                <Sparkles className="h-4 w-4 text-[#FF7A70]" /> AI training brief
               </div>
               <h2
                 className="font-display text-2xl font-semibold tracking-tight text-[#1A1A1A] animate-fade-up md:text-3xl lg:text-4xl"
                 style={{ animationDelay: "0.1s" }}
               >
-                What Gemini prepared for you
+                Your personalized training plan
               </h2>
               <p className="max-w-3xl font-body text-base font-medium leading-relaxed animate-fade-up max-sm:text-sm max-sm:leading-snug md:text-lg" style={{ animationDelay: "0.2s" }}>
-                Gemini reviews your resume, reads the job description, and scripts the first moments of the conversation. When you
-                enter the mock room, the interviewer, agenda, and Coach Card scoring pillars are already aligned.
+                Our AI analyzes your company profile and training scenarios to create realistic customer interactions. 
+                When you start training, the AI customer, difficulty level, and feedback metrics are perfectly calibrated to your needs.
               </p>
             </div>
           </div>
@@ -392,24 +397,24 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
               >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
-                  <FileText className="h-4 w-4 text-[#FF7A70]" /> Resume intake
+                  <FileText className="h-4 w-4 text-[#FF7A70]" /> Company profile
                 </div>
                 <h3 className="mt-4 font-display text-2xl font-semibold text-[#1A1A1A]">
-                  {intakeSummary.resume.headline}
+                  {trainingSummary.company.name}
                 </h3>
                 <p className="mt-3 font-body text-sm font-medium leading-relaxed max-sm:clamp-2">
-                  {intakeSummary.resume.summary}
+                  {trainingSummary.company.summary}
                 </p>
-                {effectiveResumeName && (
+                {effectiveCompanyName && (
                   <div className="mt-4 rounded-2xl border border-[#EDE5E0] bg-[#FFF2ED] px-4 py-2 text-xs font-medium text-[#777777]">
-                    Analyzed file: <span className="text-[#1A1A1A]">{effectiveResumeName}</span>
+                    Configured for: <span className="text-[#1A1A1A]">{effectiveCompanyName}</span>
                   </div>
                 )}
                 <ul className="mt-4 space-y-2 font-body text-sm font-medium">
-                  {intakeSummary.resume.highlights.map((item) => (
-                    <li key={item} className="flex items-start gap-2">
+                  {trainingSummary.company.focusAreas.map((area) => (
+                    <li key={area} className="flex items-start gap-2">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#FF7A70]" />
-                      <span>{item}</span>
+                      <span>{area}</span>
                     </li>
                   ))}
                 </ul>
@@ -425,27 +430,27 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.12 }}
               >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
-                  <Link2 className="h-4 w-4 text-[#FF7A70]" /> Job description intake
+                  <Link2 className="h-4 w-4 text-[#FF7A70]" /> Training scenarios
                 </div>
                 <h3 className="mt-4 font-display text-2xl font-semibold text-[#1A1A1A]">
-                  {intakeSummary.job.company} · {intakeSummary.job.role}
+                  {trainingSummary.scenarios.difficulty}
                 </h3>
                 <p className="mt-3 font-body text-sm font-medium leading-relaxed max-sm:clamp-2">
-                  {intakeSummary.job.summary}
+                  {trainingSummary.scenarios.summary}
                 </p>
                 <ul className="mt-4 space-y-2 font-body text-sm font-medium">
-                  {intakeSummary.job.signals.map((signal) => (
-                    <li key={signal} className="flex items-start gap-2">
+                  {trainingSummary.scenarios.types.map((type) => (
+                    <li key={type} className="flex items-start gap-2">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#FF7A70]" />
-                      <span>{signal}</span>
+                      <span>{type}</span>
                     </li>
                   ))}
                 </ul>
-                {jobDescriptionSource && (
+                {trainingScenariosSource && (
                   <div className="mt-4 rounded-2xl border border-[#EDE5E0] bg-white/95 px-4 py-3 text-xs font-medium text-[#777777]">
-                    <p className="font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">JD excerpt</p>
+                    <p className="font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">Scenario excerpt</p>
                     <p className="mt-2 max-h-48 overflow-y-auto whitespace-pre-wrap font-body text-sm font-medium leading-relaxed">
-                      {jobDescriptionSource}
+                      {trainingScenariosSource}
                     </p>
                   </div>
                 )}
@@ -461,45 +466,39 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.18 }}
               >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
-                  <Target className="h-4 w-4 text-[#FF7A70]" /> Gemini brief
+                  <Target className="h-4 w-4 text-[#FF7A70]" /> Performance metrics
                 </div>
                 <p className="mt-4 font-body text-sm font-medium leading-relaxed">
-                  {intakeSummary.focusSummary}
+                  {trainingSummary.focusSummary}
                 </p>
                 <div className="mt-6 space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-[#8F7A6F]">
-                      <span>Technical depth</span>
-                      <span>{intakeSummary.weights.technical}%</span>
+                  {trainingSummary.metrics.map((metric) => (
+                    <div key={metric.label}>
+                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-[#8F7A6F]">
+                        <span>{metric.label}</span>
+                        <span>{metric.weight}%</span>
+                      </div>
+                      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[#F3E9E3]">
+                        <div
+                          className={`h-full rounded-full ${
+                            metric.label === 'Empathy' ? 'bg-[#FF7A70]' : 
+                            metric.label === 'Clarity' ? 'bg-[#6EC8FF]' : 'bg-[#7ED2B8]'
+                          }`}
+                          style={{ width: `${metric.weight}%` }}
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-[#666666]">{metric.detail}</p>
                     </div>
-                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[#F3E9E3]">
-                      <div
-                        className="h-full rounded-full bg-[#FF7A70]"
-                        style={{ width: `${intakeSummary.weights.technical}%` }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-[#8F7A6F]">
-                      <span>Behavioral stories</span>
-                      <span>{intakeSummary.weights.behavioral}%</span>
-                    </div>
-                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[#F3E9E3]">
-                      <div
-                        className="h-full rounded-full bg-[#C89A6A]"
-                        style={{ width: `${intakeSummary.weights.behavioral}%` }}
-                      />
-                    </div>
-                  </div>
+                  ))}
                 </div>
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  {intakeSummary.focusAreas.map((area) => (
+                <div className="mt-6 grid gap-3 sm:grid-cols-1">
+                  {trainingSummary.metrics.map((metric) => (
                     <div
-                      key={area.label}
+                      key={metric.label}
                       className="rounded-2xl border border-[#E4D6CE] bg-[#F9F2ED] px-4 py-3 font-body text-sm font-medium"
                     >
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#8F7A6F]">{area.label}</p>
-                      <p className="mt-2">{area.detail}</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#8F7A6F]">{metric.label}</p>
+                      <p className="mt-2">{metric.detail}</p>
                     </div>
                   ))}
                 </div>
@@ -515,16 +514,16 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.24 }}
               >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
-                  <BarChart3 className="h-4 w-4 text-[#FF7A70]" /> First prompts Gemini drafted
+                  <BarChart3 className="h-4 w-4 text-[#FF7A70]" /> Sample scenarios you'll practice
                 </div>
                 <ul className="mt-4 space-y-4">
-                  {intakeSummary.questionPreview.map((question, index) => (
-                    <li key={question.prompt} className="rounded-2xl border border-[#E4D6CE] bg-white/85 p-4">
+                  {trainingSummary.scenarioPreview.map((scenario, index) => (
+                    <li key={scenario.prompt} className="rounded-2xl border border-[#E4D6CE] bg-white/85 p-4">
                       <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-[#8F7A6F]">
-                        <span>Q{index + 1}</span>
-                        <span className="text-[#7A6C64]">{question.focus}</span>
+                        <span>Scenario {index + 1}</span>
+                        <span className="text-[#7A6C64]">{scenario.focus}</span>
                       </div>
-                      <p className="mt-2 font-body text-sm font-medium leading-relaxed">{question.prompt}</p>
+                      <p className="mt-2 font-body text-sm font-medium leading-relaxed">"{scenario.prompt}"</p>
                     </li>
                   ))}
                 </ul>
@@ -545,24 +544,24 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 variants={hoverVariants}
               >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
-                  <MicVocal className="h-4 w-4 text-[#FF7A70]" /> Recommended interviewer
+                  <MicVocal className="h-4 w-4 text-[#FF7A70]" /> Your AI training customer
                 </div>
                 <h3 className="mt-4 font-display text-3xl font-semibold text-[#1A1A1A]">
-                  {intakeSummary.persona.name}
+                  {trainingSummary.persona.name}
                 </h3>
-                <p className="font-body text-sm font-medium">{intakeSummary.persona.title}</p>
+                <p className="font-body text-sm font-medium">{trainingSummary.persona.title}</p>
                 <div className="mt-4 rounded-2xl border border-[#E4D6CE] bg-[#F9F2ED] p-4 font-body text-sm font-medium">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">Voice persona</p>
-                  <p className="mt-2 font-semibold text-[#1A1A1A]">{intakeSummary.persona.voiceLabel}</p>
+                  <p className="mt-2 font-semibold text-[#1A1A1A]">{trainingSummary.persona.voiceLabel}</p>
                   <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-[#7A6C64]">
-                    {intakeSummary.persona.voiceBadge}
+                    {trainingSummary.persona.voiceBadge}
                   </span>
                 </div>
                 <p className="mt-4 font-body text-sm font-medium leading-relaxed">
-                  {intakeSummary.persona.opener}
+                  {trainingSummary.persona.opener}
                 </p>
                 <div className="mt-4 space-y-3 font-body text-sm font-medium">
-                  {intakeSummary.persona.reasons.map((reason) => (
+                  {trainingSummary.persona.reasons.map((reason) => (
                     <div key={reason} className="flex items-start gap-2">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#FF7A70]" />
                       <span>{reason}</span>
@@ -581,9 +580,9 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            Upload a resume PDF and the job description you’re targeting, then select{" "}
-            <span className="font-semibold text-[#1A1A1A]">Analyze with Gemini</span> to generate your personalized interview
-            brief.
+            Upload your company profile and training scenarios, then select{" "}
+            <span className="font-semibold text-[#1A1A1A]">Configure Training</span> to generate your personalized customer service
+            training plan.
           </motion.div>
         )}
 
@@ -601,11 +600,11 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               Step 3
             </span>
               <h2 className="font-display text-2xl font-semibold tracking-tight text-[#1A1A1A] md:text-3xl lg:text-4xl">
-                Enter the mock room
+                Start your training session
               </h2>
               <p className="max-w-2xl font-body text-base font-medium leading-relaxed max-sm:text-sm max-sm:leading-snug">
-              Your interviewer, agenda, and scoring pillars are ready. Step into the room when you're prepared to speak and
-              receive a Coach Card moments after you finish.
+              Your AI customer, training scenarios, and feedback metrics are ready. Start practicing when you're prepared to speak and
+              receive detailed coaching feedback moments after you finish.
             </p>
             </div>
           </div>
@@ -616,14 +615,14 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               disabled={!analysisComplete}
               className={stepActionButtonClass}
             >
-              <Link href={`/setup?recommended=${intakeSummary.persona.id}`} className="inline-flex items-center gap-2">
-                Enter mock interview
+              <Link href={`/sim?persona=${trainingSummary.persona.id}`} className="inline-flex items-center gap-2">
+                Start Training Session
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </Button>
             {!analysisComplete && (
               <span className="font-body text-sm font-medium text-[#777777]">
-                Upload your materials above to activate the mock room.
+                Configure your training above to start practicing.
               </span>
             )}
           </div>

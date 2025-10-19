@@ -76,7 +76,7 @@ export default function SimPage() {
       return null
     }
   }, [micPermissionGranted, micStream])
-  
+
   const {
     isSupported,
     status,
@@ -111,7 +111,7 @@ export default function SimPage() {
   })
 
   const isListening = status === "listening"
-  
+
   // Debug status changes
   useEffect(() => {
     console.log("[Sim] Speech recorder status:", status)
@@ -185,7 +185,7 @@ export default function SimPage() {
     stopAudio()
     // Reset speech recorder for new scenario
     if (shouldInitializeRecorder) {
-      reset()
+    reset()
     }
 
     // Cancel any pending scenario request
@@ -242,10 +242,10 @@ export default function SimPage() {
         body: JSON.stringify({ text: scenarioPrompt, voice: "mentor" }),
         signal: ttsController.signal,
       })
-             if (tts.ok) {
-               const blob = await tts.blob()
-               const audioUrl = URL.createObjectURL(blob)
-               console.log(`[Sim] TTS audio generated (${blob.size} bytes), creating object URL: ${audioUrl}`)
+      if (tts.ok) {
+        const blob = await tts.blob()
+        const audioUrl = URL.createObjectURL(blob)
+        console.log(`[Sim] TTS audio generated (${blob.size} bytes), creating object URL: ${audioUrl}`)
                
                // Play audio immediately for subsequent scenarios
                console.log("[Sim] Playing subsequent scenario audio")
@@ -272,12 +272,12 @@ export default function SimPage() {
                  console.error("[Sim] Audio play() rejected:", error)
                  setAudioFinished(true) // Enable mic even if play fails
                })
-             } else {
-               // Non-fatal: allow user to proceed even if TTS fails
-               const msg = await tts.text().catch(() => "TTS failed")
-               console.warn("TTS failed", msg)
+      } else {
+        // Non-fatal: allow user to proceed even if TTS fails
+        const msg = await tts.text().catch(() => "TTS failed")
+        console.warn("TTS failed", msg)
                setAudioFinished(true) // Enable mic if TTS fails
-             }
+      }
       pendingTtsRef.current = null
     } catch (e) {
       if (e instanceof Error && e.name === "AbortError") {
@@ -685,119 +685,371 @@ export default function SimPage() {
       onClick={handleFirstUserInteraction}
     >
       {/* Click to Start Overlay */}
-      {showClickToStart && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#FFF8F5]">
-          <div className="text-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="mb-8"
-            >
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-4">
-                Customer Simulation
-              </h1>
-              <p className="text-lg text-gray-600 mb-8">
-                Practice handling real customer scenarios with instant coaching
-              </p>
-            </motion.div>
-            
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              onClick={handleClickToStart}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg text-lg shadow-lg transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300"
-            >
-              Click to Start
-            </motion.button>
-            
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-              className="text-sm text-gray-500 mt-6"
-            >
-              Click anywhere to begin your first scenario
-            </motion.p>
-          </div>
-        </div>
-      )}
-
-      <div className="mx-auto max-w-2xl px-4 py-10">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          <h1 className="text-2xl font-semibold tracking-tight">Customer Simulation</h1>
-          <p className="text-sm text-muted-foreground">Practice handling real customer scenarios with instant coaching.</p>
+        {showClickToStart && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#FFF8F5] via-[#FDFCFB] to-[#FFF0EA]">
+            <div className="text-center max-w-2xl mx-auto px-6">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="mb-12"
+              >
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#FF7A70] to-[#FF9F70] rounded-full blur-3xl opacity-20 scale-150"></div>
+                  <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20">
+                    <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-[#FF7A70] to-[#FF9F70] rounded-2xl flex items-center justify-center shadow-lg">
+                      <span className="text-3xl">🎯</span>
+                    </div>
+                    <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-[#1A1A1A] to-[#4A4A4A] bg-clip-text text-transparent mb-4">
+                      Ready to Train?
+                    </h1>
+                    <p className="text-xl text-[#666666] leading-relaxed">
+                      Your AI customer is waiting with realistic scenarios that adapt to your skill level. 
+                      Get instant feedback on empathy, clarity, and resolution.
+                    </p>
+                  </div>
+                </div>
         </motion.div>
 
-        <div className="mt-6 rounded-lg border bg-white p-5 shadow-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1">
-              <div className="text-xs font-medium text-[#6b7280]">Difficulty: {difficultyLabel(difficulty)}</div>
-              <div className="text-xs font-medium text-muted-foreground">Current customer prompt</div>
-              <div className="mt-2 whitespace-pre-wrap rounded-md bg-muted/30 p-3 text-[15px] leading-relaxed">
-                {loadingScenario ? "Loading scenario..." : prompt || "—"}
+              <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+                onClick={handleClickToStart}
+                className="group relative bg-gradient-to-r from-[#FF7A70] to-[#FF9F70] hover:from-[#FF6B60] hover:to-[#FF8F60] text-white font-bold py-6 px-12 rounded-2xl text-xl shadow-[0_8px_32px_rgba(255,122,112,0.3)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(255,122,112,0.4)] focus:outline-none focus:ring-4 focus:ring-[#FF7A70]/30"
+              >
+                <span className="relative z-10 flex items-center gap-3">
+                  Start Training Session
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-[#FF7A70] to-[#FF9F70] rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              </motion.button>
+              
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                className="mt-8 flex items-center justify-center gap-8 text-sm text-[#666666]"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span>Real-time voice analysis</span>
+              </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span>Adaptive difficulty</span>
+            </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                  <span>Instant feedback</span>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        )}
+
+      <div className="min-h-screen bg-gradient-to-br from-[#FFF8F5] via-[#FDFCFB] to-[#FFF0EA]">
+        {/* Header */}
+        <div className="sticky top-0 z-40 border-b border-[#EDE5E0]/50 bg-white/80 backdrop-blur-md">
+          <div className="mx-auto max-w-6xl px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF7A70] to-[#FF9F70] shadow-lg">
+                  <span className="text-2xl">🎯</span>
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-[#1A1A1A]">Customer Service Training</h1>
+                  <p className="text-sm text-[#666666]">AI-powered voice simulation with real-time feedback</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 rounded-full bg-[#F0F9FF] px-4 py-2">
+                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
+                  <span className="text-sm font-medium text-[#1A1A1A]">
+                    {difficulty === 'easy' ? '🟢 Easy' : 
+                     difficulty === 'medium' ? '🟡 Medium' : 
+                     difficulty === 'hard' ? '🟠 Hard' : '🔴 Nightmare'}
+                  </span>
+                </div>
+                <div className="text-xs text-[#666666]">
+                  Powered by <span className="font-semibold text-[#FF7A70]">ElevenLabs</span> + <span className="font-semibold text-[#FF7A70]">Gemini</span>
+                </div>
               </div>
             </div>
-            <div className="shrink-0">
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="mx-auto max-w-6xl px-4 py-8">
+          <div className="grid gap-8 lg:grid-cols-3">
+            {/* Left Column - Scenario & Controls */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Scenario Card */}
+              {loadingScenario && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-sm border border-white/20 shadow-2xl"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#FF7A70]/5 to-[#FF9F70]/5"></div>
+                  <div className="relative p-8 text-center">
+                    <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-[#FF7A70]/20 border-t-[#FF7A70]"></div>
+                    <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2">Generating scenario...</h3>
+                    <p className="text-[#666666]">Our AI is crafting a realistic customer interaction for you</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-3xl border border-red-200 bg-red-50/80 backdrop-blur-sm p-6 shadow-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
+                      <span className="text-red-600">⚠️</span>
+                    </div>
+                    <p className="font-medium text-red-800">{error}</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {prompt && !loadingScenario && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-sm border border-white/20 shadow-2xl"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#FF7A70]/5 to-[#FF9F70]/5"></div>
+                  <div className="relative p-8">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#FF7A70] to-[#FF9F70] flex items-center justify-center">
+                          <span className="text-lg">👤</span>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-[#1A1A1A]">Customer Scenario</h3>
+                          <p className="text-sm text-[#666666]">Listen carefully and respond naturally</p>
+                        </div>
+                      </div>
               <Button
                 size="sm"
-                variant="secondary"
+                        variant="outline"
                 onClick={() => fetchScenario()}
                 disabled={loadingScenario || ttsLoading}
+                        className="bg-white/80 hover:bg-white"
               >
-                {loadingScenario || ttsLoading ? "Refreshing..." : "New Prompt"}
+                        {loadingScenario || ttsLoading ? "Refreshing..." : "New Scenario"}
               </Button>
             </div>
+                    <div className="bg-[#F8F9FA] rounded-2xl p-6 border border-[#E9ECEF]">
+                      <p className="text-[#1A1A1A] leading-relaxed font-medium">"{prompt}"</p>
           </div>
-          {error ? (
-            <div className="mt-3 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
-          ) : null}
         </div>
+                </motion.div>
+              )}
 
-        <div className="mt-8 flex flex-col items-center gap-6">
+              {/* Your Response Card */}
+              {transcript && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-sm border border-white/20 shadow-2xl"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#6EC8FF]/5 to-[#7ED2B8]/5"></div>
+                  <div className="relative p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#6EC8FF] to-[#7ED2B8] flex items-center justify-center">
+                        <span className="text-lg">🎤</span>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-[#1A1A1A]">Your Response</h3>
+                        <p className="text-sm text-[#666666]">How you handled the customer interaction</p>
+                      </div>
+                    </div>
+                    <div className="bg-[#F0F9FF] rounded-2xl p-6 border border-[#BFDBFE]">
+                      <p className="text-[#1A1A1A] leading-relaxed font-medium">"{transcript}"</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Microphone Controls */}
+              <div className="flex flex-col items-center space-y-6">
+                <div className="relative">
           <Waveform isActive={isListening || isSpeechDetected} />
-          <MicButton isListening={isListening} onClick={onMicClick} />
-          <div className="text-xs text-muted-foreground">
+                  <MicButton
+                    isListening={isListening}
+                    canRecord={canRecord}
+                    onClick={onMicClick}
+                    disabled={!canRecord}
+                  />
+                  {isListening && (
+                    <div className="absolute inset-0 rounded-full border-4 border-[#FF7A70]/30 animate-ping"></div>
+                  )}
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-sm font-medium text-[#1A1A1A] mb-2">
             {recorderError ? (
-              <span className="text-red-600">{recorderError}</span>
+                      <span className="text-red-600 flex items-center gap-2">
+                        <span>⚠️</span> {recorderError}
+                      </span>
             ) : isListening ? (
-              <span>Listening... click mic to stop</span>
+                      <span className="flex items-center gap-2 text-[#FF7A70]">
+                        <div className="w-2 h-2 rounded-full bg-[#FF7A70] animate-pulse"></div>
+                        Listening... click to stop
+                      </span>
             ) : transcript ? (
-              <span>Response recorded. Click mic to re-record.</span>
-            ) : audioFinished ? (
-              <span>Click mic to start recording</span>
-            ) : (
-              <span>Preparing scenario...</span>
+                      <span className="flex items-center gap-2 text-[#7ED2B8]">
+                        <span>✅</span> Response recorded. Click to re-record.
+                      </span>
+                    ) : audioFinished ? (
+                      <span className="flex items-center gap-2 text-[#6EC8FF]">
+                        <span>🎤</span> Click to start recording
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2 text-[#666666]">
+                        <div className="w-2 h-2 rounded-full bg-[#666666] animate-pulse"></div>
+                        Preparing scenario...
+                      </span>
             )}
           </div>
-          {transcript.trim() ? (
-            <div className="mt-1 max-w-lg text-center text-xs text-muted-foreground">
-              {transcript}
             </div>
-          ) : null}
+              </div>
         </div>
 
+            {/* Right Column - Feedback & Progress */}
+            <div className="space-y-6">
+              {/* Performance Metrics */}
+              {feedback && !evaluating && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-sm border border-white/20 shadow-2xl"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#7ED2B8]/5 to-[#6EC8FF]/5"></div>
+                  <div className="relative p-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#7ED2B8] to-[#6EC8FF] flex items-center justify-center">
+                        <span className="text-lg">📊</span>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-[#1A1A1A]">Performance</h3>
+                        <p className="text-sm text-[#666666]">Your latest scores</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-[#1A1A1A]">Empathy</span>
+                        <span className="text-lg font-bold text-[#FF7A70]">{feedback.empathy}%</span>
+                      </div>
+                      <div className="w-full bg-[#F3E9E3] rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-[#FF7A70] to-[#FF9F70] h-2 rounded-full transition-all duration-1000"
+                          style={{ width: `${feedback.empathy}%` }}
+                        ></div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-[#1A1A1A]">Clarity</span>
+                        <span className="text-lg font-bold text-[#6EC8FF]">{feedback.clarity}%</span>
+                      </div>
+                      <div className="w-full bg-[#F3E9E3] rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-[#6EC8FF] to-[#7ED2B8] h-2 rounded-full transition-all duration-1000"
+                          style={{ width: `${feedback.clarity}%` }}
+                        ></div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-[#1A1A1A]">Resolution</span>
+                        <span className="text-lg font-bold text-[#7ED2B8]">{feedback.resolution}%</span>
+                      </div>
+                      <div className="w-full bg-[#F3E9E3] rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-[#7ED2B8] to-[#6EC8FF] h-2 rounded-full transition-all duration-1000"
+                          style={{ width: `${feedback.resolution}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Training Tips */}
+              <div className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-sm border border-white/20 shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#FF7A70]/5 to-[#FF9F70]/5"></div>
+                <div className="relative p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#FF7A70] to-[#FF9F70] flex items-center justify-center">
+                      <span className="text-lg">💡</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-[#1A1A1A]">Training Tips</h3>
+                  </div>
+                  <div className="space-y-3 text-sm text-[#666666]">
+                    <div className="flex items-start gap-3">
+                      <span className="text-[#FF7A70] mt-1">•</span>
+                      <span>Listen actively and acknowledge the customer's concerns</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="text-[#FF7A70] mt-1">•</span>
+                      <span>Speak clearly and use simple, understandable language</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="text-[#FF7A70] mt-1">•</span>
+                      <span>Focus on finding a solution that works for both parties</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="text-[#FF7A70] mt-1">•</span>
+                      <span>Stay calm and professional, even with difficult customers</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Evaluation Loading */}
         {evaluating && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 flex justify-center">
-            <div className="rounded-lg border bg-white px-6 py-4 text-sm shadow-sm">Evaluating response…</div>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              className="mt-8 flex justify-center"
+            >
+              <div className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-sm border border-white/20 shadow-2xl px-8 py-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#FF7A70]/20 border-t-[#FF7A70]"></div>
+                  <span className="text-lg font-medium text-[#1A1A1A]">Analyzing your response...</span>
+                </div>
+              </div>
           </motion.div>
         )}
 
+          {/* CoachCard - Full Width */}
         {feedback && !evaluating && (
-          <div className="mt-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8"
+            >
             <CoachCard
               empathy={feedback.empathy}
               clarity={feedback.clarity}
               resolution={feedback.resolution}
               tip={feedback.tip}
               summary={feedback.summary}
-              tips={feedback.tips}
-              idealResponse={feedback.idealResponse}
+                tips={feedback.tips}
+                idealResponse={feedback.idealResponse}
               onNext={onNextScenario}
             />
-          </div>
+            </motion.div>
         )}
+        </div>
+      </div>
         {showDevPanel && (
           <div
             className="fixed bottom-4 right-4 z-50 w-64 rounded-lg border bg-white p-3 text-xs shadow-lg"
