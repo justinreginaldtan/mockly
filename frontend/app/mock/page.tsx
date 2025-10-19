@@ -257,6 +257,7 @@ export default function MockInterviewPage() {
   const [fallbackPlanState, setFallbackPlanState] = useState<InterviewPlan | null>(null)
   const [isGreetingActive, setIsGreetingActive] = useState(false)
   const [isVoicePlaying, setIsVoicePlaying] = useState(false)
+  const [greetingCompleted, setGreetingCompleted] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -268,6 +269,8 @@ export default function MockInterviewPage() {
   const speechCacheRef = useRef<Map<string, string>>(new Map())
   const personaInitRef = useRef<string | null>(null)
   const lastSpokenQuestionRef = useRef<string | null>(null)
+  const currentQuestionIndexRef = useRef(0)
+  const questionsRef = useRef<Array<InterviewPlan["questions"][number]>>([])
   const [greetingAudioUrl, setGreetingAudioUrl] = useState<string | null>(null)
 
   const currentTheme = themeStyles[theme]
@@ -277,8 +280,15 @@ export default function MockInterviewPage() {
     setThemeMenuOpen(false)
   }, [])
 
+  useEffect(() => {
+    currentQuestionIndexRef.current = currentQuestionIndex
+  }, [currentQuestionIndex])
+
   const activePlan = interviewPlan ?? fallbackPlanState
   const questions = useMemo(() => (activePlan?.questions?.length ? activePlan.questions : []), [activePlan])
+  useEffect(() => {
+    questionsRef.current = questions
+  }, [questions])
   const hasPlan = questions.length > 0
   const totalQuestions = questions.length
   const clampedIndex = hasPlan ? Math.min(currentQuestionIndex, Math.max(totalQuestions - 1, 0)) : 0
@@ -345,6 +355,7 @@ export default function MockInterviewPage() {
       setActiveFollowUp(null)
       setShowAgenda(false)
       lastSpokenQuestionRef.current = null
+      setGreetingCompleted(false)
     }
   }, [hasPlan, questions.length, personaSource.personaId])
 
@@ -415,6 +426,58 @@ export default function MockInterviewPage() {
       }
     },
     [personaSource.personaId, personaSource.voiceStyleId],
+  )
+
+  const playQuestionPrompt = useCallback(
+    async (prompt: string, questionId: string | null | undefined) => {
+      if (!prompt?.trim() || !questionId) {
+        return
+      }
+
+      if (questionAudioRef.current) {
+        questionAudioRef.current.pause()
+        questionAudioRef.current = null
+      }
+      if (followUpAudioRef.current) {
+        followUpAudioRef.current.pause()
+        followUpAudioRef.current = null
+      }
+
+      const audioUrl = await requestPersonaSpeech(prompt)
+      if (!audioUrl) {
+        return
+      }
+
+      const audio = new Audio(audioUrl)
+      questionAudioRef.current = audio
+      setIsVoicePlaying(true)
+      lastSpokenQuestionRef.current = questionId
+
+      audio.play().catch((error) => {
+        console.error("Failed to play question prompt", error)
+        if (questionAudioRef.current === audio) {
+          questionAudioRef.current = null
+        }
+        setIsVoicePlaying(false)
+        if (lastSpokenQuestionRef.current === questionId) {
+          lastSpokenQuestionRef.current = null
+        }
+      })
+
+      const reset = () => {
+        if (questionAudioRef.current === audio) {
+          questionAudioRef.current = null
+        }
+        setIsVoicePlaying(false)
+        if (lastSpokenQuestionRef.current === questionId) {
+          lastSpokenQuestionRef.current = null
+        }
+      }
+
+      audio.onended = reset
+      audio.onpause = reset
+    },
+    [requestPersonaSpeech],
   )
 
   const playFollowUpLine = useCallback(
@@ -503,53 +566,8 @@ export default function MockInterviewPage() {
     }
   }, [activeFollowUp, currentQuestionIndex, followUpHistory, hasPlan, playFollowUpLine, questions, router])
 
-  const playQuestionPrompt = useCallback(
-    async (prompt: string, questionId: string | null | undefined) => {
-      if (!prompt?.trim() || !questionId) {
-        return
-      }
-
-      if (questionAudioRef.current) {
-        questionAudioRef.current.pause()
-        questionAudioRef.current = null
-      }
-      if (followUpAudioRef.current) {
-        followUpAudioRef.current.pause()
-        followUpAudioRef.current = null
-      }
-
-      const audioUrl = await requestPersonaSpeech(prompt)
-      if (!audioUrl) {
-        return
-      }
-
-      const audio = new Audio(audioUrl)
-      questionAudioRef.current = audio
-      setIsVoicePlaying(true)
-
-      audio.play().catch((error) => {
-        console.error("Failed to play question prompt", error)
-        if (questionAudioRef.current === audio) {
-          questionAudioRef.current = null
-        }
-        setIsVoicePlaying(false)
-      })
-
-      const reset = () => {
-        if (questionAudioRef.current === audio) {
-          questionAudioRef.current = null
-        }
-        setIsVoicePlaying(false)
-      }
-
-      audio.onended = reset
-      audio.onpause = reset
-    },
-    [requestPersonaSpeech],
-  )
-
   useEffect(() => {
-    if (!hasPlan || planLoading || showIntro || isGreetingActive) {
+    if (!hasPlan || planLoading || showIntro || isGreetingActive || !greetingCompleted) {
       return
     }
 
@@ -558,13 +576,12 @@ export default function MockInterviewPage() {
       return
     }
 
-    if (lastSpokenQuestionRef.current === question.id) {
+    if (lastSpokenQuestionRef.current === question.id || questionAudioRef.current) {
       return
     }
 
-    lastSpokenQuestionRef.current = question.id
     void playQuestionPrompt(question.prompt ?? "", question.id)
-  }, [currentQuestionIndex, hasPlan, isGreetingActive, planLoading, playQuestionPrompt, questions, showIntro])
+  }, [currentQuestionIndex, greetingCompleted, hasPlan, isGreetingActive, planLoading, playQuestionPrompt, questions, showIntro])
 
   useEffect(() => {
     if (showIntro) {
@@ -777,6 +794,7 @@ export default function MockInterviewPage() {
 
     const playGreeting = async () => {
       greetingPlaybackRef.current = true
+      setGreetingCompleted(false)
       try {
         let audioUrl = greetingAudioUrl
         if (!audioUrl) {
@@ -785,6 +803,8 @@ export default function MockInterviewPage() {
             setGreetingAudioUrl(audioUrl)
           } else {
             setIsVoicePlaying(false)
+            setIsGreetingActive(false)
+            setGreetingCompleted(true)
             return
           }
         }
@@ -800,6 +820,8 @@ export default function MockInterviewPage() {
             greetingAudioRef.current = null
           }
           setIsVoicePlaying(false)
+          setIsGreetingActive(false)
+          setGreetingCompleted(true)
         })
 
         const reset = () => {
@@ -808,6 +830,8 @@ export default function MockInterviewPage() {
           }
           setIsVoicePlaying(false)
           setIsGreetingActive(false)
+          lastSpokenQuestionRef.current = null
+          setGreetingCompleted(true)
         }
 
         audio.onended = reset
@@ -815,11 +839,13 @@ export default function MockInterviewPage() {
       } catch (error) {
         console.error("Greeting playback error", error)
         setIsVoicePlaying(false)
+        setIsGreetingActive(false)
+        setGreetingCompleted(true)
       }
     }
 
     void playGreeting()
-  }, [showIntro, planLoading, hasPlan, greetingAudioUrl, personaGreetingLine, requestPersonaSpeech])
+  }, [showIntro, planLoading, hasPlan, greetingAudioUrl, personaGreetingLine, playQuestionPrompt, requestPersonaSpeech])
 
   useEffect(() => {
     let cancelled = false
