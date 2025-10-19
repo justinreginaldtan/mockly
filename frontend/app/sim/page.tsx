@@ -209,6 +209,11 @@ export default function SimPage() {
               <span>Tap the mic to respond</span>
             )}
           </div>
+          {transcript.trim() ? (
+            <div className="mt-1 max-w-lg text-center text-xs text-muted-foreground">
+              {transcript}
+            </div>
+          ) : null}
         </div>
 
         {evaluating && (
