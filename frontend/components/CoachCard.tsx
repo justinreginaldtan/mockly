@@ -12,6 +12,8 @@ type CoachCardProps = {
   resolution: number
   tip: string
   summary?: string
+  tips?: string[]
+  idealResponse?: string
   onNext: () => void
 }
 
@@ -40,7 +42,7 @@ function ScoreRow({ label, value, accentClass }: { label: string; value: number;
   )
 }
 
-export default function CoachCard({ empathy, clarity, resolution, tip, summary, onNext }: CoachCardProps) {
+export default function CoachCard({ empathy, clarity, resolution, tip, summary, tips, idealResponse, onNext }: CoachCardProps) {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: "easeOut" }}>
       <Card className="relative overflow-hidden border-0 bg-gradient-to-b from-[#FFF8F5] to-white p-6 shadow-lg">
@@ -61,8 +63,30 @@ export default function CoachCard({ empathy, clarity, resolution, tip, summary, 
           </div>
 
           <div className="rounded-lg border bg-background/40 p-4">
-            <p className="text-sm italic leading-relaxed text-muted-foreground">“{tip}”</p>
+            <p className="text-sm italic leading-relaxed text-muted-foreground">"{tip}"</p>
           </div>
+
+          {tips && tips.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-muted-foreground">Additional Tips:</h4>
+              <ul className="space-y-1">
+                {tips.map((tipItem, index) => (
+                  <li key={index} className="text-sm text-muted-foreground">
+                    • {tipItem}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {idealResponse && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-muted-foreground">Ideal Response:</h4>
+              <div className="rounded-lg border bg-green-50 p-3">
+                <p className="text-sm leading-relaxed text-green-800">"{idealResponse}"</p>
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center justify-end gap-3">
             <Button

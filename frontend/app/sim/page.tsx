@@ -14,6 +14,8 @@ type EvaluationFeedback = {
   resolution: number
   tip: string
   summary?: string
+  tips?: string[]
+  idealResponse?: string
 }
 
 export default function SimPage() {
@@ -24,6 +26,7 @@ export default function SimPage() {
   const [evaluating, setEvaluating] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<EvaluationFeedback | null>(null)
+  const [evaluationResult, setEvaluationResult] = useState<EvaluationFeedback | null>(null)
   const [showDevPanel, setShowDevPanel] = useState<boolean>(false)
   const [audioFinished, setAudioFinished] = useState<boolean>(false)
   const [scenarioId, setScenarioId] = useState<string | null>(null)
@@ -169,6 +172,7 @@ export default function SimPage() {
     isGeneratingScenarioRef.current = true
     setError(null)
     setFeedback(null)
+    setEvaluationResult(null)
     setLoadingScenario(true)
     setAudioFinished(false)
     // Only set userInteractionRequired to false for subsequent scenarios (not the first one)
@@ -303,9 +307,7 @@ export default function SimPage() {
         answer: transcript,
         demoPerfect: perfectScoresMode
       }
-      console.log("[Sim] Submitting evaluation payload:", payload)
-      console.log("[Sim] Transcript details - length:", transcript.length, "words:", transcript.split(/\s+/).length)
-      console.log("[Sim] Perfect scores mode:", perfectScoresMode)
+      console.log("[Sim] Submitting evaluation payload")
       console.log("[Sim] transcript captured: true")
       const res = await fetch("/api/evaluate-answer", {
         method: "POST",
@@ -325,10 +327,18 @@ export default function SimPage() {
         evaluation.tip ?? "Acknowledge the customer's feelings and propose a clear next step.",
       )
       const summary: string | undefined = evaluation.summary || undefined
+      const tips: string[] | undefined = Array.isArray(evaluation.tips) && evaluation.tips.length > 0 
+        ? evaluation.tips.filter((t: unknown) => typeof t === "string" && t.trim()).slice(0, 3)
+        : undefined
+      const idealResponse: string | undefined = evaluation.idealResponse || undefined
 
       console.log(`[Sim] Feedback received for scenario ${scenarioId}: empathy=${empathy}, clarity=${clarity}, resolution=${resolution}`)
       console.log("[Sim] feedback received: true")
-      setFeedback({ empathy, clarity, resolution, tip, summary })
+      
+      const evaluationData = { empathy, clarity, resolution, tip, summary, tips, idealResponse }
+      setFeedback(evaluationData)
+      setEvaluationResult(evaluationData)
+      console.log("[Sim] Evaluation result set, CoachCard should now display")
 
       decideNextScenario({ empathy, resolution, difficulty })
     } catch (e) {
@@ -337,7 +347,7 @@ export default function SimPage() {
     } finally {
       setEvaluating(false)
     }
-  }, [prompt, transcript, scenarioId])
+  }, [prompt, transcript, scenarioId, perfectScoresMode, difficulty])
 
   // Initialize speech recorder on mount (no auto-start)
   useEffect(() => {
@@ -359,6 +369,7 @@ export default function SimPage() {
       }
     }
   }, [micStream])
+
 
   // Don't auto-fetch first scenario - wait for user click
 
@@ -416,8 +427,20 @@ export default function SimPage() {
   }, [canRecord, audioFinished, isListening, start, stop, reset, transcript, handleFirstUserInteraction, micPermissionGranted, initializeMicrophone])
 
   const onNextScenario = useCallback(() => {
+    console.log("[Sim] Next scenario requested - clearing transcript and resetting states")
+    
+    // Clear transcript and evaluation result for fresh start
+    reset()
+    setEvaluationResult(null)
+    setFeedback(null)
+    setError(null)
+    
+    // Reset audio and mic states
+    setAudioFinished(false)
+    
+    // Fetch new scenario
     fetchScenario()
-  }, [fetchScenario])
+  }, [fetchScenario, reset])
 
   const handleClickToStart = useCallback(async () => {
     console.log("[Sim] Click to start - generating first scenario and initializing microphone")
@@ -728,14 +751,16 @@ export default function SimPage() {
           </motion.div>
         )}
 
-        {feedback && !evaluating && (
+        {evaluationResult && (
           <div className="mt-8">
             <CoachCard
-              empathy={feedback.empathy}
-              clarity={feedback.clarity}
-              resolution={feedback.resolution}
-              tip={feedback.tip}
-              summary={feedback.summary}
+              empathy={evaluationResult.empathy}
+              clarity={evaluationResult.clarity}
+              resolution={evaluationResult.resolution}
+              tip={evaluationResult.tip}
+              summary={evaluationResult.summary}
+              tips={evaluationResult.tips}
+              idealResponse={evaluationResult.idealResponse}
               onNext={onNextScenario}
             />
           </div>
