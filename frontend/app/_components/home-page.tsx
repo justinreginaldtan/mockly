@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from "react"
 import { ArrowRight, BarChart3, CheckCircle2, FileText, Link2, MicVocal, Sparkles, Target } from "lucide-react"
+import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
 import Hero, { HeroProps } from "@/components/Hero"
@@ -47,7 +48,17 @@ const stepActionButtonClass =
   "rounded-xl px-8 py-4 bg-[#1A1A1A] text-white font-medium transition-transform duration-200 hover:-translate-y-0.5 hover:scale-[1.03] hover:bg-[#2E2E2E] shadow-[0_2px_20px_rgba(0,0,0,0.1)] focus-visible:ring-offset-[#FFF8F5]"
 
 const cardClass =
-  "rounded-2xl border border-[#EDE5E0] bg-white/95 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]"
+  "rounded-2xl border border-[#EDE5E0] bg-white/95 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]"
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 32 },
+  visible: { opacity: 1, y: 0 },
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 18 },
+  visible: { opacity: 1, y: 0 },
+}
 
 const intakeSummary = {
   resume: {
@@ -207,13 +218,13 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
       <header className="sticky top-0 z-30 border-b border-[#EDE5E0] bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-screen-lg items-center justify-between px-4 py-4 md:px-8">
           <div className="flex items-center gap-3">
-            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[#E0D6CF] bg-white/80 shadow-[0_10px_20px_-16px_rgba(26,26,26,0.45)]">
+            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[#E0D6CF] bg-white/80 shadow-[0_10px_20px_-16px_rgba(26,26,26,0.45)] animate-mascot">
               <Image
                 src="/mockly-glow.png"
                 alt="Mockly mascot"
                 width={44}
                 height={44}
-                className="h-full w-full object-contain"
+                className="h-full w-full object-contain mascot-blink"
                 priority
               />
             </div>
@@ -238,13 +249,18 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
           showCalibrating ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >
-        <div className="mx-auto max-w-screen-lg px-4 pt-16 md:px-8 md:pt-20">
+        <div className="mx-auto max-w-screen-lg px-2 pt-16 md:px-8 md:pt-20">
           <StepIndicator steps={stepItems} currentIndex={currentStepIndex} />
           <HeroComponent onAnalyzeClick={handleScrollToIntake} />
         </div>
 
-        <section
+        <motion.section
           id="intake-form"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
           className={`${cardClass} relative isolate mx-auto max-w-4xl px-6 py-10 md:px-10 md:py-12 animate-fade-up`}
         >
           <div className="pointer-events-none absolute inset-0">
@@ -257,7 +273,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
             <h2 className="font-display text-3xl font-semibold tracking-tight text-[#1A1A1A] md:text-4xl">
               Upload your materials
             </h2>
-            <p className="font-body text-base font-medium leading-relaxed">
+            <p className="font-body text-base font-medium leading-relaxed max-sm:clamp-2">
               Mockly calibrates every interview to the resume you provide and the job description you’re targeting. Gemini
               analyzes both so the Coach Card is ready before you enter the room.
             </p>
@@ -300,7 +316,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               <Button type="button" variant="outline" className={outlineButtonClass} onClick={handleUsePracticePack}>
                 Use practice pack
               </Button>
-              <span className="font-body text-sm font-medium text-[#777777]">
+              <span className="font-body text-sm font-medium text-[#777777] max-sm:clamp-2">
                 {analysisComplete
                   ? `Interview brief ready for ${effectiveResumeName ?? SAMPLE_RESUME_NAME}.`
                   : isAnalyzing
@@ -309,9 +325,17 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               </span>
             </div>
           </form>
-        </section>
+        </motion.section>
 
-        <section id="interview-brief" className="mx-auto max-w-screen-lg px-4 md:px-8">
+        <motion.section
+          id="interview-brief"
+          className="mx-auto max-w-screen-lg px-2 md:px-8"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <div className="relative isolate overflow-hidden rounded-[32px] bg-gradient-to-b from-white/95 to-white/70 px-8 py-10 shadow-[0_2px_24px_rgba(0,0,0,0.05)] backdrop-blur">
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute left-12 top-10 h-40 w-40 rounded-full bg-[#FF7A70]/5 blur-3xl" />
@@ -333,25 +357,39 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               >
                 What Gemini prepared for you
               </h2>
-              <p className="max-w-3xl font-body text-base font-medium leading-relaxed animate-fade-up md:text-lg" style={{ animationDelay: "0.2s" }}>
+              <p className="max-w-3xl font-body text-base font-medium leading-relaxed animate-fade-up max-sm:clamp-2 md:text-lg" style={{ animationDelay: "0.2s" }}>
                 Gemini reviews your resume, reads the job description, and scripts the first moments of the conversation. When you
                 enter the mock room, the interviewer, agenda, and Coach Card scoring pillars are already aligned.
               </p>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {analysisComplete ? (
-          <div className="mx-auto grid max-w-screen-lg gap-8 px-4 md:px-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
-            <div className="space-y-8 animate-fade-up" style={{ animationDelay: "0.15s" }}>
-              <div className={`${cardClass} p-6 md:p-8`}>
+          <motion.div
+            className="mx-auto grid max-w-screen-lg gap-8 px-2 md:px-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]"
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+          >
+            <div className="space-y-8">
+              <motion.div
+                className={`${cardClass} p-6 md:p-8`}
+                variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
+              >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
                   <FileText className="h-4 w-4 text-[#FF7A70]" /> Resume intake
                 </div>
                 <h3 className="mt-4 font-display text-2xl font-semibold text-[#1A1A1A]">
                   {intakeSummary.resume.headline}
                 </h3>
-                <p className="mt-3 font-body text-sm font-medium leading-relaxed">
+                <p className="mt-3 font-body text-sm font-medium leading-relaxed max-sm:clamp-2">
                   {intakeSummary.resume.summary}
                 </p>
                 {effectiveResumeName && (
@@ -367,16 +405,23 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
 
-              <div className={`${cardClass} p-6 md:p-8`}>
+              <motion.div
+                className={`${cardClass} p-6 md:p-8`}
+                variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: 0.12 }}
+              >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
                   <Link2 className="h-4 w-4 text-[#FF7A70]" /> Job description intake
                 </div>
                 <h3 className="mt-4 font-display text-2xl font-semibold text-[#1A1A1A]">
                   {intakeSummary.job.company} · {intakeSummary.job.role}
                 </h3>
-                <p className="mt-3 font-body text-sm font-medium leading-relaxed">
+                <p className="mt-3 font-body text-sm font-medium leading-relaxed max-sm:clamp-2">
                   {intakeSummary.job.summary}
                 </p>
                 <ul className="mt-4 space-y-2 font-body text-sm font-medium">
@@ -395,9 +440,16 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                     </p>
                   </div>
                 )}
-              </div>
+              </motion.div>
 
-              <div className={`${cardClass} p-6 md:p-8`}>
+              <motion.div
+                className={`${cardClass} p-6 md:p-8`}
+                variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: 0.18 }}
+              >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
                   <Target className="h-4 w-4 text-[#FF7A70]" /> Gemini brief
                 </div>
@@ -441,9 +493,16 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
 
-              <div className={`${cardClass} p-6 md:p-8`}>
+              <motion.div
+                className={`${cardClass} p-6 md:p-8`}
+                variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: 0.24 }}
+              >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
                   <BarChart3 className="h-4 w-4 text-[#FF7A70]" /> First prompts Gemini drafted
                 </div>
@@ -458,10 +517,17 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
             </div>
 
-            <aside className="space-y-8 animate-fade-up" style={{ animationDelay: "0.25s" }}>
+            <motion.aside
+              className="space-y-8"
+              variants={cardVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, ease: "easeOut", delay: 0.18 }}
+            >
               <div className={`${cardClass} p-6 md:p-8`}>
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
                   <MicVocal className="h-4 w-4 text-[#FF7A70]" /> Recommended interviewer
@@ -489,19 +555,31 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                   ))}
                 </div>
               </div>
-            </aside>
-          </div>
+            </motion.aside>
+          </motion.div>
         ) : (
-          <div
+          <motion.div
             className={`${cardClass} mx-auto max-w-4xl px-8 py-12 text-center font-body text-sm font-medium md:px-12 animate-fade-up`}
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
           >
             Upload a resume PDF and the job description you’re targeting, then select{" "}
             <span className="font-semibold text-[#1A1A1A]">Analyze with Gemini</span> to generate your personalized interview
             brief.
-          </div>
+          </motion.div>
         )}
 
-        <section className="mx-auto max-w-screen-lg px-4 pb-16 md:px-8">
+        <motion.section
+          className="mx-auto max-w-screen-lg px-2 pb-16 md:px-8"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <div className="animate-fade-up" style={{ animationDelay: "0.2s" }}>
             <div className="flex flex-col items-start gap-4">
               <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#E0D6CF] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
@@ -510,7 +588,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               <h2 className="font-display text-3xl font-semibold tracking-tight text-[#1A1A1A] md:text-4xl">
                 Enter the mock room
               </h2>
-              <p className="max-w-2xl font-body text-base font-medium leading-relaxed">
+              <p className="max-w-2xl font-body text-base font-medium leading-relaxed max-sm:clamp-2">
               Your interviewer, agenda, and scoring pillars are ready. Step into the room when you’re prepared to speak and
               receive a Coach Card moments after you finish.
             </p>
@@ -534,7 +612,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
               </span>
             )}
           </div>
-        </section>
+        </motion.section>
       </main>
     </div>
   )

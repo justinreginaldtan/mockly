@@ -13,6 +13,7 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ProgressBar } from "@/components/progress-bar"
 import { SuccessAnimation } from "@/components/success-animation"
@@ -57,6 +58,16 @@ const followUps = [
   "How did you align stakeholders with conflicting priorities?",
 ] as const
 
+const sectionVariants = {
+  hidden: { opacity: 0, y: 32 },
+  visible: { opacity: 1, y: 0 },
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 18 },
+  visible: { opacity: 1, y: 0 },
+}
+
 export default function ResultsPage() {
   const [showAnimation, setShowAnimation] = useState(true)
   const [showFollowUps, setShowFollowUps] = useState(false)
@@ -93,7 +104,7 @@ export default function ResultsPage() {
       {showAnimation && <SuccessAnimation onComplete={() => setShowAnimation(false)} />}
 
       <header className="sticky top-0 z-30 border-b border-[#EDE5E0] bg-white/85 backdrop-blur">
-        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-4 py-4 md:px-8">
+        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-3 py-4 md:px-8">
           <div className="flex items-center gap-3">
             <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[#E0D6CF] bg-white/90 shadow-[0_10px_24px_-16px_rgba(26,26,26,0.45)]">
               <span className="font-display text-sm font-semibold text-[#1A1A1A]">Mock</span>
@@ -113,9 +124,22 @@ export default function ResultsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-screen-lg space-y-12 px-4 py-16 md:px-8 md:py-24">
+      <motion.main
+        className="mx-auto max-w-screen-lg space-y-12 px-2 py-16 md:px-8 md:py-24"
+        variants={sectionVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ duration: 0.7, ease: "easeOut" }}
+      >
         <StepIndicator steps={progressSteps} currentIndex={3} />
-        <section className="relative isolate overflow-hidden rounded-[32px] border border-[#EDE5E0] bg-white/95 px-8 py-12 shadow-[0_24px_80px_rgba(0,0,0,0.08)] backdrop-blur">
+        <motion.section
+          className="relative isolate overflow-hidden rounded-[32px] border border-[#EDE5E0] bg-white/95 px-8 py-12 shadow-[0_24px_80px_rgba(0,0,0,0.08)] backdrop-blur"
+          variants={cardVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute left-10 top-8 h-48 w-48 rounded-full bg-[#FF7A70]/8 blur-[120px]" />
             <div className="absolute right-0 bottom-0 h-64 w-64 translate-x-1/4 translate-y-1/4 rounded-full bg-[#FF7A70]/10 blur-[140px]" />
@@ -129,7 +153,7 @@ export default function ResultsPage() {
               <h1 className="font-display text-4xl font-semibold tracking-tight text-[#1A1A1A] md:text-5xl">
                 You’re interview-ready.
               </h1>
-              <p className="max-w-2xl font-body text-base font-medium leading-relaxed md:text-lg">
+              <p className="max-w-2xl font-body text-base font-medium leading-relaxed max-sm:clamp-2 md:text-lg">
                 Gemini mapped your answers against the Google SWE intern JD. Use this recap to tighten your story before the
                 real interview.
               </p>
@@ -145,10 +169,10 @@ export default function ResultsPage() {
               </div>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         <section className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
-          <div className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+          <div className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm font-semibold text-[#FF7A70]">
@@ -182,7 +206,7 @@ export default function ResultsPage() {
             </div>
           </div>
 
-          <aside className="animate-fade-up delay-100 space-y-4 rounded-2xl border border-[#EDE5E0] bg-white/95 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+          <aside className="animate-fade-up delay-100 space-y-4 rounded-2xl border border-[#EDE5E0] bg-white/95 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
             <div className="flex items-center gap-2 text-sm font-semibold text-[#FF7A70]">
               <BadgeCheck className="h-4 w-4" />
               Quick wins
@@ -205,13 +229,20 @@ export default function ResultsPage() {
               </p>
             </div>
           </aside>
-        </section>
+        </motion.section>
 
-        <section className="grid gap-8 lg:grid-cols-2">
+        <motion.section
+          className="grid gap-8 lg:grid-cols-2"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           {evidenceSnippets.map((snippet, index) => (
             <div
               key={snippet.skill}
-              className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]"
+              className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]"
               style={{ animationDelay: `${0.05 * index}s` }}
             >
               <div className="flex items-center justify-between">
@@ -237,10 +268,10 @@ export default function ResultsPage() {
               </div>
             </div>
           ))}
-        </section>
+        </motion.section>
 
         <section className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">
-          <div className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+          <div className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 font-body text-sm font-semibold text-[#FF7A70]">
                 <BarChart3 className="h-4 w-4" />
@@ -280,7 +311,7 @@ export default function ResultsPage() {
             </ul>
           </div>
 
-          <aside className="animate-fade-up delay-100 space-y-4 rounded-2xl border border-[#EDE5E0] bg-white/95 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+          <aside className="animate-fade-up delay-100 space-y-4 rounded-2xl border border-[#EDE5E0] bg-white/95 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
             <div className="flex items-center gap-2 font-body text-sm font-semibold text-[#FF7A70]">
               <MicVocal className="h-4 w-4" />
               ElevenLabs coach recap
@@ -296,9 +327,9 @@ export default function ResultsPage() {
               Download report PDF
             </Button>
           </aside>
-        </section>
+        </motion.section>
 
-        <section className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+        <section className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2 font-body text-sm font-semibold text-[#FF7A70]">
@@ -330,7 +361,7 @@ export default function ResultsPage() {
           )}
         </section>
 
-        <section className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 px-8 py-10 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+        <section className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 px-8 py-10 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#EDE5E0] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#777777]">
@@ -354,7 +385,7 @@ export default function ResultsPage() {
             </div>
           </div>
         </section>
-      </main>
+      </motion.main>
     </div>
   )
 }

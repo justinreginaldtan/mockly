@@ -20,10 +20,10 @@ export function StepIndicator({ steps, currentIndex, className }: StepIndicatorP
         const isActive = index === currentIndex
         const isComplete = index < currentIndex
         return (
-          <div key={step} className="flex flex-wrap items-center gap-3">
-            <div
-              className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors duration-200",
+            <div key={step} className="group flex flex-wrap items-center gap-3">
+              <div
+                className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-transform transition-colors duration-200 group-hover:scale-105",
                 isActive
                   ? "bg-[#FF6F65] text-white shadow-[0_4px_18px_rgba(255,111,101,0.35)]"
                   : isComplete
@@ -42,7 +42,7 @@ export function StepIndicator({ steps, currentIndex, className }: StepIndicatorP
               {step}
             </span>
             {index < steps.length - 1 && (
-              <span className="hidden h-px w-10 bg-[#94A3B8]/40 md:block" aria-hidden="true" />
+              <span className="hidden h-px w-10 bg-[#94A3B8]/40 transition-colors duration-200 group-hover:bg-[#6366F1]/40 md:block" aria-hidden="true" />
             )}
           </div>
         )
