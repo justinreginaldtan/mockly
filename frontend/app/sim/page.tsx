@@ -882,7 +882,6 @@ export default function SimPage() {
           <Waveform isActive={isListening || isSpeechDetected} />
                   <MicButton
                     isListening={isListening}
-                    canRecord={canRecord}
                     onClick={onMicClick}
                     disabled={!canRecord}
                   />
@@ -1107,7 +1106,6 @@ export default function SimPage() {
           </div>
         )}
       </div>
-    </div>
   )
 }
 
