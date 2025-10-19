@@ -47,7 +47,7 @@ Knowledge of IT systems, networking concepts, TCP/IP protocols, network devices 
 Able to legally live and work in the country for which you're applying, without visa support or sponsorship`
 
 const primaryButtonClass =
-  "bg-[linear-gradient(120deg,_#ff6cab_0%,_#7366ff_50%,_#3ac6ff_100%)] text-white shadow-lg shadow-primary/40 transition-transform duration-200 hover:translate-y-[-1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8c7bff] focus-visible:ring-offset-[#101626]"
+  "bg-[#0f172a] text-white shadow-sm transition-transform duration-200 hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0f172a] focus-visible:ring-offset-white"
 
 const intakeSummary = {
   resume: {
@@ -107,18 +107,13 @@ const intakeSummary = {
 }
 
 export default function UploadPage() {
-  const [showCalibrating, setShowCalibrating] = useState(true)
+  const [showCalibrating, setShowCalibrating] = useState(false)
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [uploadedResumeName, setUploadedResumeName] = useState<string | null>(null)
   const [jobDescriptionInput, setJobDescriptionInput] = useState("")
   const [jobDescriptionSource, setJobDescriptionSource] = useState<string>("")
   const [analysisComplete, setAnalysisComplete] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowCalibrating(false), 1200)
-    return () => clearTimeout(timer)
-  }, [])
 
   useEffect(() => {
     if (analysisComplete) {
@@ -156,10 +151,12 @@ export default function UploadPage() {
       setJobDescriptionSource(resolvedJobDescription)
       setIsAnalyzing(true)
       setAnalysisComplete(false)
+      setShowCalibrating(true)
 
       window.setTimeout(() => {
         setIsAnalyzing(false)
         setAnalysisComplete(true)
+        setShowCalibrating(false)
       }, 1400)
     },
     [isAnalyzing, jobDescriptionInput, resumeFile, uploadedResumeName],
@@ -213,275 +210,226 @@ export default function UploadPage() {
           showCalibrating ? "opacity-0" : "opacity-100"
         }`}
       >
-        <div className="space-y-16">
-          <section className="grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,1fr)] items-center animate-slide-up">
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1 text-sm font-semibold text-white shadow-sm shadow-[#4f61ff]/30">
-                <Sparkles className="h-4 w-4 animate-pulse" />
-                AI coach, on your timeline
+        <section className="max-w-3xl mx-auto text-center space-y-6 animate-slide-up">
+          <span className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600">
+            Meet Mockly
+          </span>
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-slate-900">
+            Practice seriously, learn playfully. Mockly listens to your answer and turns it into instant coaching.
+          </h1>
+          <p className="text-lg text-slate-600">
+            Upload a resume and job description, let Gemini shape the scenario, and watch Mockly’s Coach Card show you what worked—and what to tighten—right after you speak.
+          </p>
+          <div className="flex flex-col items-center gap-3">
+            <Button size="lg" className={`${primaryButtonClass} px-8 py-5 rounded-full`} onClick={handleScrollToIntake}>
+              Analyze with Gemini
+            </Button>
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <MicVocal className="h-4 w-4 text-slate-400" />
+              <span>Voice-led mock + Coach Card feedback in under two minutes.</span>
+            </div>
+          </div>
+          <ul className="grid gap-3 text-sm text-slate-600 md:grid-cols-3">
+            <li className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <CheckCircle2 className="mb-2 h-4 w-4 text-emerald-400" />
+              Calibrated for Justin’s Cisco SOC internship prep—swap in your own materials after the demo.
+            </li>
+            <li className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <CheckCircle2 className="mb-2 h-4 w-4 text-emerald-400" />
+              Mockly captures transcripts and grades structure, clarity, and confidence instantly.
+            </li>
+            <li className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <CheckCircle2 className="mb-2 h-4 w-4 text-emerald-400" />
+              `?demo=true` keeps the demo offline—no surprises on stage.
+            </li>
+          </ul>
+          <div className="mx-auto max-w-xl rounded-3xl border border-slate-200 bg-white p-6 text-left shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Coach Card preview</p>
+            <div className="mt-4 space-y-3 text-sm text-slate-600">
+              <div className="flex items-center justify-between text-slate-700">
+                <span className="font-semibold">Confidence</span>
+                <span className="text-emerald-500">8 / 10</span>
               </div>
-              <div className="space-y-4">
-                <h1 className="text-5xl font-semibold tracking-tight leading-tight text-balance">
-                  Practice a Cisco SOC escalation tonight. Gemini shapes the questions; your coach scores the answer instantly.
-                </h1>
-                <p className="text-lg text-white/70 max-w-2xl">
-                  Drop your resume and the job description, hop into the room, and watch the Coach Card break down your story
-                  right after you answer. No scheduling, no uncertainty.
-                </p>
+              <div>
+                <p className="font-semibold text-slate-700">Structure</p>
+                <p>Use STAR—call out Situation → Task → Action → Result. Lead with your containment window.</p>
               </div>
-              <div className="flex flex-wrap items-center gap-4">
-                <Button
-                  size="lg"
-                  className={`${primaryButtonClass} px-8 py-6 text-lg rounded-full`}
-                  onClick={handleScrollToIntake}
-                >
-                  Upload &amp; analyze with Mockly
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="px-8 py-6 text-lg rounded-full border-white/30 text-white hover:bg-white/10"
-                  asChild
-                >
-                  <Link href="#intake-form">Upload resume &amp; JD</Link>
-                </Button>
+              <div>
+                <p className="font-semibold text-slate-700">Clarity</p>
+                <p>Trim to 60–90 seconds. Keep the incident timeline, automation, and exec takeaway in focus.</p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                  {
-                    title: "Built for students",
-                    icon: GraduationCap,
-                    copy: "Gemini learns from campus projects, internships, and clubs to tailor every drill.",
-                  },
-                  {
-                    title: "Company-specific",
-                    icon: BrainCircuit,
-                    copy: "We ground every follow-up in Cisco security workflows and incident readiness expectations.",
-                  },
-                  {
-                    title: "Feedback that sticks",
-                    icon: Clock,
-                    copy: "Coach Card scores the answer, checks your incident timeline, and flags the next security improvement.",
-                  },
-                ].map((card) => {
-                  const Icon = card.icon
-                  return (
-                    <div
-                      key={card.title}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/20 transition-transform duration-300 hover:-translate-y-1"
-                    >
-                      <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                        <Icon className="h-4 w-4 text-[#9aa7ff]" />
-                        {card.title}
-                      </div>
-                      <p className="mt-3 text-sm text-white/70">{card.copy}</p>
-                    </div>
-                  )
-                })}
+              <div>
+                <p className="font-semibold text-slate-700">Next step</p>
+                <p>Open with the measurable outcome before unpacking how Parapet exposed the weakness.</p>
               </div>
             </div>
+          </div>
+        </section>
 
-            <div className="relative isolate overflow-hidden rounded-3xl border border-white/10 bg-[#141c2f]/90 p-8 shadow-2xl shadow-black/40">
-              <div className="absolute -top-10 -right-8 h-36 w-36 rounded-full bg-[#4f61ff]/35 blur-3xl" aria-hidden />
-              <div className="absolute -bottom-14 -left-10 h-44 w-44 rounded-full bg-[#38bdf8]/25 blur-3xl" aria-hidden />
-              <div className="relative flex flex-col gap-6">
-                <div className="flex items-center justify-between text-xs text-white/60">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 font-medium text-white">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Coach preview
-                  </span>
-                  <span className="font-medium text-white/60">{intakeSummary.job.company} SOC mock</span>
-                </div>
-                <div className="space-y-3">
-                  <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">Interviewer</p>
-                  <h3 className="text-3xl font-semibold text-white">{intakeSummary.persona.name}</h3>
-                  <p className="text-sm text-white/70">{intakeSummary.persona.title}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
-                    <MicVocal className="h-4 w-4 text-[#9aa7ff]" />
-                    Voice persona
-                  </div>
-                  <p className="mt-2 text-sm text-white">{intakeSummary.persona.voiceLabel}</p>
-                  <span className="mt-3 inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#9aa7ff]">
-                    {intakeSummary.persona.voiceBadge}
-                  </span>
-                </div>
-                <p className="text-sm text-white/70">{intakeSummary.persona.opener}</p>
-                <div className="rounded-2xl border border-white/10 bg-[#121a2f]/80 p-4">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50">
-                    <span>Upcoming prompt</span>
-                    <span>{intakeSummary.questionPreview[0]?.focus ?? "Key focus"}</span>
-                  </div>
-                  <p className="mt-2 text-sm text-white/75">{intakeSummary.questionPreview[0]?.prompt}</p>
-                </div>
-              </div>
-            </div>
-          </section>
+        <section
+          id="intake-form"
+          className="max-w-4xl mx-auto space-y-6 rounded-3xl border border-slate-200 bg-slate-50 p-8 shadow-sm animate-slide-up"
+        >
+          <div className="flex flex-col gap-3">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Step 1
+            </span>
+            <h2 className="text-2xl font-semibold text-slate-900">Upload your resume and paste the Cisco JD</h2>
+            <p className="text-sm text-slate-600">
+              For the demo we keep everything local. Choose a PDF (or use the sample) and paste the job post. Click
+              <span className="font-semibold text-slate-900"> Analyze with Gemini </span>
+              to mimic how Gemini would parse these materials before generating your interview plan.
+            </p>
+          </div>
 
-          <section
-            id="intake-form"
-            className="grid gap-6 rounded-3xl border border-white/10 bg-[#111829]/90 p-8 shadow-lg shadow-black/30 animate-slide-up delay-75"
-          >
-            <div className="flex flex-col gap-3">
-              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
-                Step 1
-              </span>
-              <h2 className="text-2xl font-semibold text-white">Upload your resume and paste the Cisco JD</h2>
-              <p className="text-sm text-white/70">
-                For the demo we keep everything local. Choose a PDF (or keep the sample) and paste the job post. Click Analyze
-                to mimic how Gemini would parse these materials before generating your interview plan.
-              </p>
-            </div>
-
-            <form className="space-y-6" onSubmit={handleAnalyzeMaterials}>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="flex flex-col gap-3 rounded-2xl border border-white/15 bg-[#121a24]/80 p-4 text-sm text-white/80 shadow-inner shadow-black/20">
-                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">Resume (.pdf)</span>
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleResumeUpload}
-                    className="rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/40 file:mr-4 file:rounded-md file:border-0 file:bg-white/15 file:px-3 file:py-2 file:text-white"
-                  />
-                  <span className="text-xs text-white/60">
-                    {resumeFile?.name ?? uploadedResumeName ?? "No file selected (sample will be used)"}
-                  </span>
-                </label>
-
-                <label className="flex flex-col gap-3 rounded-2xl border border-white/15 bg-[#121a24]/80 p-4 text-sm text-white/80 shadow-inner shadow-black/20">
-                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">Job description</span>
-                  <textarea
-                    rows={8}
-                    value={jobDescriptionInput}
-                    onChange={(event) => setJobDescriptionInput(event.target.value)}
-                    placeholder="Paste the Cisco Security Consulting Engineer Intern posting here…"
-                    className="min-h-[160px] rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/40"
-                  />
-                </label>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  type="submit"
-                  size="lg"
-                  className={`${primaryButtonClass} px-6 disabled:opacity-60 disabled:cursor-not-allowed`}
-                  disabled={isAnalyzing}
-                >
-                  {isAnalyzing ? "Analyzing…" : "Analyze with Mockly"}
-                </Button>
-                <Button type="button" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={handlePrefillSample}>
-                  Prefill sample data
-                </Button>
-                <span className="text-sm text-white/60">
-                  {analysisComplete
-                    ? `Brief generated for ${effectiveResumeName ?? SAMPLE_RESUME_NAME}.`
-                    : isAnalyzing
-                      ? "Running simulated parsing…"
-                      : "Nothing uploads to a server during this demo."}
+          <form className="space-y-6" onSubmit={handleAnalyzeMaterials}>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Resume (.pdf)</span>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleResumeUpload}
+                  className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 file:mr-4 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-slate-700"
+                />
+                <span className="text-xs text-slate-500">
+                  {resumeFile?.name ?? uploadedResumeName ?? "No file selected (sample will be used)"}
                 </span>
-              </div>
-            </form>
-          </section>
+              </label>
 
-          <section id="interview-brief" className="space-y-6 animate-slide-up">
-            <div className="flex flex-col gap-3">
-              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
-                Step 2
+              <label className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Job description</span>
+                <textarea
+                  rows={8}
+                  value={jobDescriptionInput}
+                  onChange={(event) => setJobDescriptionInput(event.target.value)}
+                  placeholder="Paste the Cisco Security Consulting Engineer Intern posting here…"
+                  className="min-h-[160px] rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400"
+                />
+              </label>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                type="submit"
+                size="lg"
+                className={`${primaryButtonClass} px-6 disabled:opacity-60 disabled:cursor-not-allowed`}
+                disabled={isAnalyzing}
+              >
+                {isAnalyzing ? "Analyzing…" : "Analyze with Gemini"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="border-slate-200 text-slate-700 hover:bg-slate-100"
+                onClick={handlePrefillSample}
+              >
+                Prefill sample data
+              </Button>
+              <span className="text-sm text-slate-500">
+                {analysisComplete
+                  ? `Brief generated for ${effectiveResumeName ?? SAMPLE_RESUME_NAME}.`
+                  : isAnalyzing
+                    ? "Running simulated parsing…"
+                    : "Nothing uploads to a server during this demo."}
               </span>
-              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1 text-sm font-semibold text-white shadow-sm shadow-[#4f61ff]/30">
-                <Sparkles className="h-4 w-4 animate-pulse" />
-                AI interview brief
-              </div>
             </div>
-            <div className="flex flex-col gap-3">
-              <h2 className="text-4xl font-semibold tracking-tight text-white">What Gemini prepped for you</h2>
-              <p className="text-lg text-white/70 max-w-3xl">
-                We’ve preloaded the resume and JD you’ll demo with so this screen appears instantly. In a live run, Gemini
-                parses your PDF and job link to produce the same brief before you enter the room.
-              </p>
-            </div>
-          </section>
+          </form>
+        </section>
 
-          {analysisComplete ? (
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
-              <div className="space-y-6 animate-slide-up delay-75">
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
-                    <FileText className="h-4 w-4 text-[#9aa7ff]" />
-                    Resume intake
+        <section id="interview-brief" className="space-y-6 animate-slide-up">
+          <div className="flex flex-col gap-3">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Step 2
+            </span>
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-1 text-sm font-semibold text-slate-700">
+              <Sparkles className="h-4 w-4" /> AI interview brief
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-900">What Gemini prepped for you</h2>
+            <p className="text-lg text-slate-600 max-w-3xl">
+              We’ve preloaded the resume and JD you’ll demo with so this screen appears instantly. In a live run, Gemini parses your PDF and job link to produce the same brief before you enter the room.
+            </p>
+          </div>
+        </section>
+
+        {analysisComplete ? (
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+            <div className="space-y-6 animate-slide-up delay-75">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  <FileText className="h-4 w-4 text-slate-500" /> Resume intake
+                </div>
+                <h3 className="mt-4 text-2xl font-semibold text-slate-900">{intakeSummary.resume.headline}</h3>
+                <p className="mt-3 text-sm text-slate-600">{intakeSummary.resume.summary}</p>
+                {effectiveResumeName && (
+                  <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-500">
+                    Analyzed file: <span className="text-slate-900">{effectiveResumeName}</span>
                   </div>
-                  <h3 className="mt-4 text-2xl font-semibold text-white">{intakeSummary.resume.headline}</h3>
-                  <p className="mt-3 text-sm text-white/70">{intakeSummary.resume.summary}</p>
-                  {effectiveResumeName && (
-                    <div className="mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/60">
-                      Analyzed file: <span className="text-white">{effectiveResumeName}</span>
-                    </div>
-                  )}
-                  <ul className="mt-4 space-y-2 text-sm text-white/75">
-                    {intakeSummary.resume.highlights.map((item) => (
-                      <li key={item} className="flex items-start gap-2">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
-                        <span>{item}</span>
+                )}
+                <ul className="mt-4 space-y-2 text-sm text-slate-600">
+                  {intakeSummary.resume.highlights.map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-400" />
+                      <span>{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
-                  <Link2 className="h-4 w-4 text-[#9aa7ff]" />
-                  Job description intake
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  <Link2 className="h-4 w-4 text-slate-500" /> Job description intake
                 </div>
-                <h3 className="mt-4 text-2xl font-semibold text-white">
+                <h3 className="mt-4 text-2xl font-semibold text-slate-900">
                   {intakeSummary.job.company} · {intakeSummary.job.role}
                 </h3>
-                <p className="mt-3 text-sm text-white/70">{intakeSummary.job.summary}</p>
-                <ul className="mt-4 space-y-2 text-sm text-white/75">
+                <p className="mt-3 text-sm text-slate-600">{intakeSummary.job.summary}</p>
+                <ul className="mt-4 space-y-2 text-sm text-slate-600">
                   {intakeSummary.job.signals.map((signal) => (
                     <li key={signal} className="flex items-start gap-2">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-400" />
                       <span>{signal}</span>
                     </li>
                   ))}
                 </ul>
                 {jobDescriptionSource && (
-                  <div className="mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/60">
-                    <p className="font-semibold uppercase tracking-[0.3em] text-white/60">JD excerpt</p>
-                    <p className="mt-2 max-h-48 overflow-y-auto whitespace-pre-wrap text-sm text-white/70">
+                  <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
+                    <p className="font-semibold uppercase tracking-[0.3em] text-slate-500">JD excerpt</p>
+                    <p className="mt-2 max-h-48 overflow-y-auto whitespace-pre-wrap text-sm text-slate-600">
                       {jobDescriptionSource}
                     </p>
                   </div>
                 )}
               </div>
 
-              <div className="rounded-3xl border border-white/15 bg-white/5 p-6 shadow-lg shadow-[#4f61ff]/20">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#9aa7ff]">
-                  <Target className="h-4 w-4" />
-                  Gemini brief
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  <Target className="h-4 w-4 text-slate-500" /> Gemini brief
                 </div>
-                <p className="mt-4 text-sm text-white/70">{intakeSummary.focusSummary}</p>
+                <p className="mt-4 text-sm text-slate-600">{intakeSummary.focusSummary}</p>
                 <div className="mt-6 space-y-4">
                   <div>
-                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-white/60">
+                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-slate-500">
                       <span>Technical depth</span>
                       <span>{intakeSummary.weights.technical}%</span>
                     </div>
-                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15">
+                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
                       <div
-                        className="h-full rounded-full bg-[#4f61ff]"
+                        className="h-full rounded-full bg-[#6366f1]"
                         style={{ width: `${intakeSummary.weights.technical}%` }}
                       />
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-white/60">
+                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-slate-500">
                       <span>Behavioral stories</span>
                       <span>{intakeSummary.weights.behavioral}%</span>
                     </div>
-                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15">
+                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
                       <div
-                        className="h-full rounded-full bg-[#a855f7]"
+                        className="h-full rounded-full bg-[#f97316]"
                         style={{ width: `${intakeSummary.weights.behavioral}%` }}
                       />
                     </div>
@@ -489,110 +437,92 @@ export default function UploadPage() {
                 </div>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   {intakeSummary.focusAreas.map((area) => (
-                    <div key={area.label} className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#9aa7ff]">{area.label}</p>
-                      <p className="mt-2 text-sm text-white/75">{area.detail}</p>
+                    <div key={area.label} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">{area.label}</p>
+                      <p className="mt-2 text-sm text-slate-600">{area.detail}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-white/10 bg-[#121a2f]/80 p-6 shadow-lg shadow-black/30">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
-                  <BarChart3 className="h-4 w-4 text-[#9aa7ff]" />
-                  First prompts Gemini drafted
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  <BarChart3 className="h-4 w-4 text-slate-500" /> First prompts Gemini drafted
                 </div>
                 <ul className="mt-4 space-y-4">
                   {intakeSummary.questionPreview.map((question, index) => (
-                    <li key={question.prompt} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50">
+                    <li key={question.prompt} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-slate-500">
                         <span>Q{index + 1}</span>
-                        <span className="text-white/60">{question.focus}</span>
+                        <span className="text-slate-500">{question.focus}</span>
                       </div>
-                      <p className="mt-2 text-sm text-white/80 leading-relaxed">{question.prompt}</p>
+                      <p className="mt-2 text-sm text-slate-600 leading-relaxed">{question.prompt}</p>
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
 
-              <aside className="space-y-6 animate-slide-up delay-150">
-                <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-[#141c2f]/95 p-6 shadow-2xl shadow-black/40">
-                  <div className="absolute -top-12 -right-10 h-32 w-32 rounded-full bg-[#4f61ff]/40 blur-3xl" aria-hidden />
-                  <div className="relative">
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
-                      <MicVocal className="h-4 w-4 text-[#9aa7ff]" />
-                    Recommended interviewer
-                  </div>
-                  <h3 className="mt-4 text-3xl font-semibold text-white">{intakeSummary.persona.name}</h3>
-                  <p className="text-sm text-white/70">{intakeSummary.persona.title}</p>
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#9aa7ff]">Voice persona</p>
-                    <p className="mt-2 text-sm text-white">{intakeSummary.persona.voiceLabel}</p>
-                    <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#9aa7ff]">
-                      {intakeSummary.persona.voiceBadge}
-                    </span>
-                  </div>
-                  <p className="mt-4 text-sm text-white/70">{intakeSummary.persona.opener}</p>
-                  <div className="mt-4 space-y-3">
-                    {intakeSummary.persona.reasons.map((reason) => (
-                      <div key={reason} className="flex items-start gap-2 text-sm text-white/75">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
-                        <span>{reason}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-6 space-y-3">
-                    <Button asChild size="lg" className="w-full justify-center">
-                      <Link href={`/setup?recommended=${intakeSummary.persona.id}`}>Preview interview room</Link>
-                    </Button>
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full justify-center border-white/20 text-white hover:bg-white/10"
-                    >
-                      <Link href={`/setup?recommended=${intakeSummary.persona.id}&mode=adjust`}>Adjust persona & focus</Link>
-                    </Button>
-                  </div>
+            <aside className="space-y-6 animate-slide-up delay-150">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  <MicVocal className="h-4 w-4 text-slate-500" /> Recommended interviewer
                 </div>
+                <h3 className="mt-4 text-3xl font-semibold text-slate-900">{intakeSummary.persona.name}</h3>
+                <p className="text-sm text-slate-600">{intakeSummary.persona.title}</p>
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Voice persona</p>
+                  <p className="mt-2 text-sm text-slate-700">{intakeSummary.persona.voiceLabel}</p>
+                  <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                    {intakeSummary.persona.voiceBadge}
+                  </span>
                 </div>
-              </aside>
-            </div>
-          ) : (
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-white/70 shadow-lg shadow-black/30 animate-slide-up delay-75">
-              Upload a resume PDF and paste the Cisco job description above, then click
-              <span className="font-semibold text-white"> Analyze with Gemini</span> to generate your personalized interview brief.
-            </div>
-          )}
+                <p className="mt-4 text-sm text-slate-600">{intakeSummary.persona.opener}</p>
+                <div className="mt-4 space-y-3">
+                  {intakeSummary.persona.reasons.map((reason) => (
+                    <div key={reason} className="flex items-start gap-2 text-sm text-slate-600">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-400" />
+                      <span>{reason}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </aside>
+          </div>
+        ) : (
+          <div className="max-w-4xl mx-auto rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-600 shadow-sm animate-slide-up">
+            Upload a resume PDF and paste the Cisco job description above, then click
+            <span className="font-semibold text-slate-900"> Analyze with Gemini</span> to generate your personalized interview brief.
+          </div>
+        )}
 
-          <section className="animate-slide-up delay-100">
-            <div className="flex flex-col gap-3 items-start">
-              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
-                Step 3
-              </span>
-              <h2 className="text-3xl font-semibold text-white">Enter the mock room</h2>
-              <p className="text-sm text-white/70 max-w-2xl">
-                Mockly already staged your Cisco SOC scenario. Hop into the room to hear the question and get your Coach Card feedback right after you answer.
-              </p>
-            </div>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Button
-                asChild
-                size="lg"
-                disabled={!analysisComplete}
-                className={`${primaryButtonClass} px-8 py-6 text-lg rounded-full disabled:opacity-60 disabled:cursor-not-allowed`}
-              >
-                <Link href={`/setup?recommended=${intakeSummary.persona.id}`} className="inline-flex items-center gap-2">
-                  Enter mock interview
-                  <ArrowRight className="h-5 w-5" />
-                </Link>
-              </Button>
-              {!analysisComplete && (
-                <span className="text-sm text-white/60">Upload your resume and JD above to unlock the mock room.</span>
-              )}
-            </div>
-          </section>
-        </div>
+        <section className="animate-slide-up delay-100">
+          <div className="flex flex-col gap-3 items-start">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Step 3
+            </span>
+            <h2 className="text-3xl font-semibold text-slate-900">Enter the mock room</h2>
+            <p className="text-sm text-slate-600 max-w-2xl">
+              Mockly already staged your Cisco SOC scenario. Hop into the room to hear the question and get your Coach Card feedback right after you answer.
+            </p>
+          </div>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Button
+              asChild
+              size="lg"
+              disabled={!analysisComplete}
+              className={`${primaryButtonClass} px-8 py-6 text-lg rounded-full disabled:opacity-60 disabled:cursor-not-allowed`}
+            >
+              <Link href={`/setup?recommended=${intakeSummary.persona.id}`} className="inline-flex items-center gap-2">
+                Enter mock interview
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            </Button>
+            {!analysisComplete && (
+              <span className="text-sm text-slate-500">Upload your resume and JD above to unlock the mock room.</span>
+            )}
+          </div>
+        </section>
       </main>
     </div>
   )
