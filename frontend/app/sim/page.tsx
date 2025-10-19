@@ -26,7 +26,6 @@ export default function SimPage() {
   const [evaluating, setEvaluating] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<EvaluationFeedback | null>(null)
-  const [evaluationResult, setEvaluationResult] = useState<EvaluationFeedback | null>(null)
   const [showDevPanel, setShowDevPanel] = useState<boolean>(false)
   const [audioFinished, setAudioFinished] = useState<boolean>(false)
   const [scenarioId, setScenarioId] = useState<string | null>(null)
@@ -112,6 +111,11 @@ export default function SimPage() {
   })
 
   const isListening = status === "listening"
+  
+  // Debug status changes
+  useEffect(() => {
+    console.log("[Sim] Speech recorder status:", status)
+  }, [status])
 
   const canRecord = useMemo(() => {
     return isSupported && 
@@ -172,7 +176,6 @@ export default function SimPage() {
     isGeneratingScenarioRef.current = true
     setError(null)
     setFeedback(null)
-    setEvaluationResult(null)
     setLoadingScenario(true)
     setAudioFinished(false)
     // Only set userInteractionRequired to false for subsequent scenarios (not the first one)
@@ -294,8 +297,21 @@ export default function SimPage() {
   }, [difficulty, reset, stopAudio])
 
   const evaluateResponse = useCallback(async () => {
+    console.log("[Sim] evaluateResponse called with:", { 
+      hasTranscript: !!transcript, 
+      transcriptLength: transcript?.length || 0,
+      hasPrompt: !!prompt,
+      promptLength: prompt?.length || 0,
+      scenarioId 
+    })
+    
     if (!transcript) {
       console.log("[Sim] No transcript available for evaluation")
+      return
+    }
+    
+    if (!prompt) {
+      console.log("[Sim] No prompt available for evaluation")
       return
     }
     console.log(`[Sim] Evaluating response for scenario ${scenarioId}, transcript: "${transcript}"`)
@@ -307,19 +323,25 @@ export default function SimPage() {
         answer: transcript,
         demoPerfect: perfectScoresMode
       }
-      console.log("[Sim] Submitting evaluation payload")
+      console.log("[Sim] Submitting evaluation payload:", payload)
       console.log("[Sim] transcript captured: true")
+      
       const res = await fetch("/api/evaluate-answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
+      
+      console.log("[Sim] Evaluation API response status:", res.status)
+      
       if (!res.ok) {
         const msg = await res.text().catch(() => "Failed to evaluate.")
+        console.error("[Sim] Evaluation API error:", res.status, msg)
         throw new Error(msg || "Failed to evaluate.")
       }
+      
       const evaluation = await res.json()
-      console.log("[Sim] Evaluation response:", evaluation)
+      console.log("[Sim] Evaluation response received:", evaluation)
       const empathy = clampPercent(Number(evaluation.empathy))
       const clarity = clampPercent(Number(evaluation.clarity))
       const resolution = clampPercent(Number(evaluation.resolution))
@@ -336,15 +358,18 @@ export default function SimPage() {
       console.log("[Sim] feedback received: true")
       
       const evaluationData = { empathy, clarity, resolution, tip, summary, tips, idealResponse }
+      console.log("[Sim] Setting feedback state:", evaluationData)
       setFeedback(evaluationData)
-      setEvaluationResult(evaluationData)
-      console.log("[Sim] Evaluation result set, CoachCard should now display")
+      console.log("[Sim] Feedback set, CoachCard should now display")
 
       decideNextScenario({ empathy, resolution, difficulty })
     } catch (e) {
+      console.error("[Sim] Evaluation failed:", e)
       const msg = e instanceof Error ? e.message : "Unexpected error during evaluation."
+      console.error("[Sim] Setting error state:", msg)
       setError(msg)
     } finally {
+      console.log("[Sim] Evaluation finished, setting evaluating to false")
       setEvaluating(false)
     }
   }, [prompt, transcript, scenarioId, perfectScoresMode, difficulty])
@@ -378,10 +403,19 @@ export default function SimPage() {
   const evaluationTriggeredRef = useRef(false)
   useEffect(() => {
     const prev = previousStatusRef.current
-    if (prev === "listening" && status === "idle" && transcript.trim() && !evaluationTriggeredRef.current) {
+    console.log("[Sim] Status change:", { 
+      prev, 
+      current: status, 
+      hasTranscript: !!transcript.trim(), 
+      transcriptLength: transcript.length,
+      evaluationTriggered: evaluationTriggeredRef.current 
+    })
+    
+    if ((prev === "listening" || prev === "stopping") && status === "idle" && transcript.trim() && !evaluationTriggeredRef.current) {
       console.log("[Sim] Recording stopped. Final transcript:", transcript)
       console.log("[Sim] Transcript length:", transcript.length, "words:", transcript.split(/\s+/).length)
       evaluationTriggeredRef.current = true
+      console.log("[Sim] Triggering evaluation...")
       evaluateResponse()
     }
     // Reset evaluation trigger when new recording starts
@@ -429,9 +463,8 @@ export default function SimPage() {
   const onNextScenario = useCallback(() => {
     console.log("[Sim] Next scenario requested - clearing transcript and resetting states")
     
-    // Clear transcript and evaluation result for fresh start
+    // Clear transcript and feedback for fresh start
     reset()
-    setEvaluationResult(null)
     setFeedback(null)
     setError(null)
     
@@ -751,16 +784,16 @@ export default function SimPage() {
           </motion.div>
         )}
 
-        {evaluationResult && (
+        {feedback && !evaluating && (
           <div className="mt-8">
             <CoachCard
-              empathy={evaluationResult.empathy}
-              clarity={evaluationResult.clarity}
-              resolution={evaluationResult.resolution}
-              tip={evaluationResult.tip}
-              summary={evaluationResult.summary}
-              tips={evaluationResult.tips}
-              idealResponse={evaluationResult.idealResponse}
+              empathy={feedback.empathy}
+              clarity={feedback.clarity}
+              resolution={feedback.resolution}
+              tip={feedback.tip}
+              summary={feedback.summary}
+              tips={feedback.tips}
+              idealResponse={feedback.idealResponse}
               onNext={onNextScenario}
             />
           </div>
