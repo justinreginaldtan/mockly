@@ -1224,7 +1224,7 @@ export default function MockInterviewPage() {
                   muted
                   playsInline
                   autoPlay
-                  className="h-full w-full object-cover transition-shadow duration-500"
+                  className="h-full w-full -scale-x-100 object-cover transition-shadow duration-500"
                 />
               )}
               <div className={cn("absolute top-5 left-5", namePlateClass)}>You</div>
