@@ -17,9 +17,6 @@ import { Button } from "@/components/ui/button"
 import { ProgressBar } from "@/components/progress-bar"
 import { SuccessAnimation } from "@/components/success-animation"
 
-const gradientClass =
-  "bg-[linear-gradient(120deg,_#4c6fff_0%,_#6b5bff_35%,_#a855f7_70%,_#38bdf8_100%)] text-white shadow-lg shadow-primary/30 animate-gradient"
-
 const evaluationSummary = {
   overallScore: 82,
   jdCoverage: {
@@ -89,83 +86,91 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[radial-gradient(circle_at_top,_rgba(79,97,255,0.45),_rgba(12,15,25,0.95))] text-white">
+    <div className="relative min-h-screen bg-gradient-to-b from-[#FFF8F5] to-[#FDFCFB] text-[#1A1A1A]">
       {showAnimation && <SuccessAnimation onComplete={() => setShowAnimation(false)} />}
 
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-gray-950/60 backdrop-blur-xl">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-30 border-b border-[#EDE5E0] bg-white/85 backdrop-blur">
+        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-6 py-4 md:px-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#4b6bff] via-[#805dff] to-[#a855f7] flex items-center justify-center shadow-lg shadow-primary/40">
-              <span className="text-white font-semibold text-sm">MI</span>
+            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[#E0D6CF] bg-white/90 shadow-[0_10px_24px_-16px_rgba(26,26,26,0.45)]">
+              <span className="font-display text-sm font-semibold text-[#1A1A1A]">Mock</span>
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="font-semibold text-lg tracking-tight">Mock Interviewer</span>
-              <span className="text-xs text-white/60">Step 4 · Gemini insights unlocked</span>
+              <span className="font-display text-lg font-semibold tracking-tight text-[#1A1A1A]">Mockly</span>
+              <span className="text-xs font-body font-medium text-[#777777]">Step 4 · Coach Card recap</span>
             </div>
           </div>
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden items-center gap-6 md:flex">
             <ProgressBar currentStep={4} totalSteps={4} />
-            <div className="flex items-center gap-2 text-xs font-medium text-white/70">
-              <span className="px-2.5 py-1 rounded-full bg-white/10 text-white font-semibold">Gemini</span>
-              <span className="px-2.5 py-1 rounded-full bg-white/10 text-white font-semibold">ElevenLabs</span>
+            <div className="flex items-center gap-2 text-xs font-medium text-[#777777]">
+              <span className="rounded-full bg-[#FFE7E4] px-2.5 py-1 font-semibold text-[#FF7A70]">Gemini</span>
+              <span className="rounded-full bg-[#FFE7E4] px-2.5 py-1 font-semibold text-[#FF7A70]">ElevenLabs</span>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-6 py-12 space-y-10">
-        <section className="animate-slide-up space-y-6 rounded-3xl border border-white/10 bg-white/5 p-10 shadow-2xl shadow-black/40">
-          <div className="flex flex-wrap items-center justify-between gap-6">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1 text-sm font-semibold text-white shadow-sm shadow-[#4f61ff]/30">
-                <Sparkles className="h-4 w-4 animate-pulse" />
-                Gemini analysis complete
+      <main className="mx-auto max-w-screen-lg space-y-16 px-6 py-20 md:px-8 md:py-28">
+        <section className="relative isolate overflow-hidden rounded-[32px] border border-[#EDE5E0] bg-white/95 px-8 py-12 shadow-[0_24px_80px_rgba(0,0,0,0.08)] backdrop-blur">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute left-10 top-8 h-48 w-48 rounded-full bg-[#FF7A70]/8 blur-[120px]" />
+            <div className="absolute right-0 bottom-0 h-64 w-64 translate-x-1/4 translate-y-1/4 rounded-full bg-[#FF7A70]/10 blur-[140px]" />
+          </div>
+          <div className="relative flex flex-col gap-10 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#EDE5E0] bg-white px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[#777777]">
+                <Sparkles className="h-4 w-4 text-[#FF7A70]" />
+                Gemini analysis
               </div>
-              <h1 className="text-4xl font-semibold leading-tight">You’re interview-ready.</h1>
-              <p className="max-w-2xl text-lg text-white/70">
-                Gemini cross-checked your answers against the Google SWE intern JD and your resume. Use this recap to tighten
-                your narrative before the real interview.
+              <h1 className="font-display text-4xl font-semibold tracking-tight text-[#1A1A1A] md:text-5xl">
+                You’re interview-ready.
+              </h1>
+              <p className="max-w-2xl font-body text-base font-medium leading-relaxed text-[#444444] md:text-lg">
+                Gemini mapped your answers against the Google SWE intern JD. Use this recap to tighten your story before the
+                real interview.
               </p>
             </div>
-            <div className="relative isolate flex h-36 w-36 items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,_rgba(79,97,255,0.45),_transparent)] blur-2xl" />
-              <div className="relative flex h-32 w-32 flex-col items-center justify-center rounded-full border border-white/15 bg-[#141c2f]/90 shadow-lg shadow-black/40">
-                <span className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">Score</span>
-                <span className="mt-2 text-4xl font-bold text-white">{evaluationSummary.overallScore}</span>
-                <span className="text-xs text-white/60">out of 100</span>
+            <div className="relative isolate flex h-40 w-40 items-center justify-center">
+              <div className="pointer-events-none absolute inset-0 rounded-full bg-[#FF7A70]/10 blur-3xl" />
+              <div className="relative flex h-full w-full flex-col items-center justify-center rounded-[28px] border border-[#EDE5E0] bg-white/95 shadow-[0_16px_48px_rgba(0,0,0,0.08)]">
+                <span className="text-xs font-body font-semibold uppercase tracking-[0.35em] text-[#777777]">Score</span>
+                <span className="mt-3 font-display text-5xl font-semibold text-[#1A1A1A]">
+                  {evaluationSummary.overallScore}
+                </span>
+                <span className="text-xs font-body font-medium text-[#777777]">out of 100</span>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,1fr)]">
-          <div className="animate-slide-up rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-[#9aa7ff]">
+        <section className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
+          <div className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm font-semibold text-[#FF7A70]">
                   <TrendingUp className="h-4 w-4" />
                   JD coverage breakdown
                 </div>
-                <p className="mt-1 text-sm text-white/70">
-                  Gemini mapped your stories to the job description to spot gaps and strengths.
+                <p className="font-body text-sm font-medium text-[#444444]">
+                  Gemini highlighted where your responses hit the mark and where to reinforce them.
                 </p>
               </div>
-              <Button variant="outline" size="sm" className="border-white/15 bg-white/10 text-white hover:bg-white/20">
+              <Button variant="outline" size="sm">
                 View raw Gemini output
               </Button>
             </div>
 
-            <div className="mt-8 grid gap-6">
-              {coverageSegments.map((segment) => (
-                <div key={segment.label} className="space-y-3">
+            <div className="mt-8 space-y-5">
+              {coverageSegments.map((segment, index) => (
+                <div key={segment.label} className="space-y-3 animate-fade-up" style={{ animationDelay: `${0.1 * index}s` }}>
                   <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm font-medium text-white">
+                    <div className="flex items-center gap-2 font-body text-sm font-medium text-[#1A1A1A]">
                       <span className={`inline-flex h-2 w-2 rounded-full ${segment.color}`} />
                       {segment.label}
                     </div>
-                    <span className="text-sm font-semibold text-[#9aa7ff]">{segment.value}%</span>
+                    <span className="font-body text-sm font-semibold text-[#FF7A70]">{segment.value}%</span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-[#F3E9E3]">
                     <div className={`h-full ${segment.color}`} style={{ width: `${segment.value}%` }} />
                   </div>
                 </div>
@@ -173,12 +178,12 @@ export default function ResultsPage() {
             </div>
           </div>
 
-          <aside className="animate-slide-up delay-150 space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/30">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#9aa7ff]">
+          <aside className="animate-fade-up delay-100 space-y-4 rounded-2xl border border-[#EDE5E0] bg-white/95 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#FF7A70]">
               <BadgeCheck className="h-4 w-4" />
               Quick wins
             </div>
-            <ul className="space-y-3 text-sm text-white/70">
+            <ul className="space-y-3 font-body text-sm font-medium text-[#444444]">
               {evaluationSummary.strengths.map((strength) => (
                 <li key={strength} className="flex items-start gap-2">
                   <span className="mt-1 inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -186,158 +191,166 @@ export default function ResultsPage() {
                 </li>
               ))}
             </ul>
-            <div className="rounded-2xl border border-amber-400/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-200">
-              <div className="flex items-center gap-2">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <div className="flex items-center gap-2 font-body text-sm font-semibold text-amber-600">
                 <AlertCircle className="h-4 w-4" />
                 Focus next
               </div>
-              <p className="mt-2">
+              <p className="mt-2 font-body text-sm font-medium text-[#444444]">
                 {evaluationSummary.weakAreas[0]} · {evaluationSummary.weakAreas[1]}
               </p>
             </div>
           </aside>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="grid gap-8 lg:grid-cols-2">
           {evidenceSnippets.map((snippet, index) => (
             <div
-              key={index}
-              className="animate-slide-up rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/30"
+              key={snippet.skill}
+              className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]"
+              style={{ animationDelay: `${0.05 * index}s` }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      snippet.type === "hit" ? "bg-emerald-500/20 text-emerald-200" : "bg-amber-500/15 text-amber-200"
+                      snippet.type === "hit" ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
                     }`}
                   >
                     {snippet.type === "hit" ? "Strong match" : "Partial"}
                   </span>
-                  <span className="text-sm font-semibold text-white">{snippet.skill}</span>
+                  <span className="font-display text-sm font-semibold text-[#1A1A1A]">{snippet.skill}</span>
                 </div>
-                <span className="text-xs uppercase tracking-[0.35em] text-white/40">Gemini cite</span>
+                <span className="text-xs font-body font-semibold uppercase tracking-[0.35em] text-[#777777]">
+                  Gemini cite
+                </span>
               </div>
-              <p className="mt-4 text-sm text-white/70 leading-relaxed italic">“{snippet.quote}”</p>
-              <div className="mt-4 rounded-2xl bg-white/10 px-4 py-3 text-xs font-medium text-[#9aa7ff]">
+              <p className="mt-4 font-body text-sm font-medium leading-relaxed text-[#444444] italic">
+                “{snippet.quote}”
+              </p>
+              <div className="mt-4 rounded-2xl bg-[#FFF2ED] px-4 py-3 text-xs font-body font-semibold text-[#FF7A70]">
                 JD signal: {snippet.jdSignal}
               </div>
             </div>
           ))}
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,1fr)]">
-          <div className="animate-slide-up rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/30">
+        <section className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">
+          <div className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-sm font-semibold text-[#9aa7ff]">
+              <div className="flex items-center gap-3 font-body text-sm font-semibold text-[#FF7A70]">
                 <BarChart3 className="h-4 w-4" />
                 Gemini upgrade plan
               </div>
-              <Button variant="outline" size="sm" className="border-white/15 bg-white/10 text-white hover:bg-white/20">
+              <Button variant="outline" size="sm">
                 Copy to clipboard
               </Button>
             </div>
-            <ul className="mt-5 space-y-4 text-sm text-white/70">
-              <li className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <span className="font-semibold text-white">Quantify ambiguous projects</span>
-                <p className="mt-1 text-sm text-white/70">
+            <ul className="mt-6 space-y-4">
+              <li className="rounded-2xl border border-[#EDE5E0] bg-white px-4 py-3">
+                <span className="font-display text-sm font-semibold text-[#1A1A1A]">
+                  Quantify ambiguous projects
+                </span>
+                <p className="mt-1 font-body text-sm font-medium text-[#444444]">
                   Add a metric when discussing the scope change (e.g., “Reduced onboarding time from 3 weeks to 8 days by
                   centralizing documentation.”)
                 </p>
               </li>
-              <li className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <span className="font-semibold text-white">Tie leadership to customer outcomes</span>
-                <p className="mt-1 text-sm text-white/70">
+              <li className="rounded-2xl border border-[#EDE5E0] bg-white px-4 py-3">
+                <span className="font-display text-sm font-semibold text-[#1A1A1A]">
+                  Tie leadership to customer outcomes
+                </span>
+                <p className="mt-1 font-body text-sm font-medium text-[#444444]">
                   Highlight how your decisions impacted students/end users to mirror Google’s customer focus.
                 </p>
               </li>
-              <li className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <span className="font-semibold text-white">Plan for scale follow-ups</span>
-                <p className="mt-1 text-sm text-white/70">
-                  Prepare 1–2 sentences on how you would scale your robotics pipeline to 10× more devices—Gemini flagged this
-                  as a likely probing question.
+              <li className="rounded-2xl border border-[#EDE5E0] bg-white px-4 py-3">
+                <span className="font-display text-sm font-semibold text-[#1A1A1A]">
+                  Plan for scale follow-ups
+                </span>
+                <p className="mt-1 font-body text-sm font-medium text-[#444444]">
+                  Prepare a sentence on scaling your robotics pipeline to 10× more devices—Gemini flagged this as a likely
+                  follow-up.
                 </p>
               </li>
             </ul>
           </div>
 
-          <aside className="animate-slide-up delay-150 space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/30">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#9aa7ff]">
+          <aside className="animate-fade-up delay-100 space-y-4 rounded-2xl border border-[#EDE5E0] bg-white/95 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+            <div className="flex items-center gap-2 font-body text-sm font-semibold text-[#FF7A70]">
               <MicVocal className="h-4 w-4" />
               ElevenLabs coach recap
             </div>
-            <p className="text-sm text-white/70 leading-6">
-              Hear a 30-second voice note summarizing your performance for a rapid refresher before the real thing.
+            <p className="font-body text-sm font-medium leading-relaxed text-[#444444]">
+              Hear a 30-second voice note summarizing your performance for a quick refresh before the real interview.
             </p>
-            <Button
-              disabled={isGeneratingAudio}
-              onClick={handleGenerateAudio}
-              className={`w-full rounded-full font-semibold ${gradientClass}`}
-            >
-              {isGeneratingAudio ? "Generating audio..." : "Play voice recap"}
+            <Button disabled={isGeneratingAudio} onClick={handleGenerateAudio} className="w-full">
+              {isGeneratingAudio ? "Generating audio…" : "Play voice recap"}
             </Button>
-            <Button variant="outline" className="w-full border-white/15 bg-white/10 text-white hover:bg-white/20">
+            <Button variant="outline" className="w-full">
               <Download className="mr-2 h-4 w-4" />
               Download report PDF
             </Button>
           </aside>
         </section>
 
-        <section className="animate-slide-up rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/30">
+        <section className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-semibold text-[#9aa7ff]">
+              <div className="flex items-center gap-2 font-body text-sm font-semibold text-[#FF7A70]">
                 <RefreshCcw className="h-4 w-4" />
                 Practice weak areas
               </div>
-              <p className="text-sm text-white/70">Gemini spun up follow-up prompts based on your weakest JD signals.</p>
+              <p className="font-body text-sm font-medium text-[#444444]">
+                Gemini spun up follow-ups targeting the JD signals that need another rep.
+              </p>
             </div>
-            <Button
-              variant="outline"
-              className="border-white/15 bg-white/10 text-white hover:bg-white/20"
-              onClick={handleGenerateFollowUps}
-            >
+            <Button variant="outline" onClick={handleGenerateFollowUps}>
               Generate follow-up questions
             </Button>
           </div>
 
           {showFollowUps ? (
-            <div className="mt-6 grid gap-3 rounded-2xl border border-white/10 bg-white/5 px-6 py-5 shadow-md shadow-black/30">
+            <div className="mt-6 grid gap-3 rounded-2xl border border-[#EDE5E0] bg-white px-6 py-5">
               {followUps.map((item, index) => (
-                <div key={index} className="flex items-start gap-3 text-sm text-white/70">
-                  <span className="mt-1 inline-flex h-2 w-2 rounded-full bg-[#9aa7ff]" />
+                <div key={item} className="flex items-start gap-3 font-body text-sm font-medium text-[#444444]">
+                  <span className="mt-1 inline-flex h-2 w-2 rounded-full bg-[#FF7A70]" />
                   <span>{item}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="mt-6 rounded-2xl border border-dashed border-white/20 px-6 py-10 text-center text-sm text-white/60">
+            <div className="mt-6 rounded-2xl border border-dashed border-[#EDE5E0] px-6 py-10 text-center font-body text-sm font-medium text-[#777777]">
               Follow-up prompts will appear here once generated.
             </div>
           )}
         </section>
-      </main>
 
-      <div className="sticky bottom-0 z-20 border-t border-white/10 bg-gray-950/80 backdrop-blur-md">
-        <div className="container mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3 text-sm text-white/70">
-            <Sparkles className="h-4 w-4 text-[#9aa7ff]" />
-            Gemini saved this session—revisit anytime for targeted prep.
+        <section className="animate-fade-up rounded-2xl border border-[#EDE5E0] bg-white/95 px-8 py-10 shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_4px_32px_rgba(0,0,0,0.06)]">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#EDE5E0] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#777777]">
+                Next steps
+              </div>
+              <h2 className="font-display text-2xl font-semibold text-[#1A1A1A]">Keep your momentum going</h2>
+              <p className="font-body text-sm font-medium text-[#444444]">
+                Start a new interview with a fresh persona or revisit the setup to fine-tune Gemini’s focus.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/">
+                <Button variant="outline">Start new interview</Button>
+              </Link>
+              <Link href="/setup">
+                <Button className="group">
+                  Run another drill
+                  <ChevronRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link href="/">
-              <Button variant="outline" className="border-white/15 bg-white/10 text-white hover:bg-white/20">
-                Start new interview
-              </Button>
-            </Link>
-            <Link href="/setup">
-              <Button className={gradientClass}>
-                Run another drill
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   )
 }

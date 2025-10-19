@@ -34,10 +34,39 @@ const mockQuestions = [
 type ThemeMode = ControlTheme
 
 const themeOptions: Array<{ id: ThemeMode; label: string; description: string }> = [
-  { id: "zoom", label: "Zoom Mode", description: "Classic video call styling" },
-  { id: "google", label: "Google Meet", description: "Bright and collaborative" },
-  { id: "minimal", label: "Minimalist", description: "Focused, distraction-free" },
+  { id: "zoom", label: "Studio", description: "Polished call environment" },
+  { id: "google", label: "Collaborative", description: "Bright and inviting" },
+  { id: "minimal", label: "Focus", description: "Distraction-free stage" },
 ]
+
+const buildThemeStyles = (accentHex: string, accentRgb: string, controlTheme: ControlTheme) => ({
+  container: "bg-gradient-to-b from-[#FFF8F5] to-[#FDFCFB] text-[#1A1A1A]",
+  questionBubble:
+    "rounded-2xl border border-[#EDE5E0] bg-white/95 px-6 py-4 shadow-[0_2px_24px_rgba(0,0,0,0.05)] backdrop-blur supports-[backdrop-filter]:backdrop-blur-md",
+  questionText: "font-display text-sm font-semibold text-[#1A1A1A] md:text-base",
+  questionMeta: "font-body text-xs font-medium text-[#777777] md:text-sm",
+  liveBadge: `border border-[${accentHex}]/30 bg-[${accentHex}]/10 text-[${accentHex}]`,
+  menuButton:
+    "inline-flex items-center gap-2 rounded-full border border-[#EDE5E0] bg-white px-4 py-2 text-xs font-semibold text-[#1A1A1A] shadow-[0_2px_16px_rgba(0,0,0,0.05)] transition-colors duration-200 hover:bg-[#FFF0EA] hover:shadow-[0_4px_24px_rgba(0,0,0,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF7A70]/40",
+  menu:
+    "mt-2 w-48 rounded-xl border border-[#EDE5E0] bg-white/95 p-2 text-xs text-[#1A1A1A] shadow-[0_12px_32px_rgba(0,0,0,0.08)] backdrop-blur",
+  menuItem:
+    "w-full rounded-lg px-3 py-2 text-left text-[#444444] transition-colors duration-150 hover:bg-[#FFF0EA]",
+  menuItemActive: "bg-[#FFF0EA] text-[#1A1A1A]",
+  videoShell: "group relative flex-1 max-w-3xl aspect-video isolate",
+  videoAmbient: `radial-gradient(circle at center, rgba(${accentRgb},0.22) 0%, rgba(255,255,255,0) 70%)`,
+  videoInner:
+    "relative h-full w-full overflow-hidden rounded-[28px] border border-[#EDE5E0] bg-white shadow-[0_24px_80px_rgba(0,0,0,0.08)] transition duration-500",
+  namePlate:
+    "rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-[#444444] shadow-[0_2px_10px_rgba(0,0,0,0.05)]",
+  statusPlate: "rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-[#777777]",
+  placeholder: "flex h-full flex-col items-center justify-center gap-4 text-[#777777]",
+  subtext: "text-[#777777]",
+  controlTheme,
+  preJoinCard:
+    "w-[90%] max-w-xl rounded-2xl border border-[#EDE5E0] bg-white/95 px-8 py-10 text-left text-[#1A1A1A] shadow-[0_24px_80px_rgba(0,0,0,0.08)] backdrop-blur",
+  preJoinText: "text-[#444444]",
+})
 
 const themeStyles: Record<
   ThemeMode,
@@ -63,88 +92,9 @@ const themeStyles: Record<
     preJoinText: string
   }
 > = {
-  zoom: {
-    container: "bg-[#0f1117] text-white",
-    questionBubble:
-      "rounded-full border border-white/10 bg-black/60 px-6 py-3 shadow-lg backdrop-blur supports-[backdrop-filter]:backdrop-blur-md",
-    questionText: "text-white",
-    questionMeta: "text-white/60",
-    liveBadge: "border border-red-500/30 bg-red-500/10 text-red-300",
-    menuButton:
-      "inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold text-white hover:bg-white/15 transition-colors duration-300",
-    menu: "mt-2 w-48 rounded-xl border border-white/10 bg-[#161b2a]/95 p-2 text-xs text-white shadow-2xl",
-    menuItem:
-      "w-full rounded-lg px-3 py-2 text-left text-white/80 hover:bg-white/10 transition-colors duration-200",
-    menuItemActive: "bg-white/15 text-white",
-    videoShell: "group relative flex-1 max-w-3xl aspect-video isolate",
-    videoAmbient: "radial-gradient(circle at center, rgba(59,130,246,0.28) 0%, rgba(15,17,23,0) 70%)",
-    videoInner:
-      "relative h-full w-full overflow-hidden rounded-[28px] bg-[#11131d] shadow-[inset_0_0_18px_rgba(0,0,0,0.55)] transition duration-500",
-    namePlate: "rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white shadow-sm",
-    statusPlate: "rounded-full bg-white/15 px-3 py-1 text-xs text-white/80",
-    placeholder:
-      "flex h-full flex-col items-center justify-center gap-4 text-white/70 transition-colors duration-300",
-    subtext: "text-white/60",
-    controlTheme: "zoom",
-    preJoinCard:
-      "w-[90%] max-w-xl rounded-2xl border border-white/10 bg-[#161b2a]/95 px-8 py-10 text-left text-white shadow-2xl shadow-black/40",
-    preJoinText: "text-white/70",
-  },
-  google: {
-    container: "bg-gradient-to-br from-[#e8ebf0] to-[#f7f8fa] text-gray-800",
-    questionBubble:
-      "rounded-full border border-gray-200 bg-white px-6 py-3 shadow-sm transition duration-500",
-    questionText: "text-gray-800",
-    questionMeta: "text-gray-500",
-    liveBadge: "border border-red-400/30 bg-red-100 text-red-500",
-    menuButton:
-      "inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition-colors duration-300",
-    menu:
-      "mt-2 w-48 rounded-xl border border-gray-200 bg-white p-2 text-xs text-gray-700 shadow-lg shadow-gray-300/50",
-    menuItem:
-      "w-full rounded-lg px-3 py-2 text-left text-gray-600 hover:bg-gray-100 transition-colors duration-200",
-    menuItemActive: "bg-blue-100 text-blue-600",
-    videoShell: "group relative flex-1 max-w-3xl aspect-video isolate",
-    videoAmbient: "radial-gradient(circle at center, rgba(37,99,235,0.2) 0%, rgba(232,235,240,0) 70%)",
-    videoInner:
-      "relative h-full w-full overflow-hidden rounded-[24px] border border-gray-200 bg-white shadow-sm transition duration-500",
-    namePlate: "rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 shadow-sm",
-    statusPlate: "rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600",
-    placeholder:
-      "flex h-full flex-col items-center justify-center gap-4 text-gray-500 transition-colors duration-300",
-    subtext: "text-gray-600",
-    controlTheme: "google",
-    preJoinCard:
-      "w-[90%] max-w-xl rounded-2xl border border-gray-200 bg-white px-8 py-10 text-left text-gray-800 shadow-2xl shadow-gray-300/50",
-    preJoinText: "text-gray-600",
-  },
-  minimal: {
-    container: "bg-gradient-to-br from-[#101218] to-[#181a20] text-gray-100",
-    questionBubble:
-      "rounded-full border border-white/10 bg-white/5 px-6 py-3 shadow-lg backdrop-blur-md supports-[backdrop-filter]:backdrop-blur-md",
-    questionText: "text-white",
-    questionMeta: "text-white/60",
-    liveBadge: "border border-red-500/30 bg-red-500/15 text-red-300",
-    menuButton:
-      "inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-gray-100 hover:bg-white/10 transition-colors duration-300",
-    menu: "mt-2 w-48 rounded-xl border border-white/10 bg-[#141721]/95 p-2 text-xs text-gray-100 shadow-2xl",
-    menuItem:
-      "w-full rounded-lg px-3 py-2 text-left text-gray-300 hover:bg-white/10 transition-colors duration-200",
-    menuItemActive: "bg-white/15 text-white",
-    videoShell: "group relative flex-1 max-w-3xl aspect-video isolate",
-    videoAmbient: "radial-gradient(circle at center, rgba(147,197,253,0.25) 0%, rgba(16,18,24,0) 70%)",
-    videoInner:
-      "relative h-full w-full overflow-hidden rounded-[28px] bg-[#0f131d]/90 shadow-[0_32px_80px_-40px_rgba(0,0,0,0.9)] transition duration-500",
-    namePlate: "rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gray-100",
-    statusPlate: "rounded-full bg-white/10 px-3 py-1 text-xs text-gray-300",
-    placeholder:
-      "flex h-full flex-col items-center justify-center gap-4 text-gray-400 transition-colors duration-300",
-    subtext: "text-gray-400",
-    controlTheme: "minimal",
-    preJoinCard:
-      "w-[90%] max-w-xl rounded-2xl border border-white/10 bg-[#121620]/95 px-8 py-10 text-left text-gray-100 shadow-2xl shadow-black/50",
-    preJoinText: "text-gray-400",
-  },
+  zoom: buildThemeStyles("#FF7A70", "255,122,112", "zoom"),
+  google: buildThemeStyles("#F38B6C", "243,139,108", "google"),
+  minimal: buildThemeStyles("#FF7A70", "255,122,112", "minimal"),
 }
 
 type PlanStatus = "idle" | "loading" | "ready" | "refreshing" | "error"

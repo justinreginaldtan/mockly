@@ -1,22 +1,22 @@
 <svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="240" height="240" rx="64" fill="#F2F6FF"/>
+  <rect width="240" height="240" rx="64" fill="#FFF8F5"/>
   <g filter="url(#shadow)">
-    <circle cx="120" cy="118" r="70" fill="#D9E8FF"/>
+    <circle cx="120" cy="116" r="72" fill="#E7F2FF"/>
   </g>
-  <circle cx="120" cy="112" r="64" fill="#B9D6FF"/>
+  <circle cx="120" cy="112" r="62" fill="#C8E2FF"/>
   <path d="M82 126c2.5 20 18.7 36 38 36s35.4-15.6 37.9-35.5" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
-  <ellipse cx="97.5" cy="106.5" rx="10.5" ry="12.5" fill="white"/>
-  <ellipse cx="142.5" cy="106.5" rx="10.5" ry="12.5" fill="white"/>
+  <ellipse cx="97.5" cy="106.5" rx="10.5" ry="12.5" fill="#FDFCFB"/>
+  <ellipse cx="142.5" cy="106.5" rx="10.5" ry="12.5" fill="#FDFCFB"/>
   <circle cx="97.5" cy="108.5" r="5.5" fill="#1A1A1A"/>
   <circle cx="142.5" cy="108.5" r="5.5" fill="#1A1A1A"/>
-  <path d="M68 118c0-34.3 27.7-62 62-62s62 27.7 62 62" stroke="#7AAAF9" stroke-width="12" stroke-linecap="round"/>
-  <path d="M186 116h12c10 0 18 8 18 18s-8 18-18 18h-8" stroke="#7AAAF9" stroke-width="12" stroke-linecap="round"/>
-  <path d="M54 116h-12c-10 0-18 8-18 18s8 18 18 18h8" stroke="#7AAAF9" stroke-width="12" stroke-linecap="round"/>
-  <rect x="102" y="168" width="36" height="20" rx="10" fill="#FF7A70"/>
-  <path d="M120 60c-12 0-22 10-22 22" stroke="#8BBEFF" stroke-width="10" stroke-linecap="round"/>
-  <path d="M100 184h40" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M68 118c0-34.3 27.7-62 62-62s62 27.7 62 62" stroke="#9EC7FF" stroke-width="12" stroke-linecap="round"/>
+  <path d="M188 116h8c10 0 18 8 18 18s-8 18-18 18h-8" stroke="#9EC7FF" stroke-width="10" stroke-linecap="round"/>
+  <path d="M52 116h-8c-10 0-18 8-18 18s8 18 18 18h8" stroke="#9EC7FF" stroke-width="10" stroke-linecap="round"/>
+  <rect x="104" y="170" width="32" height="18" rx="9" fill="#FF7A70"/>
+  <path d="M120 60c-12 0-22 10-22 22" stroke="#9EC7FF" stroke-width="8" stroke-linecap="round"/>
+  <path d="M100 184h40" stroke="#FDFCFB" stroke-width="4" stroke-linecap="round"/>
   <defs>
-    <filter id="shadow" x="28" y="32" width="184" height="184" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+    <filter id="shadow" x="28" y="34" width="184" height="184" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
       <feFlood flood-opacity="0" result="BackgroundImageFix"/>
       <feGaussianBlur in="BackgroundImageFix" stdDeviation="12"/>
       <feComposite in2="SourceAlpha" operator="in" result="effect1_backgroundBlur"/>

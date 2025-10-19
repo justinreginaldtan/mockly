@@ -31,46 +31,46 @@ const controlBarVariants: Record<
 > = {
   zoom: {
     wrapper:
-      'pointer-events-auto flex items-center gap-3 rounded-full border border-white/10 bg-black/60 px-5 py-3 shadow-md backdrop-blur-md transition duration-300',
+      'pointer-events-auto flex items-center gap-3 rounded-full border border-[#EDE5E0] bg-white/95 px-5 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.08)] backdrop-blur transition duration-300',
     iconButton:
-      'border border-transparent bg-white/10 text-white hover:bg-white/20 transition-colors duration-300',
-    muteActive: 'bg-rose-600/80 hover:bg-rose-600/70',
+      'border border-[#EDE5E0] bg-white text-[#1A1A1A] hover:bg-[#FFF0EA] transition-colors duration-200',
+    muteActive: 'bg-[#FF7A70] text-white border-[#FF7A70] hover:bg-[#ff695c]',
     insightsButton:
-      'border border-transparent bg-white/10 text-white hover:bg-white/20 transition-colors duration-300',
-    insightsActive: 'bg-white/20 text-white',
+      'border border-[#EDE5E0] bg-white text-[#1A1A1A] hover:bg-[#FFF0EA] transition-colors duration-200',
+    insightsActive: 'border-[#FF7A70] bg-[#FF7A70]/10 text-[#FF7A70]',
     exitButton:
-      'border border-transparent bg-red-500 text-white hover:bg-red-600 hover:text-white transition-colors duration-300',
-    icon: 'text-white transition-colors duration-300',
-    activeIcon: 'text-emerald-300 animate-pulse',
+      'border border-transparent bg-[#1A1A1A] text-white hover:bg-[#2E2E2E] transition-colors duration-200',
+    icon: 'text-[#1A1A1A] transition-colors duration-300',
+    activeIcon: 'text-[#FF7A70] animate-pulse',
   },
   google: {
     wrapper:
-      'pointer-events-auto flex items-center gap-3 rounded-full border border-gray-300 bg-gray-100 px-5 py-3 shadow-md transition duration-300',
+      'pointer-events-auto flex items-center gap-3 rounded-full border border-[#EDE5E0] bg-white/95 px-5 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.08)] backdrop-blur transition duration-300',
     iconButton:
-      'border border-gray-300 bg-white text-gray-700 hover:bg-gray-200 transition-colors duration-300',
-    muteActive: 'bg-rose-500 text-white hover:bg-rose-600 border-rose-500',
+      'border border-[#EDE5E0] bg-white text-[#1A1A1A] hover:bg-[#FFF0EA] transition-colors duration-200',
+    muteActive: 'bg-[#F38B6C] text-white border-[#F38B6C] hover:bg-[#e97b59]',
     insightsButton:
-      'border border-gray-300 bg-white text-gray-700 hover:bg-gray-200 transition-colors duration-300',
-    insightsActive: 'border-blue-500 bg-blue-500/10 text-blue-600',
+      'border border-[#EDE5E0] bg-white text-[#1A1A1A] hover:bg-[#FFF0EA] transition-colors duration-200',
+    insightsActive: 'border-[#F38B6C] bg-[#F38B6C]/10 text-[#F38B6C]',
     exitButton:
-      'border border-transparent bg-red-500 text-white hover:bg-red-600 transition-colors duration-300',
-    icon: 'text-gray-700 transition-colors duration-300',
-    activeIcon: 'text-blue-600 animate-pulse',
+      'border border-transparent bg-[#1A1A1A] text-white hover:bg-[#2E2E2E] transition-colors duration-200',
+    icon: 'text-[#1A1A1A] transition-colors duration-300',
+    activeIcon: 'text-[#F38B6C] animate-pulse',
   },
   minimal: {
     wrapper:
-      'pointer-events-auto flex items-center gap-3 rounded-full bg-transparent px-5 py-3 transition duration-300',
+      'pointer-events-auto flex items-center gap-3 rounded-full border border-[#EDE5E0] bg-white/95 px-5 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.08)] backdrop-blur transition duration-300',
     iconButton:
-      'border border-white/10 bg-transparent text-gray-300 hover:bg-white/5 hover:text-white transition-colors duration-300',
-    muteActive: 'border-rose-500 text-rose-300 bg-rose-500/10 hover:bg-rose-500/20',
+      'border border-[#EDE5E0] bg-white text-[#1A1A1A] hover:bg-[#FFF0EA] transition-colors duration-200',
+    muteActive: 'bg-[#FF7A70] text-white border-[#FF7A70] hover:bg-[#ff695c]',
     insightsButton:
-      'border border-white/10 bg-transparent text-gray-300 hover:bg-white/5 hover:text-white transition-colors duration-300',
-    insightsActive: 'border-white/30 bg-white/10 text-white',
+      'border border-[#EDE5E0] bg-white text-[#1A1A1A] hover:bg-[#FFF0EA] transition-colors duration-200',
+    insightsActive: 'border-[#FF7A70] bg-[#FF7A70]/10 text-[#FF7A70]',
     exitButton:
-      'border border-rose-500 bg-transparent text-rose-400 hover:bg-rose-500/20 transition-colors duration-300',
-    icon: 'text-gray-300 transition-colors duration-300',
-    activeIcon: 'text-white animate-pulse',
-    inactiveIcon: 'text-gray-500',
+      'border border-transparent bg-[#1A1A1A] text-white hover:bg-[#2E2E2E] transition-colors duration-200',
+    icon: 'text-[#1A1A1A] transition-colors duration-300',
+    activeIcon: 'text-[#FF7A70] animate-pulse',
+    inactiveIcon: 'text-[#777777]',
   },
 }
 
