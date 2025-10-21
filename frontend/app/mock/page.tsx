@@ -1141,7 +1141,7 @@ export default function MockInterviewPage() {
     }
 
     void playGreeting()
-  }, [showIntro, planLoading, hasPlan, greetingAudioUrl, personaGreetingLine, playQuestionPrompt, requestPersonaSpeech])
+  }, [showIntro, planLoading, hasPlan, greetingAudioUrl, personaGreetingLine, playQuestionPrompt, requestPersonaSpeech, cleanupAudio])
 
   useEffect(() => {
     let cancelled = false
@@ -1446,7 +1446,7 @@ export default function MockInterviewPage() {
         </p>
         {!planLoading && hasPlan && (isMicLive || liveTranscript || hasTranscript) && (
           <div className="mt-4 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-left">
-            <p className="text-[0.6rem] uppercase tracking-[0.35em] text-white/60">Your response</p>
+            <p className="text-[0.65rem] uppercase tracking-[0.35em] text-white/60">Your response</p>
             <p className={cn("mt-2 text-sm leading-relaxed", currentTheme.questionText)}>
               {isMicLive
                 ? liveTranscript || "Listening…"
