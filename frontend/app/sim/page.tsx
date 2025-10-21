@@ -473,7 +473,7 @@ export default function SimPage() {
         console.log("[Sim] Speech recording started successfully")
       }
     }
-  }, [canRecord, audioFinished, isListening, start, stop, reset, transcript, handleFirstUserInteraction, micPermissionGranted, initializeMicrophone])
+  }, [canRecord, audioFinished, isListening, status, start, stop, reset, transcript, handleFirstUserInteraction, micPermissionGranted, initializeMicrophone])
 
   const onNextScenario = useCallback(() => {
     console.log("[Sim] Next scenario requested - clearing transcript and resetting states")
