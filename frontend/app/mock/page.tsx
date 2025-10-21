@@ -754,10 +754,7 @@ export default function MockInterviewPage() {
       }
       setPendingRecorderStart(false)
 
-      if (followUpAudioRef.current) {
-        followUpAudioRef.current.pause()
-        followUpAudioRef.current = null
-      }
+      cleanupAudio(followUpAudioRef)
 
       const audioUrl = await requestPersonaSpeech(prompt)
       if (!audioUrl) {
