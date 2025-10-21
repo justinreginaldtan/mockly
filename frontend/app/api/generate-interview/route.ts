@@ -12,7 +12,7 @@ function validatePayload(body: unknown): InterviewSetupPayload {
     throw new Error("Invalid request body")
   }
 
-  const { persona, resumeSummary, jobSummary } = body as GenerateInterviewPayload
+  const { persona, resumeSummary, jobSummary } = body as InterviewSetupPayload
 
   if (!persona || typeof persona !== "object") {
     throw new Error("Missing persona configuration")
