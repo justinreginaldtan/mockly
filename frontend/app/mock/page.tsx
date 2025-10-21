@@ -1003,12 +1003,12 @@ export default function MockInterviewPage() {
           if (usedCachedPlan) {
             setPlanStatus("ready")
           } else {
+            setPlanStatus("error")
             const fallbackGenerated = buildFallbackPlan(payload!.persona)
             setFallbackPlanState(fallbackGenerated)
             setInterviewPlan(null)
             setCurrentQuestionIndex(0)
             window.sessionStorage.removeItem(PLAN_CACHE_KEY)
-            setPlanStatus("error")
           }
         }
       })
@@ -1090,6 +1090,8 @@ export default function MockInterviewPage() {
       greetingPlaybackRef.current = true
       setGreetingCompleted(false)
       try {
+        cleanupAudio(greetingAudioRef)
+        
         let audioUrl = greetingAudioUrl
         if (!audioUrl) {
           audioUrl = await requestPersonaSpeech(personaGreetingLine)
@@ -1459,7 +1461,7 @@ export default function MockInterviewPage() {
         )}
         {planLoading && (
           <div className="mt-3 flex items-center justify-center gap-2 text-xs opacity-80">
-            <span className="h-2 w-2 animate-ping rounded-full bg-current/80" aria-hidden="true" />
+            <span className="h-2 w-2 animate-pulse rounded-full bg-current/80" aria-hidden="true" />
             <span>Contacting Gemini…</span>
           </div>
         )}
