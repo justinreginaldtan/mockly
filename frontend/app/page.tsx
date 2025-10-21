@@ -1,11 +1,10 @@
-import Hero from "@/components/Hero"
-import HomePage from "./_components/home-page"
+import LandingHero from "./_components/landing-hero"
 
 export const metadata = {
-  title: "Mockly – AI Customer Service Training Platform",
-  description: "Master customer service with AI-powered voice simulations, real-time feedback, and adaptive difficulty training.",
+  title: "Mockly – AI Communication Training Platform",
+  description: "Master job interviews and customer service with AI-powered simulations. Get instant feedback from Gemini AI and natural voice interactions with ElevenLabs.",
 }
 
 export default function Page() {
-  return <HomePage HeroComponent={Hero} />
+  return <LandingHero />
 }
