@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import NextLink from "next/link"
 import { cn } from "@/lib/utils"
 import { InterviewerAvatar } from "@/components/interviewer-avatar"
 import { ControlBar, type ControlTheme } from "@/components/interview/control-bar"
@@ -867,7 +868,7 @@ export default function MockInterviewPage() {
     }
 
     void playQuestionPrompt(question.prompt ?? "", question.id)
-  }, [currentQuestionIndex, greetingCompleted, hasPlan, isGreetingActive, planLoading, playQuestionPrompt, questions, showIntro])
+  }, [currentQuestionIndex, greetingCompleted, hasPlan, isGreetingActive, playQuestionPrompt, questions, showIntro])
 
   useEffect(() => {
     if (showIntro) {
@@ -1339,7 +1340,7 @@ export default function MockInterviewPage() {
       </div>
       {showAgenda && hasPlan && (
         <div className="absolute right-6 top-24 z-30 w-64 rounded-2xl border border-white/15 bg-white/10 p-4 text-left text-xs shadow-xl shadow-black/30 backdrop-blur">
-          <p className="text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-white/70">Agenda</p>
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/70">Agenda</p>
           <div className="mt-3 space-y-2">
             {questions.map((question, idx) => {
               const status = questionStatuses[idx] ?? "pending"
