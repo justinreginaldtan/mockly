@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 import CoachCard from "@/components/CoachCard"
 import { MicButton } from "@/components/mic-button"
 import { Waveform } from "@/components/waveform"
@@ -694,6 +696,16 @@ export default function SimPage() {
       {/* Click to Start Overlay */}
         {showClickToStart && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#FFF8F5] via-[#FDFCFB] to-[#FFF0EA]">
+            {/* Mode Switcher Button */}
+            <div className="absolute top-6 right-6">
+              <Link href="/setup">
+                <Button variant="outline" size="sm" className="group border-[#FF7A70]/30 hover:bg-[#FFE7E4] hover:border-[#FF7A70]">
+                  Try Job Interview Mode
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </div>
+            
             <div className="text-center max-w-2xl mx-auto px-6">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -762,7 +774,7 @@ export default function SimPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF7A70] to-[#FF9F70] shadow-lg">
-                  <span className="text-2xl">🎯</span>
+                  <span className="text-3xl">🎯</span>
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-[#1A1A1A]">Customer Service Training</h1>
