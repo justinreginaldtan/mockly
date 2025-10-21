@@ -670,6 +670,20 @@ export default function MockInterviewPage() {
     [personaSource.personaId, personaSource.voiceStyleId],
   )
 
+  const resolvedVoiceId = useMemo(
+    () => personaVoiceProfile.elevenLabsVoiceId,
+    [personaSource.personaId, personaSource.voiceStyleId],
+  )
+
+  const cleanupAudio = useCallback((audioRef: React.MutableRefObject<HTMLAudioElement | null>) => {
+    if (audioRef.current) {
+      audioRef.current.onended = null
+      audioRef.current.onpause = null
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+  }, [])
+
   const playQuestionPrompt = useCallback(
     async (prompt: string, questionId: string | null | undefined) => {
       if (!prompt?.trim() || !questionId) {
@@ -1180,27 +1194,6 @@ export default function MockInterviewPage() {
       cancelled = true
     }
   }, [isCameraOn])
-
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop())
-        streamRef.current = null
-      }
-      if (greetingAudioRef.current) {
-        greetingAudioRef.current.pause()
-        greetingAudioRef.current = null
-      }
-      if (questionAudioRef.current) {
-        questionAudioRef.current.pause()
-        questionAudioRef.current = null
-      }
-      if (followUpAudioRef.current) {
-        followUpAudioRef.current.pause()
-        followUpAudioRef.current = null
-      }
-    }
-  }, [])
 
   useEffect(() => {
     const handleFullscreenChange = () => {
