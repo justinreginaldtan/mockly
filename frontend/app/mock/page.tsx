@@ -1270,6 +1270,18 @@ export default function MockInterviewPage() {
     "w-full justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-transform duration-200 hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60",
   )
 
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop())
+        streamRef.current = null
+      }
+      cleanupAudio(greetingAudioRef)
+      cleanupAudio(questionAudioRef)
+      cleanupAudio(followUpAudioRef)
+    }
+  }, [cleanupAudio])
+
   return (
     <div className={containerClasses}>
       <StepIndicator steps={progressSteps} currentIndex={2} className="top-4 w-full max-w-3xl" />
