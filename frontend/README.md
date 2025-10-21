@@ -1,111 +1,241 @@
-# JD-Grounded Mock Interviewer
+# Mockly – AI Communication Training Platform
 
-An AI-powered mock interview application that helps candidates practice for job interviews with personalized questions based on their resume and target job description.
+An AI-powered training platform featuring two realistic simulation modes: **Job Interview Practice** and **Customer Service Training**. Both powered by Google Gemini for intelligent evaluation and ElevenLabs for natural voice synthesis.
 
 ## Features
 
-- **Resume & JD Analysis**: Upload your resume and job description for personalized interview questions
-- **Customizable Setup**: Adjust technical vs. behavioral question mix, focus areas, and duration
-- **Realistic Interview Experience**: Simulated live interview with voice interaction and visual feedback
-- **Detailed Results Dashboard**: Comprehensive analysis of your performance with actionable feedback
+### Job Interview Simulator
+- **Persona-Based Interviews**: Practice with AI interviewers from Google, Amazon, Meta, Cisco, and more
+- **Personalized Questions**: Gemini generates questions based on your resume and target job description
+- **Customizable Setup**: Adjust technical vs. behavioral mix, focus areas, voice style, and duration
+- **Live Interview Experience**: Real-time speech recognition with camera/audio controls
+- **Multiple Visual Themes**: Zoom-style, Google Meet-style, or Minimal interface
+- **Detailed Results**: Comprehensive performance analysis with JD coverage breakdown, strengths, weak areas, and evidence snippets
+- **Voice Recap**: ElevenLabs-powered audio summary of your performance
+- **PDF Reports**: Downloadable interview results
+
+### Customer Service Training Simulator
+- **Adaptive Difficulty**: AI scenarios automatically adjust to your skill level (easy/medium/hard/nightmare)
+- **Real-Time Evaluation**: Instant feedback on empathy, clarity, and resolution scores
+- **Coaching Feedback**: Detailed tips and ideal response examples after each scenario
+- **Speech Recognition**: Natural conversation practice with auto-stop detection
+- **Dev Mode**: Testing tools with perfect scores toggle (activate with 'd'+'b' hotkey)
+- **Realistic Voice**: ElevenLabs TTS for authentic customer voices
 
 ## Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
+- **AI**: Google Gemini (question generation & evaluation)
+- **Voice**: ElevenLabs (text-to-speech)
+- **Speech Recognition**: Web Speech API
 - **Styling**: Tailwind CSS v4
 - **UI Components**: shadcn/ui
+- **Animations**: Framer Motion
 - **Typography**: Inter font family
 
 ## Getting Started
 
 1. Install dependencies:
-\`\`\`bash
+```bash
 npm install
-\`\`\`
+```
 
-2. Run the development server:
-\`\`\`bash
+2. Create `.env.local` with API keys:
+```env
+# Required for AI features
+GEMINI_API_KEY=your_gemini_api_key_here
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+
+# Optional
+GEMINI_MODEL=gemini-1.5-pro-latest
+```
+
+**Get API Keys:**
+- Gemini: https://makersuite.google.com/app/apikey
+- ElevenLabs: https://elevenlabs.io/
+
+**Note:** The app gracefully falls back to mock data if API keys are not provided, so you can explore the UI without keys.
+
+3. Run the development server:
+```bash
 npm run dev
-\`\`\`
+```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## Environment Variables
-
-Copy `.env.local.example` to `.env.local` and set:
-
-- `GEMINI_API_KEY` – Google AI Studio key for Gemini requests
-- `ELEVENLABS_API_KEY` – ElevenLabs Speech Synthesis key
-
-Restart the dev server after adding or updating environment values.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## Project Structure
 
-\`\`\`
+### Two Training Modes
+
+**1. Job Interview Practice**
+- Entry: Landing page → `/setup`
+- Flow: Configure persona → `/mock` (live interview) → `/results` (evaluation)
+- Use Case: Prepare for job interviews with AI interviewer
+- AI Models: Gemini (questions + evaluation), ElevenLabs (interviewer voice)
+
+**2. Customer Service Training**
+- Entry: Landing page → `/sim`
+- Flow: Single-page scenario generator with adaptive difficulty
+- Use Case: Train customer service representatives with realistic scenarios
+- AI Models: Gemini (scenarios + evaluation), ElevenLabs (customer voice)
+
+### Directory Structure
+
+```
 app/
-├── page.tsx              # Upload screen
-├── setup/                # Interview configuration
-├── mock/                 # Live interview simulation
-├── results/              # Results dashboard
-└── api/                  # API route placeholders
-    ├── generate-interview/
-    ├── voice-question/
-    └── evaluate-answers/
+├── page.tsx                 # Landing page with mode selection
+├── setup/                   # Interview configuration (925 lines)
+├── mock/                    # Live interview simulation (1703 lines)
+├── sim/                     # Customer service training (1152 lines)
+├── results/                 # Results dashboard (448 lines)
+├── api/                     # Backend API routes
+│   ├── generate-interview/  # ✅ Gemini interview question generation
+│   ├── voice-question/      # ✅ ElevenLabs TTS for interviews
+│   ├── evaluate-interview/  # ✅ Full interview evaluation (NEW)
+│   ├── evaluate-answer/     # ✅ Single CS response evaluation
+│   ├── generate-scenario/   # ✅ Gemini CS scenario generation
+│   └── voice-say/          # ✅ ElevenLabs TTS with retry logic
+└── _components/
+    ├── landing-hero.tsx     # Dual-mode landing page
+    ├── nav-header.tsx       # Navigation between modes
+    └── home-page.tsx        # CS training setup flow
 
 components/
-├── file-upload-card.tsx
 ├── interviewer-avatar.tsx
+├── CoachCard.tsx
 ├── mic-button.tsx
+├── waveform.tsx
 ├── progress-bar.tsx
 ├── success-animation.tsx
-└── waveform.tsx
+└── interview/
+    ├── control-bar.tsx
+    └── insights-drawer.tsx
 
 lib/
-└── mock-data.ts          # Mock data for development
-\`\`\`
+├── gemini.ts               # Gemini API integration
+├── voices.ts               # Voice configuration
+├── mock-data.ts            # Fallback mock data
+└── cache-keys.ts           # Session storage keys
 
-## API Integration (TODO)
-
-### 1. Gemini API - Question Generation
-- **Endpoint**: `/api/generate-interview`
-- **Purpose**: Generate personalized interview questions based on resume and JD
-- **Setup**: Add `GEMINI_API_KEY` to environment variables
-
-### 2. ElevenLabs API - Voice Synthesis
-- **Endpoint**: `/api/voice-question`
-- **Purpose**: Convert questions to natural-sounding speech
-- **Setup**: Add `ELEVENLABS_API_KEY` to environment variables
-
-### 3. Gemini API - Answer Evaluation
-- **Endpoint**: `/api/evaluate-answers`
-- **Purpose**: Analyze responses and provide detailed feedback
-- **Setup**: Uses same `GEMINI_API_KEY` as question generation
+hooks/
+├── use-speech-recorder.ts  # Web Speech API wrapper
+└── use-toast.tsx
+```
 
 ## Current Status
 
-✅ Complete UI/UX flow with all 4 screens
-✅ Smooth animations and transitions
-✅ Interactive components and state management
-✅ Mock data for realistic demo experience
-⏳ API integration placeholders ready for connection
+### ✅ Fully Implemented Features
+
+**Job Interview Simulator** (`/setup` → `/mock` → `/results`)
+- ✅ Complete Gemini AI integration for personalized interview questions
+- ✅ ElevenLabs text-to-speech with multiple interviewer personas
+- ✅ Web Speech API for candidate speech recognition
+- ✅ Persona selection with 4+ interview types (Google Analyst, Amazon PM, Meta SWE, Cisco SOC)
+- ✅ Camera integration with multiple visual themes (Zoom, Meet, Minimal)
+- ✅ Real-time question progression with insights drawer
+- ✅ Session storage caching for interview plans and responses
+- ✅ Fullscreen mode, theme switcher, live status indicators
+- ✅ Results page with real interview evaluation from Gemini
+- ✅ Voice recap feature with ElevenLabs audio summary
+- ✅ PDF download for interview reports
+
+**Customer Service Training Simulator** (`/sim`)
+- ✅ Gemini-generated customer service scenarios
+- ✅ Adaptive difficulty based on performance (easy/medium/hard/nightmare)
+- ✅ Real-time evaluation with empathy, clarity, and resolution scores
+- ✅ ElevenLabs TTS for customer voice
+- ✅ Speech recognition for trainee responses with auto-stop
+- ✅ Dev mode with perfect scores toggle for testing
+- ✅ Detailed coaching feedback with improvement tips
+
+**Navigation & UX**
+- ✅ Landing page with clear navigation to both training modes
+- ✅ Navigation header on all pages (except /mock full-screen mode)
+- ✅ Mode switcher buttons on pre-join overlays
+- ✅ Unified design language across both apps
+
+**API Routes** (8 routes)
+- ✅ `/api/generate-interview` - Gemini interview question generation
+- ✅ `/api/voice-question` - ElevenLabs TTS for interview questions
+- ✅ `/api/evaluate-interview` - Full interview evaluation with Gemini
+- ✅ `/api/evaluate-answer` - Gemini evaluation for CS responses
+- ✅ `/api/generate-scenario` - Gemini CS scenario generation
+- ✅ `/api/voice-say` - ElevenLabs TTS with retry logic
+
+### 🚧 Recently Completed (This Update)
+- ✅ Results page now shows real interview evaluation (was using mock data)
+- ✅ Voice recap feature generates actual audio summaries
+- ✅ PDF download creates printable interview reports
+- ✅ Landing page with navigation between job interview and CS training modes
+- ✅ Cross-app navigation with mode switcher buttons
+- ✅ Duplicate API route removed (evaluate-answers)
+- ✅ TypeScript type errors fixed
 
 ## Next Steps
 
-1. Connect Gemini API for question generation and evaluation
-2. Integrate ElevenLabs for text-to-speech functionality
-3. Add speech-to-text for user response capture
-4. Implement data persistence (database)
-5. Add user authentication
-6. Deploy to production
+1. **User Authentication** - Add sign-up/login with session persistence
+2. **Database Integration** - Store interview history and progress over time
+3. **Analytics Dashboard** - Track improvement metrics across multiple sessions
+4. **Deployment** - Deploy to production (Vercel recommended for Next.js)
+5. **Advanced Features** - Video recording, peer comparison, custom personas
+
+## API Integration
+
+All API routes are fully implemented with graceful fallbacks to mock data when API keys are not configured.
+
+### Gemini Integration
+- **Model**: gemini-1.5-pro-latest (configurable via `GEMINI_MODEL` env var)
+- **Features**: Question generation, scenario creation, performance evaluation
+- **Fallback**: Returns mock data if API key missing or on error
+
+### ElevenLabs Integration
+- **Features**: Natural voice synthesis for interviewer/customer personas
+- **Configuration**: Multiple voice styles and personas
+- **Retry Logic**: 3 attempts with exponential backoff
+- **Fallback**: Graceful error handling with user feedback
+
+### Web Speech API
+- **Browser Support**: Chrome, Edge, Safari (with limitations on iOS)
+- **Features**: Continuous recognition, interim results, auto-stop on silence
+- **Fallback**: Clear messaging if not supported in browser
+
+## Environment Variables
+
+Create `.env.local` in the frontend directory:
+
+```env
+# Required for AI features
+GEMINI_API_KEY=your_gemini_api_key_here
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+
+# Optional
+GEMINI_MODEL=gemini-1.5-pro-latest
+```
+
+**Note:** The app gracefully falls back to mock data if API keys are not provided, so you can explore the UI without keys.
+
+## Browser Compatibility
+
+**Required Features:**
+- Web Speech API (Chrome, Edge, Safari - limited on iOS)
+- MediaDevices.getUserMedia (camera/mic access)
+- Audio API for playback
+- sessionStorage
+- Fetch API
+
+**Recommended:**
+- Desktop Chrome or Edge for full feature support
+- Microphone and camera permissions
 
 ## Design Philosophy
 
-The app follows an Apple-clean aesthetic with:
-- Dark navy background (#0f1419)
-- Soft blue-purple accents for primary actions
+The app follows a warm, approachable aesthetic with:
+- Soft peach gradient backgrounds (#FFF8F5 to #FDFCFB)
+- Coral accent color (#FF7A70) for primary actions
 - Generous white space and clear hierarchy
-- Smooth transitions and micro-interactions
-- Professional, trustworthy appearance
+- Smooth Framer Motion animations
+- Professional yet friendly appearance
+- Responsive design for mobile and desktop
 
 ## License
 
