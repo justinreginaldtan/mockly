@@ -1400,7 +1400,7 @@ export default function MockInterviewPage() {
 
       <div className={questionBubbleClasses}>
         {!planLoading && hasPlan && (
-          <div className="mb-3 flex items-center justify-between text-[0.68rem] uppercase tracking-[0.35em]">
+          <div className="mb-2 flex items-center justify-between text-[0.68rem] uppercase tracking-[0.35em]">
             <span className={cn("font-semibold", currentTheme.questionMeta)}>{progressLabel}</span>
             <div
               role="button"
@@ -1427,7 +1427,7 @@ export default function MockInterviewPage() {
         {isGreetingActive && !planLoading && (
           <div
             className={cn(
-              "mb-3 text-center text-[0.7rem] uppercase tracking-[0.35em] opacity-80",
+              "mb-2 text-center text-[0.7rem] uppercase tracking-[0.35em] opacity-80",
               currentTheme.questionMeta,
             )}
           >
@@ -1437,7 +1437,7 @@ export default function MockInterviewPage() {
             </p>
           </div>
         )}
-        <p className={questionTextClass}>
+        <p className={cn("text-[15px] font-medium leading-snug", currentTheme.questionText)}>
           {planLoading ? (
             <span
               className="inline-flex h-5 w-48 animate-pulse rounded-full opacity-40 sm:w-64"
@@ -1447,7 +1447,7 @@ export default function MockInterviewPage() {
             questionHeading
           )}
         </p>
-        <p className={questionMetaClass}>
+        <p className={cn("mt-1 text-[11px] opacity-80", currentTheme.questionMeta)}>
           {planLoading ? (
             <span
               className="inline-flex h-3 w-40 animate-pulse rounded-full opacity-30 sm:w-52"
@@ -1458,15 +1458,25 @@ export default function MockInterviewPage() {
           )}
         </p>
         {!planLoading && hasPlan && (isMicLive || liveTranscript || hasTranscript) && (
-          <div className="mt-4 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-left">
-            <p className="text-[0.65rem] uppercase tracking-[0.35em] text-white/60">Your response</p>
-            <p className={cn("mt-2 text-sm leading-relaxed", currentTheme.questionText)}>
-              {isMicLive
-                ? liveTranscript || "Listening…"
-                : hasTranscript
-                  ? activeResponse?.transcript
-                  : "Waiting for your answer…"}
-            </p>
+          <div className="mt-3 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-left">
+            <div className="flex items-center justify-between">
+              <p className="text-[0.65rem] uppercase tracking-[0.35em] text-white/60">Your response</p>
+              <button
+                onClick={() => setIsTranscriptExpanded(!isTranscriptExpanded)}
+                className="text-[11px] underline text-white/70 hover:text-white/90 transition-colors"
+              >
+                {isTranscriptExpanded ? "▼ Hide" : "▶ Show"}
+              </button>
+            </div>
+            {isTranscriptExpanded && (
+              <p className={cn("mt-2 text-[12px] leading-relaxed max-h-[60px] overflow-y-auto", currentTheme.questionText)}>
+                {isMicLive
+                  ? liveTranscript || "Listening…"
+                  : hasTranscript
+                    ? activeResponse?.transcript
+                    : "Waiting for your answer…"}
+              </p>
+            )}
           </div>
         )}
         {recorderError && !planLoading && (
@@ -1488,20 +1498,24 @@ export default function MockInterviewPage() {
           <p className="mt-2 text-xs text-amber-300">{planError}</p>
         )}
         {activeFollowUp && !planLoading && (
-          <div className="mt-4 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-left text-sm">
+          <div className="mt-3 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-left text-sm">
             <p className="text-[0.65rem] uppercase tracking-[0.35em] text-white/60">Follow-up</p>
             <p className={cn("mt-2 text-sm font-medium", currentTheme.questionText)}>{activeFollowUp.prompt}</p>
           </div>
         )}
-        {!planLoading && hasPlan && (
-          <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-white/20">
+      </div>
+
+      {/* Progress bar moved outside of bubble */}
+      {!showIntro && !planLoading && hasPlan && (
+        <div className="absolute top-[calc(100%-8rem)] left-1/2 -translate-x-1/2 w-[92%] max-w-2xl">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-white/20">
             <div
               className="h-full rounded-full bg-white/80 transition-all duration-500"
               style={{ width: `${Math.min(progressPercent, 100)}%` }}
             />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div
         className={cn(
