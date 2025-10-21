@@ -437,6 +437,12 @@ export default function SimPage() {
   const onMicClick = useCallback(async () => {
     console.log(`[Sim] Mic clicked - canRecord: ${canRecord}, audioFinished: ${audioFinished}, isListening: ${isListening}`)
     
+    // Prevent clicks during status transition
+    if (status === "stopping") {
+      console.log("[Sim] Mic click ignored - status is stopping")
+      return
+    }
+    
     // Handle first user interaction
     await handleFirstUserInteraction()
     
