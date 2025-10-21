@@ -31,9 +31,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Mockly Team" }],
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/mockly-head.svg",
+    icon: "/mocklytransparent.png",
+    shortcut: "/mocklytransparent.png",
+    apple: "/mocklytransparent.png",
   },
   openGraph: {
     title: "Mockly – Your AI Interview Coach",
