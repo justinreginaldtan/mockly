@@ -13,6 +13,8 @@ import { resolvePersonaVoice } from "@/lib/voices"
 import { useSpeechRecorder, type RecorderStatus } from "@/hooks/use-speech-recorder"
 import { Waveform } from "@/components/waveform"
 import { StepIndicator } from "@/components/step-indicator"
+import { Button } from "@/components/ui/button"
+import { Link } from "@/components/ui/link"
 
 const mockQuestions = [
   {
@@ -1337,7 +1339,7 @@ export default function MockInterviewPage() {
       </div>
       {showAgenda && hasPlan && (
         <div className="absolute right-6 top-24 z-30 w-64 rounded-2xl border border-white/15 bg-white/10 p-4 text-left text-xs shadow-xl shadow-black/30 backdrop-blur">
-          <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-white/70">Agenda</p>
+          <p className="text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-white/70">Agenda</p>
           <div className="mt-3 space-y-2">
             {questions.map((question, idx) => {
               const status = questionStatuses[idx] ?? "pending"
@@ -1659,6 +1661,15 @@ export default function MockInterviewPage() {
 
       {showIntro && (
         <div className={cn("absolute inset-0 z-30 flex items-center justify-center", introOverlayClass)}>
+          {/* Mode Switcher Button */}
+          <div className="absolute top-6 right-6">
+            <Link href="/sim">
+              <Button variant="outline" size="sm" className="group border-white/30 hover:bg-white/10 text-white">
+                Try CS Training →
+              </Button>
+            </Link>
+          </div>
+          
           <div className={preJoinCardClass}>
             <p className={cn("text-xs font-semibold uppercase tracking-[0.3em]", introAccentClass)}>Session preview</p>
             <h2 className="mt-3 text-2xl font-semibold">Ready for your mock interview?</h2>
