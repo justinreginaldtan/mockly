@@ -124,7 +124,7 @@ export async function POST(request: Request) {
     // Check for dev/test mode via query params or demoPerfect flag
     const url = new URL(request.url)
     const queryDemoPerfect = url.searchParams.get('demoPerfect') === 'true'
-    const isDevMode = demoPerfect || queryDemoPerfect || process.env.NODE_ENV === 'development'
+    const isDevMode = demoPerfect || queryDemoPerfect
     
     if (isDevMode) {
       console.log("[Evaluate-Answer] Dev/test mode detected - returning perfect scores")
