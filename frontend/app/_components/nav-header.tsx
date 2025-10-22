@@ -11,7 +11,7 @@ export default function NavHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-[#EDE5E0] bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-screen-lg items-center justify-between px-4 py-3 md:px-8">
-        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-all duration-200 hover:scale-105">
           <Image 
             src="/mocklytransparent.png" 
             alt="Mockly" 
