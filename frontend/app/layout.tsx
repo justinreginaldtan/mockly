@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter, DM_Sans } from "next/font/google"
+import { PageTransition } from "@/components/page-transition"
 import "./globals.css"
 import "../styles/persona-scroll.css"
 
@@ -69,7 +70,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${heading.variable} ${body.variable} antialiased`}>
-      <body className="font-body">{children}</body>
+      <body className="font-body">
+        <PageTransition>{children}</PageTransition>
+      </body>
     </html>
   )
 }
