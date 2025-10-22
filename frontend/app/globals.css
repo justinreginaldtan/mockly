@@ -82,6 +82,42 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+  
+  /* Professional Focus Indicators for Accessibility */
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:focus-visible {
+    @apply outline-2 outline-offset-2 outline-[#FF7A70] ring-2 ring-[#FF7A70]/20;
+  }
+  
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply outline-2 outline-offset-0 outline-[#FF7A70] ring-2 ring-[#FF7A70]/20;
+  }
+  
+  /* Ensure smooth focus transitions */
+  *:focus-visible {
+    transition: outline 0.15s ease, box-shadow 0.15s ease;
+  }
+  
+  /* Improve button touch targets for mobile */
+  button,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Remove focus outline for mouse users, keep for keyboard */
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
 }
 
 /* Custom animations */
