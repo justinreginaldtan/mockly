@@ -59,7 +59,7 @@ export default function LandingHero() {
 
               <div className="relative">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF7A70] to-[#FF9A70] shadow-lg">
-                  <Briefcase className="h-8 w-8 text-white" />
+                  <Briefcase className="h-8 w-8 text-white flex-shrink-0" />
                 </div>
 
                 <h2 className="mt-6 font-display text-2xl font-semibold text-[#1A1A1A]">
@@ -88,7 +88,7 @@ export default function LandingHero() {
 
                 <Link href="/setup" className="block mt-8">
                   <Button className="w-full bg-[#FF7A70] text-white hover:bg-[#ff6157] shadow-lg group-hover:scale-105 transition-transform">
-                    <Briefcase className="mr-2 h-4 w-4" />
+                    <Briefcase className="mr-2 h-4 w-4 flex-shrink-0" />
                     Start Interview Practice
                   </Button>
                 </Link>
@@ -107,7 +107,7 @@ export default function LandingHero() {
 
               <div className="relative">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#6EC8FF] to-[#5AB5F0] shadow-lg">
-                  <Headphones className="h-8 w-8 text-white" />
+                  <Headphones className="h-8 w-8 text-white flex-shrink-0" />
                 </div>
 
                 <h2 className="mt-6 font-display text-2xl font-semibold text-[#1A1A1A]">
@@ -136,7 +136,7 @@ export default function LandingHero() {
 
                 <Link href="/sim" className="block mt-8">
                   <Button className="w-full bg-[#6EC8FF] text-white hover:bg-[#5AB5F0] shadow-lg group-hover:scale-105 transition-transform">
-                    <Headphones className="mr-2 h-4 w-4" />
+                    <Headphones className="mr-2 h-4 w-4 flex-shrink-0" />
                     Start CS Training
                   </Button>
                 </Link>
@@ -227,13 +227,13 @@ export default function LandingHero() {
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link href="/setup">
               <Button size="lg" className="bg-[#FF7A70] text-white hover:bg-[#ff6157] shadow-lg">
-                <Briefcase className="mr-2 h-5 w-5" />
+                <Briefcase className="mr-2 h-5 w-5 flex-shrink-0" />
                 Practice Interviews
               </Button>
             </Link>
             <Link href="/sim">
               <Button size="lg" variant="outline" className="border-[#6EC8FF] text-[#6EC8FF] hover:bg-[#6EC8FF] hover:text-white shadow-lg">
-                <Headphones className="mr-2 h-5 w-5" />
+                <Headphones className="mr-2 h-5 w-5 flex-shrink-0" />
                 Train Customer Service
               </Button>
             </Link>

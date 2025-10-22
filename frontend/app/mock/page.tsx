@@ -1296,7 +1296,7 @@ export default function MockInterviewPage() {
         insights={personaInsights}
       />
 
-      {!isSpeechSupported && (
+      {false && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/90 px-6 text-center backdrop-blur-xl">
           <div className="w-full max-w-md space-y-4 rounded-3xl border border-white/15 bg-[#141c2f]/95 px-8 py-10 text-white shadow-2xl shadow-black/40">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">Voice practice</p>
@@ -1690,7 +1690,7 @@ export default function MockInterviewPage() {
         </div>
       </div>
 
-      <div className={cn(showIntro && "opacity-0 pointer-events-none", "transition-opacity duration-300")}>
+      <div className={cn(!showIntro && "opacity-0 pointer-events-none", "transition-opacity duration-300")}>
         <div
           className={cn(
             "absolute inset-0 z-30 flex items-center justify-center",

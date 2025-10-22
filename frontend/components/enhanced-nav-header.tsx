@@ -58,8 +58,8 @@ export default function EnhancedNavHeader() {
       animate={{ opacity: 1, y: 0 }}
       className="sticky top-0 z-50 border-b border-[#EDE5E0] bg-white/95 backdrop-blur-xl shadow-sm"
     >
-      <div className="mx-auto max-w-screen-lg px-4 py-3 md:px-8">
-        <div className="flex items-center justify-between">
+      <div className="w-full px-4 py-4 md:px-8">
+        <div className="mx-auto max-w-screen-lg flex items-center justify-between gap-4">
           {/* Logo */}
           <Link 
             href="/" 
@@ -83,7 +83,7 @@ export default function EnhancedNavHeader() {
 
           {/* Breadcrumbs */}
           {breadcrumbs.length > 0 && !isMinimalHeader && (
-            <nav className="hidden md:flex items-center space-x-2" aria-label="Breadcrumb">
+            <nav className="hidden md:flex items-center space-x-3" aria-label="Breadcrumb">
               {breadcrumbs.map((item, index) => {
                 const Icon = item.icon
                 const isLast = index === breadcrumbs.length - 1
@@ -91,7 +91,7 @@ export default function EnhancedNavHeader() {
                 return (
                   <div key={item.href} className="flex items-center">
                     {index > 0 && (
-                      <div className="mx-2 text-[#D1D5DB]">
+                      <div className="mx-3 text-[#D1D5DB]">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                         </svg>
@@ -120,7 +120,7 @@ export default function EnhancedNavHeader() {
 
           {/* Progress Bar */}
           {!isMinimalHeader && progress > 0 && (
-            <div className="hidden lg:flex items-center space-x-4">
+            <div className="hidden lg:flex items-center space-x-6">
               <div className="flex items-center space-x-2">
                 {progressSteps.map((step, index) => {
                   const isActive = pathname.startsWith(step.path)
@@ -145,7 +145,7 @@ export default function EnhancedNavHeader() {
                       </div>
                       {index < progressSteps.length - 1 && (
                         <div className={cn(
-                          "w-8 h-0.5 mx-2 transition-colors duration-200",
+                          "w-8 h-0.5 mx-3 transition-colors duration-200",
                           isCompleted ? "bg-green-500" : "bg-[#E5E7EB]"
                         )} />
                       )}
@@ -161,7 +161,7 @@ export default function EnhancedNavHeader() {
 
           {/* Main Navigation */}
           {!isMinimalHeader && (
-            <nav className="flex items-center gap-2">
+            <nav className="flex items-center gap-3">
               <Link
                 href="/setup"
                 className={cn(
@@ -203,7 +203,7 @@ export default function EnhancedNavHeader() {
 
         {/* Mobile Progress Bar */}
         {!isMinimalHeader && progress > 0 && (
-          <div className="mt-3 lg:hidden">
+          <div className="mt-4 lg:hidden">
             <div className="flex items-center justify-between text-xs text-[#777777] mb-1">
               <span>Progress</span>
               <span>{Math.round(progress)}% Complete</span>

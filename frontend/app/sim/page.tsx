@@ -782,10 +782,10 @@ export default function SimPage() {
         <EnhancedNavHeader />
 
         {/* Main Content */}
-        <div className="mx-auto max-w-6xl px-4 py-8">
-          <div className="grid gap-8 lg:grid-cols-3">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <div className="grid gap-10 lg:grid-cols-3">
             {/* Left Column - Scenario & Controls */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-8">
               {/* Scenario Card */}
               {loadingScenario && (
                 <LoadingState
@@ -872,7 +872,7 @@ export default function SimPage() {
               )}
 
               {/* Microphone Controls */}
-              <div className="flex flex-col items-center space-y-6">
+              <div className="flex flex-col items-center space-y-8">
                 <div className="relative">
           <Waveform isActive={isListening || isSpeechDetected} />
                   <MicButton

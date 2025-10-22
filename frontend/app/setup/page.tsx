@@ -474,10 +474,10 @@ function SetupPageContent() {
     <div className="min-h-screen flex flex-col bg-[radial-gradient(circle_at_top,_rgba(79,97,255,0.45),_rgba(12,15,25,0.95))] text-white">
       <EnhancedNavHeader />
 
-      <main className="flex-1 container mx-auto px-6 py-14">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
-          <div className="space-y-10 animate-slide-up">
-            <div className="space-y-4">
+      <main className="flex-1 container mx-auto px-6 py-16">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
+          <div className="space-y-12 animate-slide-up">
+            <div className="space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1 text-sm font-semibold text-white shadow-sm shadow-[#4f61ff]/30">
                 <Sparkles className="h-4 w-4 animate-pulse" />
                 Gemini is shaping your interviewer
@@ -491,7 +491,7 @@ function SetupPageContent() {
               </p>
             </div>
 
-            <section className="space-y-5">
+            <section className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Select a persona</h2>
                 <span className="text-xs uppercase tracking-[0.25em] text-white/50">Swipe through presets</span>
@@ -646,7 +646,7 @@ function SetupPageContent() {
               </div>
             </section>
 
-            <section className="space-y-4">
+            <section className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Emphasize these stories</h2>
                 <span className="text-xs uppercase tracking-[0.25em] text-white/50">
@@ -770,7 +770,7 @@ function SetupPageContent() {
               ))}
             </section>
 
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-6 pt-4">
               <Link href="/">
                 <Button variant="outline" size="lg">
                   Back
