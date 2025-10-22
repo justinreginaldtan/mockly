@@ -2,8 +2,10 @@
 
 import { motion } from "framer-motion"
 import Link from "next/link"
+import Image from "next/image"
 import { Briefcase, Headphones, Sparkles, Mic, BarChart3, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import NavHeader from "./nav-header"
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 32 },
@@ -18,25 +20,7 @@ const cardVariants = {
 export default function LandingHero() {
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-[#FFF8F5] to-[#FDFCFB] text-[#1A1A1A]">
-      <header className="sticky top-0 z-30 border-b border-[#EDE5E0] bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-4 py-4 md:px-8">
-          <div className="flex items-center gap-3">
-            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[#E0D6CF] bg-white/90 shadow-[0_10px_24px_-16px_rgba(26,26,26,0.45)]">
-              <span className="font-display text-sm font-semibold text-[#1A1A1A]">Mock</span>
-            </div>
-            <div className="flex flex-col leading-tight">
-              <span className="font-display text-lg font-semibold tracking-tight text-[#1A1A1A]">Mockly</span>
-              <span className="text-xs font-body font-medium text-[#777777]">AI Communication Training</span>
-            </div>
-          </div>
-          <div className="hidden items-center gap-6 md:flex">
-            <div className="flex items-center gap-2 text-xs font-medium text-[#777777]">
-              <span className="rounded-full bg-[#FFE7E4] px-2.5 py-1 font-semibold text-[#FF7A70]">Gemini</span>
-              <span className="rounded-full bg-[#FFE7E4] px-2.5 py-1 font-semibold text-[#FF7A70]">ElevenLabs</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <NavHeader />
 
       <main className="mx-auto max-w-screen-lg px-4 py-16 md:px-8 md:py-24">
         <motion.section
