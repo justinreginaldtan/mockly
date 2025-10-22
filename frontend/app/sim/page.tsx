@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, ArrowLeft } from "lucide-react"
 import CoachCard from "@/components/CoachCard"
 import { MicButton } from "@/components/mic-button"
 import { Waveform } from "@/components/waveform"
