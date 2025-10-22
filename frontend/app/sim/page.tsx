@@ -782,6 +782,15 @@ export default function SimPage() {
           <div className="mx-auto max-w-6xl px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
+                <Link href="/">
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 rounded-xl border border-[#EDE5E0] bg-white px-3 py-2 text-sm font-medium text-[#666666] transition-all hover:bg-[#FFF8F5] hover:border-[#FF7A70]/30 hover:text-[#1A1A1A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF7A70]"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">Back</span>
+                  </button>
+                </Link>
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF7A70] to-[#FF9F70] shadow-lg">
                   <span className="text-3xl">🎯</span>
                 </div>
