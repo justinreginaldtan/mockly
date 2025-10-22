@@ -261,6 +261,8 @@ const buildFallbackPlan = (persona: PersonaConfig): InterviewPlan => ({
 
 export default function MockInterviewPage() {
   const router = useRouter()
+  useKeyboardNavigation()
+  
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [questionStatuses, setQuestionStatuses] = useState<Array<"pending" | "active" | "answered">>([])
   const [activeFollowUp, setActiveFollowUp] = useState<{ questionId: string; prompt: string } | null>(null)
