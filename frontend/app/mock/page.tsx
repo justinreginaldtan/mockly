@@ -12,6 +12,7 @@ import type { InterviewPlan, InterviewSetupPayload, PersonaConfig } from "@/lib/
 import { SETUP_CACHE_KEY, PLAN_CACHE_KEY } from "@/lib/cache-keys"
 import { resolvePersonaVoice } from "@/lib/voices"
 import { useSpeechRecorder, type RecorderStatus } from "@/hooks/use-speech-recorder"
+import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { Waveform } from "@/components/waveform"
 import { StepIndicator } from "@/components/step-indicator"
 import { Button } from "@/components/ui/button"
