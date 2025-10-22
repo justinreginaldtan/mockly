@@ -8,6 +8,7 @@ import CoachCard from "@/components/CoachCard"
 import { MicButton } from "@/components/mic-button"
 import { Waveform } from "@/components/waveform"
 import { useSpeechRecorder } from "@/hooks/use-speech-recorder"
+import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { Button } from "@/components/ui/button"
 
 type EvaluationFeedback = {
@@ -21,6 +22,8 @@ type EvaluationFeedback = {
 }
 
 export default function SimPage() {
+  useKeyboardNavigation()
+  
   const [prompt, setPrompt] = useState<string>("")
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard" | "nightmare">("easy")
   const [loadingScenario, setLoadingScenario] = useState<boolean>(false)
