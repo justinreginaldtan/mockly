@@ -18,6 +18,8 @@ import {
   Wand2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { LoadingState } from "@/components/loading-states"
+import EnhancedNavHeader from "@/components/enhanced-nav-header"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ProgressBar } from "@/components/progress-bar"
 import { Slider } from "@/components/ui/slider"
@@ -470,26 +472,7 @@ function SetupPageContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[radial-gradient(circle_at_top,_rgba(79,97,255,0.45),_rgba(12,15,25,0.95))] text-white">
-      <header className="border-b border-white/10 bg-gray-950/60 backdrop-blur-xl">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#4b6bff] via-[#805dff] to-[#a855f7] flex items-center justify-center shadow-lg shadow-primary/40">
-              <span className="text-white font-semibold text-sm">MI</span>
-            </div>
-            <div className="flex flex-col leading-tight">
-              <span className="font-semibold text-lg tracking-tight">Mock Interviewer</span>
-              <span className="text-xs text-white/60">Step 2 · Powered by Gemini</span>
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-6">
-            <ProgressBar currentStep={2} totalSteps={4} />
-            <div className="flex items-center gap-2 text-xs font-medium text-white/70">
-              <span className="uppercase tracking-[0.2em] text-white/40">Voice</span>
-              <span className="px-2.5 py-1 rounded-full bg-white/10 text-white font-semibold">ElevenLabs</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <EnhancedNavHeader />
 
       <main className="flex-1 container mx-auto px-6 py-14">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
@@ -797,24 +780,13 @@ function SetupPageContent() {
                 type="button"
                 onClick={handleStartMock}
                 size="lg"
-                disabled={isStarting}
-                className={cn(
-                  "px-8 py-6 rounded-full font-semibold tracking-tight transition-transform duration-300 focus-visible:scale-[1.02]",
-                  gradientClass,
-                  isStarting ? "opacity-90 pointer-events-none" : "hover:scale-[1.03]",
-                )}
+                loading={isStarting}
+                ripple={true}
+                variant="gradient"
+                className="px-8 py-6 rounded-full font-semibold tracking-tight"
               >
-                {isStarting ? (
-                  <span className="flex items-center gap-2 text-base">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Prepping your interviewer…
-                  </span>
-                ) : (
-                  <>
-                    Start mock interview
-                    <ChevronRight className="ml-2 h-5 w-5" />
-                  </>
-                )}
+                {isStarting ? "Prepping your interviewer…" : "Start mock interview"}
+                {!isStarting && <ChevronRight className="ml-2 h-5 w-5" />}
               </Button>
               {startError && (
                 <p className="text-sm text-amber-300">{startError}</p>

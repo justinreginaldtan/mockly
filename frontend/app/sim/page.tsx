@@ -10,6 +10,8 @@ import { Waveform } from "@/components/waveform"
 import { useSpeechRecorder } from "@/hooks/use-speech-recorder"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { Button } from "@/components/ui/button"
+import { LoadingState } from "@/components/loading-states"
+import EnhancedNavHeader from "@/components/enhanced-nav-header"
 
 type EvaluationFeedback = {
   empathy: number
@@ -777,45 +779,7 @@ export default function SimPage() {
         )}
 
       <div className="min-h-screen bg-gradient-to-br from-[#FFF8F5] via-[#FDFCFB] to-[#FFF0EA]">
-        {/* Header */}
-        <div className="sticky top-0 z-40 border-b border-[#EDE5E0]/50 bg-white/80 backdrop-blur-md">
-          <div className="mx-auto max-w-6xl px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Link href="/">
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 rounded-xl border border-[#EDE5E0] bg-white px-3 py-2 text-sm font-medium text-[#666666] transition-all hover:bg-[#FFF8F5] hover:border-[#FF7A70]/30 hover:text-[#1A1A1A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF7A70]"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="hidden sm:inline">Back</span>
-                  </button>
-                </Link>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF7A70] to-[#FF9F70] shadow-lg">
-                  <span className="text-3xl">🎯</span>
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-[#1A1A1A]">Customer Service Training</h1>
-                  <p className="text-sm text-[#666666]">AI-powered voice simulation with real-time feedback</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 rounded-full bg-[#F0F9FF] px-4 py-2">
-                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
-                  <span className="text-sm font-medium text-[#1A1A1A]">
-                    {difficulty === 'easy' ? '🟢 Easy' : 
-                     difficulty === 'medium' ? '🟡 Medium' : 
-                     difficulty === 'hard' ? '🟠 Hard' : '🔴 Nightmare'}
-                  </span>
-                </div>
-                <div className="text-xs text-[#666666]">
-                  Powered by <span className="font-semibold text-[#FF7A70]">ElevenLabs</span> + <span className="font-semibold text-[#FF7A70]">Gemini</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EnhancedNavHeader />
 
         {/* Main Content */}
         <div className="mx-auto max-w-6xl px-4 py-8">
@@ -824,18 +788,12 @@ export default function SimPage() {
             <div className="lg:col-span-2 space-y-6">
               {/* Scenario Card */}
               {loadingScenario && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-sm border border-white/20 shadow-2xl"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#FF7A70]/5 to-[#FF9F70]/5"></div>
-                  <div className="relative p-8 text-center">
-                    <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-[#FF7A70]/20 border-t-[#FF7A70]"></div>
-                    <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2">Generating scenario...</h3>
-                    <p className="text-[#666666]">Our AI is crafting a realistic customer interaction for you</p>
-                  </div>
-                </motion.div>
+                <LoadingState
+                  type="ai"
+                  message="Generating scenario..."
+                  submessage="Our AI is crafting a realistic customer interaction for you"
+                  size="lg"
+                />
               )}
 
               {error && (
@@ -1051,18 +1009,14 @@ export default function SimPage() {
 
           {/* Evaluation Loading */}
         {evaluating && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              className="mt-8 flex justify-center"
-            >
-              <div className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-sm border border-white/20 shadow-2xl px-8 py-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#FF7A70]/20 border-t-[#FF7A70]"></div>
-                  <span className="text-lg font-medium text-[#1A1A1A]">Analyzing your response...</span>
-                </div>
-              </div>
-          </motion.div>
+            <div className="mt-8 flex justify-center">
+              <LoadingState
+                type="analysis"
+                message="Analyzing your response..."
+                submessage="Gemini is providing detailed feedback on your performance"
+                size="md"
+              />
+            </div>
         )}
 
           {/* CoachCard - Full Width */}

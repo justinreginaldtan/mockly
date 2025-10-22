@@ -5,22 +5,22 @@ import Link from "next/link"
 import Image from "next/image"
 import { Briefcase, Headphones, Sparkles, Mic, BarChart3, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import NavHeader from "./nav-header"
+import EnhancedNavHeader from "@/components/enhanced-nav-header"
 
 const sectionVariants = {
-  hidden: { opacity: 0, y: 32 },
+  hidden: { opacity: 1, y: 0 },
   visible: { opacity: 1, y: 0 },
 }
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 18 },
+  hidden: { opacity: 1, y: 0 },
   visible: { opacity: 1, y: 0 },
 }
 
 export default function LandingHero() {
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-[#FFF8F5] to-[#FDFCFB] text-[#1A1A1A]">
-      <NavHeader />
+      <EnhancedNavHeader />
 
       <main className="mx-auto max-w-screen-lg px-4 py-16 md:px-8 md:py-24">
         <motion.section
