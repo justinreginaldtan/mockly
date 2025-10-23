@@ -1217,6 +1217,16 @@ export default function MockInterviewPage() {
     router.push("/results")
   }, [router])
 
+  const handleJoinInterview = useCallback(() => {
+    // Telemetry: Track interview start
+    console.log('[Telemetry] onStartInterview', {
+      personaId: personaSource?.personaId,
+      questionCount: questions.length,
+      timestamp: Date.now()
+    })
+    setShowIntro(false)
+  }, [personaSource?.personaId, questions.length])
+
   const containerClasses = cn(
     "relative min-h-screen w-full flex flex-col items-center justify-start px-3 py-16 transition-transform duration-500 ease-out md:px-8",
     currentTheme.container,
