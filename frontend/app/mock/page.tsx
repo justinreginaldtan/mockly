@@ -446,6 +446,7 @@ export default function MockInterviewPage() {
         ? "Wrap up interview"
         : "Ready for next question"
   const advanceButtonDisabled = planLoading || !hasPlan || recorderStatus === "listening"
+  const hasAnsweredCurrentQuestion = Boolean(questionResponses[currentQuestionId]?.transcript?.length)
   const agendaToggleLabel = showAgenda ? "Hide agenda" : "View agenda"
   const progressSteps = ["Upload", "Review brief", "Mock room", "Coach Card"]
 
