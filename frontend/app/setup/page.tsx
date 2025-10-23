@@ -406,6 +406,8 @@ function SetupPageContent() {
 
     setIsStarting(true)
     setStartError(null)
+    setRetryAttempt(0)
+    setRetryMax(3)
 
     if (typeof window !== "undefined") {
       try {
@@ -416,10 +418,15 @@ function SetupPageContent() {
     }
 
     try {
-      const response = await fetch("/api/generate-interview", {
+      const response = await retryFetch("/api/generate-interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        maxAttempts: 3,
+        baseDelay: 1000,
+        onRetry: (attempt) => {
+          setRetryAttempt(attempt)
+        },
       })
 
       if (!response.ok) {
