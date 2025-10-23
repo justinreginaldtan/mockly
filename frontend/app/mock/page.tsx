@@ -667,7 +667,7 @@ export default function MockInterviewPage() {
       }
 
       try {
-        const response = await fetch("/api/voice-question", {
+        const response = await retryFetch("/api/voice-question", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -675,6 +675,8 @@ export default function MockInterviewPage() {
             voiceStyleId: personaSource.voiceStyleId,
             questionText: trimmed,
           }),
+          maxAttempts: 2,
+          baseDelay: 1000,
         })
 
         if (!response.ok) {
