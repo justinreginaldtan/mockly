@@ -175,6 +175,8 @@ function SetupPageContent() {
   const [voiceStyle, setVoiceStyle] = useState<string>(() => resolvePersonaVoice(defaultPersona.id).styleId)
   const [isStarting, setIsStarting] = useState(false)
   const [startError, setStartError] = useState<string | null>(null)
+  const [retryAttempt, setRetryAttempt] = useState(0)
+  const [retryMax, setRetryMax] = useState(3)
   const [previewingPersonaId, setPreviewingPersonaId] = useState<string | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [focusAreas, setFocusAreas] = useState<Record<FocusAreaId, boolean>>(() => {
