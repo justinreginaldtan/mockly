@@ -851,9 +851,18 @@ export default function MockInterviewPage() {
       setCurrentQuestionIndex(nextIndex)
       lastSpokenQuestionRef.current = null
     } else {
+      // Telemetry: Track interview completion
+      const answeredCount = Object.keys(questionResponses).length
+      const totalQuestions = questions.length
+      console.log('[Telemetry] onFinishInterview', {
+        totalQuestions,
+        answeredCount,
+        timestamp: Date.now()
+      })
+      
       router.push("/results")
     }
-  }, [activeFollowUp, currentQuestionIndex, followUpHistory, hasPlan, playFollowUpLine, questions, router])
+  }, [activeFollowUp, currentQuestionIndex, followUpHistory, hasPlan, playFollowUpLine, questions, questionResponses, router])
 
   const handleToggleMute = useCallback(() => {
     setIsMuted((prev) => {
@@ -1332,7 +1341,7 @@ export default function MockInterviewPage() {
         <NextLink href="/setup">
           <button
             type="button"
-            className="flex items-center gap-2 rounded-xl border border-white/20 bg-black/30 px-4 py-2.5 text-sm font-medium text-white/90 backdrop-blur-md transition-all hover:bg-black/40 hover:border-white/30 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50"
+            className="flex items-center gap-2 rounded-xl border border-white/20 bg-black/30 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-md transition-all hover:bg-black/40 hover:border-white/30 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Setup</span>
