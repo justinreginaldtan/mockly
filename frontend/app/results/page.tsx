@@ -142,15 +142,21 @@ export default function ResultsPage() {
           ? `${plan.persona.company} ${plan.persona.role}` 
           : undefined
 
-        // Call evaluation API
+        // Call evaluation API with retry logic
+        setRetryAttempt(0)
         const response = await retryFetch('/api/evaluate-interview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             questions,
             persona: personaInfo
-          })
-        }, 3, 2)
+          }),
+          maxAttempts: 3,
+          baseDelay: 2000,
+          onRetry: (attempt) => {
+            setRetryAttempt(attempt)
+          }
+        })
         
         if (!response.ok) {
           throw new Error('Evaluation failed')
