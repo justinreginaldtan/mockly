@@ -273,7 +273,7 @@ export default function MockInterviewPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
-  const [showIntro, setShowIntro] = useState(true)
+  const [showIntro, setShowIntro] = useState(false)
   const [theme, setTheme] = useState<ThemeMode>("zoom")
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
   const [interviewPlan, setInterviewPlan] = useState<InterviewPlan | null>(null)
@@ -1595,102 +1595,7 @@ export default function MockInterviewPage() {
         </div>
       </div>
 
-      <div className={cn(showIntro && "opacity-0 pointer-events-none", "transition-opacity duration-300")}>
-        <ControlBar
-          isMuted={isMuted}
-          onToggleMute={handleToggleMute}
-          isCameraOn={isCameraOn}
-          onToggleCamera={() => setIsCameraOn((prev) => !prev)}
-          insightsOpen={drawerOpen}
-          onToggleInsights={() => setDrawerOpen((prev) => !prev)}
-          isFullscreen={isFullscreen}
-          onToggleFullscreen={toggleFullscreen}
-          onExit={handleExit}
-          theme={currentTheme.controlTheme}
-        />
-      </div>
-
-      <div className={cn(showIntro && "opacity-0 pointer-events-none", "transition-opacity duration-300")}>
-        <div
-          className={cn(
-            "w-full max-w-3xl px-4 transition-all duration-300",
-            showUnmuteHint && "border-amber-400/70 bg-amber-500/15 text-amber-50/90",
-          )}
-        >
-          {!planLoading && hasPlan && (
-            <div
-              className={cn(
-                "mb-4 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80 sm:flex-row sm:items-center sm:justify-between",
-                showUnmuteHint && "border-amber-400/70 bg-amber-500/15 text-amber-50/90",
-              )}
-            >
-              <div>
-                <p
-                  className={cn(
-                    "text-[0.6rem] uppercase tracking-[0.3em]",
-                    showUnmuteHint ? "text-amber-200" : "text-white/60",
-                  )}
-                >
-                  {micStatusLabel}
-                </p>
-                <div className="mt-1 flex items-center gap-2 text-sm">
-                  <Timer className={cn("h-4 w-4", showUnmuteHint ? "text-amber-200" : "text-white/60")} />
-                  <span className={cn("font-semibold", showUnmuteHint ? "text-amber-50" : "text-white")}>
-                    {formatDuration(displayedDurationMs)}
-                  </span>
-                  {isMicLive && (
-                    <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-emerald-400" aria-hidden="true" />
-                  )}
-                </div>
-              </div>
-              {isMicLive ? (
-                <button
-                  type="button"
-                  onClick={() => stopRecorder()}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                >
-                  <Square className="h-4 w-4" />
-                  Stop recording
-                </button>
-              ) : hasTranscript ? (
-                <span className="text-xs text-white/60">
-                  Response captured · {formatDuration(activeResponse?.durationMs ?? 0)}
-                </span>
-              ) : showUnmuteHint ? (
-                <span className="inline-flex items-center gap-2 text-xs font-semibold text-amber-200">
-                  <span className="inline-flex h-2 w-2 animate-ping rounded-full bg-amber-300" aria-hidden="true" />
-                  Unmute to answer
-                </span>
-              ) : (
-                <span className="text-xs text-white/60">
-                  Your mic activates after each interviewer prompt.
-                </span>
-              )}
-            </div>
-          )}
-          <button
-            type="button"
-            className={advanceButtonClass}
-            onClick={() => void handleAdvance()}
-            disabled={advanceButtonDisabled}
-          >
-            <span>{advanceButtonLabel}</span>
-            <ChevronRight className="h-4 w-4" />
-          </button>
-          {activeFollowUp && (
-            <p className="mt-2 text-center text-xs text-white/70">
-              Answer the follow-up, then tap again to continue.
-            </p>
-          )}
-          {!activeFollowUp && remainingFollowUps > 0 && (
-            <p className="mt-2 text-center text-xs text-white/60">
-              Your interviewer may lean in with a follow-up before the next question.
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className={cn(showIntro && "opacity-0 pointer-events-none", "transition-opacity duration-300")}>
+      <div className={cn(!showIntro && "opacity-0 pointer-events-none", "transition-opacity duration-300")}>
         <div
           className={cn(
             "absolute inset-0 z-30 flex items-center justify-center",
