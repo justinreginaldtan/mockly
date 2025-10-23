@@ -549,6 +549,7 @@ export default function MockInterviewPage() {
     }
     setActiveFollowUp(null)
     setIsVoicePlaying(false)
+    setTextAnswer("")  // Clear text input when question changes
   }, [currentQuestionIndex])
 
   useEffect(() => {
@@ -1129,80 +1130,6 @@ export default function MockInterviewPage() {
       cancelled = true
     }
   }, [hasPlan, personaSource.personaId, personaSource.voiceStyleId, personaGreetingLine, requestPersonaSpeech, greetingAudioUrl])
-
-  useEffect(() => {
-    if (showIntro || planLoading || !hasPlan) {
-      if (showIntro) {
-        greetingPlaybackRef.current = false
-        if (greetingAudioRef.current) {
-          greetingAudioRef.current.pause()
-          greetingAudioRef.current = null
-        }
-        setIsVoicePlaying(false)
-      }
-      return
-    }
-
-    if (greetingPlaybackRef.current) {
-      return
-    }
-
-    const playGreeting = async () => {
-      greetingPlaybackRef.current = true
-      setGreetingCompleted(false)
-      try {
-        cleanupAudio(greetingAudioRef)
-        
-        let audioUrl = greetingAudioUrl
-        if (!audioUrl) {
-          audioUrl = await requestPersonaSpeech(personaGreetingLine)
-          if (audioUrl) {
-            setGreetingAudioUrl(audioUrl)
-          } else {
-            setIsVoicePlaying(false)
-            setIsGreetingActive(false)
-            setGreetingCompleted(true)
-            return
-          }
-        }
-
-        const audio = new Audio(audioUrl)
-        greetingAudioRef.current = audio
-        setIsVoicePlaying(true)
-        setIsGreetingActive(true)
-
-        audio.play().catch((error) => {
-          console.error("Failed to play greeting audio", error)
-          if (greetingAudioRef.current === audio) {
-            greetingAudioRef.current = null
-          }
-          setIsVoicePlaying(false)
-          setIsGreetingActive(false)
-          setGreetingCompleted(true)
-        })
-
-        const reset = () => {
-          if (greetingAudioRef.current === audio) {
-            greetingAudioRef.current = null
-          }
-          setIsVoicePlaying(false)
-          setIsGreetingActive(false)
-          lastSpokenQuestionRef.current = null
-          setGreetingCompleted(true)
-        }
-
-        audio.onended = reset
-        audio.onpause = reset
-      } catch (error) {
-        console.error("Greeting playback error", error)
-        setIsVoicePlaying(false)
-        setIsGreetingActive(false)
-        setGreetingCompleted(true)
-      }
-    }
-
-    void playGreeting()
-  }, [showIntro, planLoading, hasPlan, greetingAudioUrl, personaGreetingLine, playQuestionPrompt, requestPersonaSpeech, cleanupAudio])
 
   useEffect(() => {
     let cancelled = false
