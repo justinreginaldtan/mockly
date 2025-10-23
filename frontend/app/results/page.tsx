@@ -20,6 +20,7 @@ import { ProgressBar } from "@/components/progress-bar"
 import { SuccessAnimation } from "@/components/success-animation"
 import { StepIndicator } from "@/components/step-indicator"
 import { RESPONSES_CACHE_KEY, PLAN_CACHE_KEY, SETUP_CACHE_KEY } from "@/lib/cache-keys"
+import { retryFetch } from "@/lib/retry-fetch"
 
 type EvaluationData = {
   overallScore: number
