@@ -17,6 +17,8 @@ import { Waveform } from "@/components/waveform"
 import { StepIndicator } from "@/components/step-indicator"
 import { Button } from "@/components/ui/button"
 import { Link } from "@/components/ui/link"
+import { retryFetch } from "@/lib/retry-fetch"
+import { AlertCircle } from "lucide-react"
 
 const mockQuestions = [
   {
