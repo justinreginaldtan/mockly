@@ -273,7 +273,7 @@ export default function MockInterviewPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
-  const [showIntro, setShowIntro] = useState(false)
+  const [showIntro, setShowIntro] = useState(true)
   const [theme, setTheme] = useState<ThemeMode>("zoom")
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
   const [interviewPlan, setInterviewPlan] = useState<InterviewPlan | null>(null)
@@ -947,7 +947,7 @@ export default function MockInterviewPage() {
         const personaId = cachedPlan.persona?.personaId ?? (cachedPlan as { cachePersonaId?: string }).cachePersonaId
         const cachedAt = typeof cachedPlan.cachedAt === "number" ? cachedPlan.cachedAt : 0
         const isFresh = cachedAt > 0 && Date.now() - cachedAt < PLAN_CACHE_TTL_MS
-        if (personaId && personaId === payload.persona.personaId) {
+        if (personaId && personaId === payload!.persona.personaId) {
           setInterviewPlan(cachedPlan)
           setFallbackPlanState(null)
           setCurrentQuestionIndex(0)
