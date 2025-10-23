@@ -626,6 +626,16 @@ export default function MockInterviewPage() {
         ) {
           return prev
         }
+        
+        // Telemetry: Track question answered
+        console.log('[Telemetry] onQuestionAnswered', {
+          questionId: currentQuestionId,
+          answerLength: finalTranscript.length,
+          isVoice: true,
+          durationMs: duration,
+          timestamp: Date.now()
+        })
+        
         return { ...prev, [currentQuestionId]: nextRecord }
       })
       resetRecorder()
