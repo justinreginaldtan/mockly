@@ -921,6 +921,20 @@ export default function MockInterviewPage() {
     setTextAnswer("")
   }, [currentQuestionId, textAnswer])
 
+  const handleSkipQuestion = useCallback(() => {
+    if (!currentQuestionId) return
+    
+    setQuestionResponses((prev) => ({
+      ...prev,
+      [currentQuestionId]: {
+        transcript: "[Skipped]",
+        durationMs: 0,
+        updatedAt: Date.now(),
+        skipped: true
+      }
+    }))
+  }, [currentQuestionId])
+
   useEffect(() => {
     if (!hasPlan || planLoading || showIntro || isGreetingActive || !greetingCompleted) {
       return
