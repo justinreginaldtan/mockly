@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import type { InterviewPlan, InterviewSetupPayload } from "@/lib/gemini"
 import { SETUP_CACHE_KEY, PLAN_CACHE_KEY } from "@/lib/cache-keys"
 import { resolvePersonaVoice, VOICE_STYLE_OPTIONS } from "@/lib/voices"
+import { retryFetch } from "@/lib/retry-fetch"
 
 type FocusAreaId =
   | "leadership"
