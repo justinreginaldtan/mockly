@@ -180,6 +180,7 @@ type QuestionResponseRecord = {
   durationMs: number
   updatedAt: number
   isTextInput?: boolean
+  skipped?: boolean
 }
 
 const formatDuration = (ms: number): string => {
