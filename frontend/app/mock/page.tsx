@@ -288,6 +288,7 @@ export default function MockInterviewPage() {
   const [recorderError, setRecorderError] = useState<string | null>(null)
   const [showUnmuteHint, setShowUnmuteHint] = useState(false)
   const [isTranscriptExpanded, setIsTranscriptExpanded] = useState(false)
+  const [textAnswer, setTextAnswer] = useState("")
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
