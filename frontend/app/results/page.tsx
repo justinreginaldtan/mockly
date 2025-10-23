@@ -732,19 +732,18 @@ export default function ResultsPage() {
               </div>
               <h2 className="font-display text-xl font-semibold text-[#1A1A1A] md:text-2xl">Keep your momentum going</h2>
               <p className="font-body text-sm font-medium">
-                Start a new interview with a fresh persona or revisit the setup to fine-tune Gemini’s focus.
+                Start a new interview with a fresh persona or export your results for future reference.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Link href="/">
-                <Button variant="outline">Start new interview</Button>
-              </Link>
-              <Link href="/setup">
-                <Button className="group">
-                  Run another drill
-                  <ChevronRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-                </Button>
-              </Link>
+              <Button variant="outline" onClick={handleExportJSON}>
+                <Download className="mr-2 h-4 w-4" />
+                Export Results
+              </Button>
+              <Button onClick={handleRestart} className="group">
+                Start New Interview
+                <ChevronRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+              </Button>
             </div>
           </div>
         </motion.section>
