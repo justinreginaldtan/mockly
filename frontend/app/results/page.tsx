@@ -307,6 +307,72 @@ export default function ResultsPage() {
     }
   }
 
+  function handleRestart() {
+    // Clear all interview data from sessionStorage
+    sessionStorage.removeItem(RESPONSES_CACHE_KEY)
+    sessionStorage.removeItem(PLAN_CACHE_KEY)
+    sessionStorage.removeItem(SETUP_CACHE_KEY)
+    sessionStorage.removeItem('mi:progress')
+    
+    // Navigate to setup page
+    window.location.href = '/setup'
+  }
+
+  function handleExportJSON() {
+    if (!evaluation) return
+    
+    try {
+      // Read setup and responses for complete export
+      const setupRaw = sessionStorage.getItem(SETUP_CACHE_KEY)
+      const planRaw = sessionStorage.getItem(PLAN_CACHE_KEY)
+      const responsesRaw = sessionStorage.getItem(RESPONSES_CACHE_KEY)
+      
+      const setup = setupRaw ? JSON.parse(setupRaw) : null
+      const plan = planRaw ? JSON.parse(planRaw) : null
+      const responses = responsesRaw ? JSON.parse(responsesRaw) : null
+      
+      const exportData = {
+        interview: {
+          date: new Date().toISOString(),
+          persona: plan?.persona || setup?.persona,
+          questions: plan?.questions?.map((q: any) => ({
+            id: q.id,
+            text: q.prompt,
+            focusArea: q.focusArea,
+            response: responses?.responses?.[q.id]?.transcript || '(no answer)',
+            durationMs: responses?.responses?.[q.id]?.durationMs || 0
+          })) || []
+        },
+        evaluation: {
+          overallScore: evaluation.overallScore,
+          jdCoverage: evaluation.jdCoverage,
+          strengths: evaluation.strengths,
+          weakAreas: evaluation.weakAreas,
+          evidenceSnippets: evaluation.evidenceSnippets,
+          upgradePlan: evaluation.upgradePlan,
+          followUpQuestions: evaluation.followUpQuestions
+        },
+        metadata: {
+          exportedAt: new Date().toISOString(),
+          version: '1.0'
+        }
+      }
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `mockly-interview-${Date.now()}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Export failed:', err)
+      alert('Failed to export interview data')
+    }
+  }
+
   const progressSteps = ["Upload", "Review brief", "Mock room", "Coach Card"]
 
   // Loading state
