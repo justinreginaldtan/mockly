@@ -397,6 +397,12 @@ export default function MockInterviewPage() {
   const displayedDurationMs = isMicLive
     ? recorderDurationMs
     : activeResponse?.durationMs ?? recorderDurationMs
+  const shouldShowTextFallback = recorderStatus === "error" && 
+    recorderError && 
+    (recorderError.toLowerCase().includes("denied") || 
+     recorderError.toLowerCase().includes("not-allowed") || 
+     recorderError.toLowerCase().includes("not available") ||
+     recorderError.toLowerCase().includes("unavailable"))
   const micStatusLabel = useMemo(() => {
     if (recorderStatus === "error") {
       return "Mic unavailable"
