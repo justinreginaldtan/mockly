@@ -179,6 +179,7 @@ type QuestionResponseRecord = {
   transcript: string
   durationMs: number
   updatedAt: number
+  isTextInput?: boolean
 }
 
 const formatDuration = (ms: number): string => {
@@ -887,6 +888,36 @@ export default function MockInterviewPage() {
       return next
     })
   }, [isVoicePlaying, recorderStatus, stopRecorder])
+
+  const handleSubmitTextAnswer = useCallback(() => {
+    if (!currentQuestionId || !textAnswer.trim() || textAnswer.trim().length < 10) {
+      return
+    }
+
+    const finalTranscript = textAnswer.trim()
+    setQuestionResponses((prev) => {
+      const nextRecord: QuestionResponseRecord = {
+        transcript: finalTranscript,
+        durationMs: 0,
+        updatedAt: Date.now(),
+        isTextInput: true
+      }
+      
+      // Telemetry: Track question answered via text
+      console.log('[Telemetry] onQuestionAnswered', {
+        questionId: currentQuestionId,
+        answerLength: finalTranscript.length,
+        isVoice: false,
+        durationMs: 0,
+        timestamp: Date.now()
+      })
+      
+      return { ...prev, [currentQuestionId]: nextRecord }
+    })
+    
+    // Clear text input for next question
+    setTextAnswer("")
+  }, [currentQuestionId, textAnswer])
 
   useEffect(() => {
     if (!hasPlan || planLoading || showIntro || isGreetingActive || !greetingCompleted) {
