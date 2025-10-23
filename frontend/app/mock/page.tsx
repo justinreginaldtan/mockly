@@ -1649,7 +1649,7 @@ export default function MockInterviewPage() {
               <p className={introFooterTextClass}>
                 You can adjust mic/camera once you join. Gemini insights are available anytime via the button on the call surface.
               </p>
-              <button onClick={() => setShowIntro(false)} className={joinButtonClass}>
+              <button onClick={handleJoinInterview} className={joinButtonClass}>
                 Join interview
               </button>
             </div>
