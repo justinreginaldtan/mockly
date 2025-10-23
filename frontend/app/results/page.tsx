@@ -70,6 +70,7 @@ export default function ResultsPage() {
   const [evaluation, setEvaluation] = useState<EvaluationData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [retryAttempt, setRetryAttempt] = useState(0)
   const [recapAudioUrl, setRecapAudioUrl] = useState<string | null>(null)
   const [recapLoading, setRecapLoading] = useState(false)
 
@@ -142,14 +143,14 @@ export default function ResultsPage() {
           : undefined
 
         // Call evaluation API
-        const response = await fetch('/api/evaluate-interview', {
+        const response = await retryFetch('/api/evaluate-interview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             questions,
             persona: personaInfo
           })
-        })
+        }, 3, 2)
         
         if (!response.ok) {
           throw new Error('Evaluation failed')
