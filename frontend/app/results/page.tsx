@@ -80,29 +80,74 @@ export default function ResultsPage() {
   useEffect(() => {
     async function fetchEvaluation() {
       try {
-        // Read from session storage
-        const RESPONSES_CACHE_KEY = 'mockly_interview_responses'
-        const cachedResponses = sessionStorage.getItem(RESPONSES_CACHE_KEY)
+        // Read responses from correct sessionStorage key
+        const cachedResponsesRaw = sessionStorage.getItem(RESPONSES_CACHE_KEY)
         
-        if (!cachedResponses) {
+        if (!cachedResponsesRaw) {
           setError("No interview data found. Please complete an interview first.")
           setLoading(false)
           return
         }
 
-        const questionResponses: { questions: QuestionResponse[], persona?: string } = JSON.parse(cachedResponses)
+        // Parse responses - format is { cacheKey, responses: Record<questionId, { transcript, durationMs, updatedAt }> }
+        const cachedData = JSON.parse(cachedResponsesRaw) as {
+          cacheKey?: string
+          responses?: Record<string, { transcript: string; durationMs: number; updatedAt: number }>
+        }
         
-        if (!questionResponses.questions || questionResponses.questions.length === 0) {
+        if (!cachedData.responses || Object.keys(cachedData.responses).length === 0) {
           setError("No interview responses found")
           setLoading(false)
           return
         }
 
+        // Read interview plan to get question text
+        const planRaw = sessionStorage.getItem(PLAN_CACHE_KEY)
+        if (!planRaw) {
+          setError("Interview plan not found. Please complete an interview from the setup page.")
+          setLoading(false)
+          return
+        }
+
+        const plan = JSON.parse(planRaw) as {
+          persona?: { company?: string; role?: string; personaId?: string }
+          questions: Array<{ id: string; prompt: string; focusArea?: string }>
+        }
+
+        // Transform data to API format
+        const questions: QuestionResponse[] = plan.questions
+          .map((q) => {
+            const response = cachedData.responses![q.id]
+            if (!response || !response.transcript) return null
+            
+            return {
+              id: q.id,
+              text: q.prompt,
+              response: response.transcript,
+              duration: response.durationMs
+            }
+          })
+          .filter((q): q is QuestionResponse => q !== null)
+
+        if (questions.length === 0) {
+          setError("No answered questions found")
+          setLoading(false)
+          return
+        }
+
+        // Get persona info for context
+        const personaInfo = plan.persona 
+          ? `${plan.persona.company} ${plan.persona.role}` 
+          : undefined
+
         // Call evaluation API
         const response = await fetch('/api/evaluate-interview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(questionResponses)
+          body: JSON.stringify({
+            questions,
+            persona: personaInfo
+          })
         })
         
         if (!response.ok) {
