@@ -56,11 +56,19 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
   const [showResponseToast, setShowResponseToast] = useState(false)
   const [interviewerStatus, setInterviewerStatus] = useState<'idle' | 'listening' | 'thinking'>('idle')
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [questionResponses, setQuestionResponses] = useState<Record<string, string>>({})
 
   // Speech recording
   const { isSupported: isSpeechSupported, status: recorderStatus, transcript, start: startRecorder, stop: stopRecorder, reset: resetRecorder } = useSpeechRecorder({
     onFinal: (finalTranscript) => {
       console.log("Final transcript:", finalTranscript)
+      // Save response to state
+      if (currentQuestion && finalTranscript.trim()) {
+        setQuestionResponses(prev => ({
+          ...prev,
+          [currentQuestion.id]: finalTranscript.trim()
+        }))
+      }
     }
   })
 
@@ -121,8 +129,10 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
     loadPlan()
   }, [])
 
-  const currentQuestion = interviewPlan?.questions[currentQuestionIndex]?.prompt || ""
-  const totalQuestions = interviewPlan?.questions.length || 0
+  const questions = interviewPlan?.questions || []
+  const currentQuestion = questions[currentQuestionIndex]
+  const currentQuestionText = currentQuestion?.prompt || ""
+  const totalQuestions = questions.length
   const progress = totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0
 
   // Motion variants for realistic transitions
@@ -195,6 +205,22 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
       }, 350)
     }
   }, [currentQuestionIndex, totalQuestions, resetRecorder])
+
+  const handleFinishInterview = useCallback(() => {
+    // Save responses to session storage
+    const responsesData = {
+      questions: questions.map((q: any) => ({
+        id: q.id,
+        text: q.prompt,
+        response: questionResponses[q.id] || "",
+        duration: 0
+      })),
+      persona: interviewPlan?.persona?.personaId
+    }
+    
+    sessionStorage.setItem('mockly_interview_responses', JSON.stringify(responsesData))
+    router.push("/results")
+  }, [questions, questionResponses, interviewPlan, router])
 
   const handleExit = useCallback(() => {
     router.push("/setup")
@@ -324,8 +350,8 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
                     <div className="space-y-6">
                       {/* Question */}
                       <div className="space-y-3">
-                        <h2 className="text-2xl font-medium text-slate-ibly leading-relaxed">
-                          {currentQuestion}
+                        <h2 className="text-2xl font-medium text-slate-900 leading-relaxed">
+                          {currentQuestionText}
                         </h2>
                         <div className="flex items-center justify-center space-x-2 text-sm text-slate-500">
                           <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
@@ -445,7 +471,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
                 {/* Finish Button */}
                 {currentQuestionIndex === totalQuestions - 1 && (
                   <Button
-                    onClick={() => router.push("/results")}
+                    onClick={handleFinishInterview}
                     className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700"
                   >
                     Finish Interview
