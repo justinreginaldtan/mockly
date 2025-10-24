@@ -154,7 +154,7 @@ const focusAreaOptions: Array<{ id: FocusAreaId; label: string; icon: LucideIcon
 ]
 
 const gradientClass =
-  "bg-[linear-gradient(120deg,_#4c6fff_0%,_#6b5bff_35%,_#a855f7_70%,_#38bdf8_100%)] text-white shadow-lg shadow-primary/40 animate-gradient"
+  "bg-gradient-to-r from-[#FF7A70] to-[#6EC8FF] text-white shadow-lg shadow-[#FF7A70]/40"
 
 function SetupPageContent() {
   const router = useRouter()
@@ -492,8 +492,8 @@ function SetupPageContent() {
 
             <section className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Select a persona</h2>
-                <span className="text-xs uppercase tracking-[0.25em] text-white/50">Swipe through presets</span>
+                <h2 className="text-xl font-semibold text-[#1A1A1A]">Select a persona</h2>
+                <span className="text-xs uppercase tracking-[0.25em] text-[#777777]">Swipe through presets</span>
               </div>
               <div className="relative">
                 <div
@@ -513,32 +513,34 @@ function SetupPageContent() {
                         onClick={() => handlePersonaSelect(preset.id)}
                         className={cn(
                           "min-w-[280px] snap-center rounded-2xl border px-5 py-6 text-left transition-all",
-                          "cursor-pointer hover:shadow-lg hover:ring hover:ring-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950",
+                          "cursor-pointer hover:shadow-lg hover:ring hover:ring-[#FF7A70]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF7A70] focus-visible:ring-offset-2 focus-visible:ring-offset-white",
                           active
-                            ? "border-transparent bg-gradient-to-br from-[#262a35] to-[#1a1e2b] ring-2 ring-primary shadow-md"
-                            : "border-white/10 bg-white/5 hover:border-[#4f61ff]/60 hover:bg-white/10",
+                            ? "border-[#FF7A70] bg-white shadow-md ring-2 ring-[#FF7A70]/20"
+                            : "border-[#EDE5E0] bg-white/95 hover:border-[#FF7A70]/60 hover:bg-white",
                         )}
                       >
                         <div className="flex flex-col gap-4">
                           <span
                             className={cn(
-                              "inline-flex w-fit items-center text-xs font-semibold rounded-full border border-gray-300/20 bg-gray-100/10 px-2 py-1 text-white/70",
-                              active && "border-primary/40 bg-primary/15 text-white",
+                              "inline-flex w-fit items-center text-xs font-semibold rounded-full border px-2 py-1",
+                              active 
+                                ? "border-[#FF7A70]/40 bg-[#FF7A70]/15 text-[#FF7A70]" 
+                                : "border-[#EDE5E0] bg-[#F3F4F6] text-[#777777]",
                             )}
                           >
                             {active ? "Selected" : "Preview"}
                           </span>
                           <div className="space-y-1">
-                            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/50">
+                            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#777777]">
                               {preset.company}
                             </p>
-                            <h3 className="text-xl font-semibold leading-snug text-white">{preset.role}</h3>
+                            <h3 className="text-xl font-semibold leading-snug text-[#1A1A1A]">{preset.role}</h3>
                           </div>
-                          <p className="text-sm text-white/70 leading-relaxed">{preset.tagline}</p>
-                          <ul className="space-y-2 text-sm text-white/70">
+                          <p className="text-sm text-[#777777] leading-relaxed">{preset.tagline}</p>
+                          <ul className="space-y-2 text-sm text-[#777777]">
                             {preset.highlights.map((highlight) => (
                               <li key={highlight} className="flex items-start gap-2">
-                                <Sparkles className="mt-0.5 h-4 w-4 text-[#9aa7ff]" />
+                                <Sparkles className="mt-0.5 h-4 w-4 text-[#FF7A70]" />
                                 <span>{highlight}</span>
                               </li>
                             ))}
@@ -560,14 +562,14 @@ function SetupPageContent() {
                             }}
                             className={cn(
                               "group inline-flex items-center gap-2 self-start rounded-full border px-3 py-1 text-xs font-semibold transition outline-none",
-                              "border-white/15 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-[#4f61ff]",
-                              previewingPersonaId === preset.id && "border-[#4f61ff] bg-[#4f61ff]/20 text-white",
+                              "border-[#EDE5E0] bg-white/95 text-[#777777] hover:border-[#FF7A70] hover:bg-[#FF7A70]/10 focus-visible:ring-2 focus-visible:ring-[#FF7A70]",
+                              previewingPersonaId === preset.id && "border-[#FF7A70] bg-[#FF7A70]/20 text-[#FF7A70]",
                             )}
                           >
                             {previewingPersonaId === preset.id ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             ) : (
-                              <MicVocal className="h-3.5 w-3.5 text-[#9aa7ff]" />
+                              <MicVocal className="h-3.5 w-3.5 text-[#FF7A70]" />
                             )}
                             <span>{previewingPersonaId === preset.id ? "Stop preview" : "Preview voice"}</span>
                           </div>
@@ -580,7 +582,7 @@ function SetupPageContent() {
                   type="button"
                   onClick={() => scrollCarousel("left")}
                   className={cn(
-                    "absolute -left-10 top-1/2 hidden -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-white/10 p-2 text-white shadow-lg transition hover:bg-white/20 sm:flex",
+                    "absolute -left-10 top-1/2 hidden -translate-y-1/2 items-center justify-center rounded-full border border-[#EDE5E0] bg-white p-2 text-[#777777] shadow-lg transition hover:bg-[#F3F4F6] hover:text-[#1A1A1A] sm:flex",
                     !canScrollLeft && "opacity-40 pointer-events-none",
                   )}
                   aria-label="Scroll to previous persona"
@@ -591,7 +593,7 @@ function SetupPageContent() {
                   type="button"
                   onClick={() => scrollCarousel("right")}
                   className={cn(
-                    "absolute -right-10 top-1/2 hidden -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-white/10 p-2 text-white shadow-lg transition hover:bg-white/20 sm:flex",
+                    "absolute -right-10 top-1/2 hidden -translate-y-1/2 items-center justify-center rounded-full border border-[#EDE5E0] bg-white p-2 text-[#777777] shadow-lg transition hover:bg-[#F3F4F6] hover:text-[#1A1A1A] sm:flex",
                     !canScrollRight && "opacity-40 pointer-events-none",
                   )}
                   aria-label="Scroll to next persona"
@@ -604,18 +606,18 @@ function SetupPageContent() {
               )}
             </section>
 
-            <section className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-black/30">
+            <section className="grid gap-6 rounded-3xl border border-[#EDE5E0] bg-white/95 p-8 shadow-lg shadow-black/10">
               <div className="space-y-2">
-                <h2 className="text-xl font-semibold">Question mix</h2>
-                <p className="text-sm text-white/70">
+                <h2 className="text-xl font-semibold text-[#1A1A1A]">Question mix</h2>
+                <p className="text-sm text-[#777777]">
                   Gemini balances technical depth with behavioral storytelling—adjust to match the interview stage.
                 </p>
               </div>
 
               <div className="relative mt-2 h-8">
-                <div className="absolute inset-y-2 left-0 right-0 rounded-full bg-[#eef1ff]" />
+                <div className="absolute inset-y-2 left-0 right-0 rounded-full bg-[#F3F4F6]" />
                 <div
-                  className="absolute inset-y-2 left-0 rounded-full bg-[linear-gradient(120deg,_#4c6fff_0%,_#6b5bff_35%,_#a855f7_70%,_#38bdf8_100%)] shadow-md shadow-primary/20"
+                  className="absolute inset-y-2 left-0 rounded-full bg-gradient-to-r from-[#FF7A70] to-[#6EC8FF] shadow-md shadow-[#FF7A70]/20"
                   style={{ width: `${technicalPercent}%` }}
                 />
                 <Slider
@@ -628,18 +630,18 @@ function SetupPageContent() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/50">Technical</p>
+                <div className="rounded-2xl border border-[#EDE5E0] bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#777777]">Technical</p>
                   <div className="mt-2 flex items-end gap-2">
-                    <span className="text-3xl font-semibold text-white">{technicalPercent}%</span>
-                    <span className="text-sm text-white/60">coding, debugging, architecture</span>
+                    <span className="text-3xl font-semibold text-[#1A1A1A]">{technicalPercent}%</span>
+                    <span className="text-sm text-[#777777]">coding, debugging, architecture</span>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/50">Behavioral</p>
+                <div className="rounded-2xl border border-[#EDE5E0] bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#777777]">Behavioral</p>
                   <div className="mt-2 flex items-end gap-2">
-                    <span className="text-3xl font-semibold text-white">{behavioralPercent}%</span>
-                    <span className="text-sm text-white/60">storytelling, teamwork, leadership</span>
+                    <span className="text-3xl font-semibold text-[#1A1A1A]">{behavioralPercent}%</span>
+                    <span className="text-sm text-[#777777]">storytelling, teamwork, leadership</span>
                   </div>
                 </div>
               </div>
@@ -647,8 +649,8 @@ function SetupPageContent() {
 
             <section className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Emphasize these stories</h2>
-                <span className="text-xs uppercase tracking-[0.25em] text-white/50">
+                <h2 className="text-xl font-semibold text-[#1A1A1A]">Emphasize these stories</h2>
+                <span className="text-xs uppercase tracking-[0.25em] text-[#777777]">
                   Gemini will anchor to your resume
                 </span>
               </div>
@@ -662,8 +664,8 @@ function SetupPageContent() {
                       htmlFor={`focus-${area.id}`}
                       className={`flex h-full flex-col gap-3 rounded-2xl border p-4 text-left transition-all cursor-pointer ${
                         active
-                          ? "border-[#4f61ff] bg-white/10 shadow-md shadow-[#4f61ff]/25 ring-1 ring-[#4f61ff]/40"
-                          : "border-white/10 bg-white/5 hover:border-[#4f61ff]/60 hover:bg-white/10 hover:shadow-md hover:shadow-[#4f61ff]/20"
+                          ? "border-[#FF7A70] bg-[#FF7A70]/10 shadow-md shadow-[#FF7A70]/25 ring-1 ring-[#FF7A70]/40"
+                          : "border-[#EDE5E0] bg-white/95 hover:border-[#FF7A70]/60 hover:bg-white hover:shadow-md hover:shadow-[#FF7A70]/20"
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -671,15 +673,15 @@ function SetupPageContent() {
                           <div
                             className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                               active
-                            ? "bg-[linear-gradient(120deg,_#4c6fff_0%,_#6b5bff_35%,_#a855f7_70%,_#38bdf8_100%)] text-white"
-                            : "bg-white/10 text-[#9aa7ff]"
+                            ? "bg-gradient-to-r from-[#FF7A70] to-[#6EC8FF] text-white"
+                            : "bg-[#F3F4F6] text-[#FF7A70]"
                             }`}
                           >
                             <Icon className="h-5 w-5" />
                           </div>
                           <div>
-                            <p className="font-semibold text-white">{area.label}</p>
-                            <p className="text-xs text-white/60">{area.blurb}</p>
+                            <p className="font-semibold text-[#1A1A1A]">{area.label}</p>
+                            <p className="text-xs text-[#777777]">{area.blurb}</p>
                           </div>
                         </div>
                         <Checkbox
@@ -694,10 +696,10 @@ function SetupPageContent() {
               </div>
             </section>
 
-            <section className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-black/30">
+            <section className="grid gap-6 rounded-3xl border border-[#EDE5E0] bg-white/95 p-8 shadow-lg shadow-black/10">
               <div className="space-y-2">
-                <h2 className="text-xl font-semibold">Pick your interviewer voice</h2>
-                <p className="text-sm text-white/70">
+                <h2 className="text-xl font-semibold text-[#1A1A1A]">Pick your interviewer voice</h2>
+                <p className="text-sm text-[#777777]">
                   ElevenLabs will synthesize the vibe—switch based on how intense you want the session to feel.
                 </p>
               </div>
@@ -708,18 +710,18 @@ function SetupPageContent() {
                     type="button"
                     onClick={() => setVoiceStyle(voice.id)}
                     className={cn(
-                      "flex h-full flex-col justify-between gap-3 rounded-2xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f61ff] focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950",
+                      "flex h-full flex-col justify-between gap-3 rounded-2xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF7A70] focus-visible:ring-offset-2 focus-visible:ring-offset-white",
                       voiceStyle === voice.id
-                        ? "border-[#4f61ff] bg-white/10 shadow-md shadow-[#4f61ff]/20 ring-1 ring-[#4f61ff]/40"
-                        : "border-white/10 bg-white/5 hover:border-[#4f61ff]/60 hover:bg-white/10 hover:shadow-md hover:shadow-[#4f61ff]/20",
+                        ? "border-[#FF7A70] bg-[#FF7A70]/10 shadow-md shadow-[#FF7A70]/20 ring-1 ring-[#FF7A70]/40"
+                        : "border-[#EDE5E0] bg-white/95 hover:border-[#FF7A70]/60 hover:bg-white hover:shadow-md hover:shadow-[#FF7A70]/20",
                     )}
                   >
                     <div>
-                      <p className="font-semibold leading-tight text-white">{voice.label}</p>
-                      <p className="mt-2 text-sm text-white/70">{voice.description}</p>
+                      <p className="font-semibold leading-tight text-[#1A1A1A]">{voice.label}</p>
+                      <p className="mt-2 text-sm text-[#777777]">{voice.description}</p>
                     </div>
                     {voice.badge && (
-                      <span className="text-xs font-semibold text-[#9aa7ff]">{voice.badge}</span>
+                      <span className="text-xs font-semibold text-[#FF7A70]">{voice.badge}</span>
                     )}
                   </button>
                 ))}
@@ -741,28 +743,28 @@ function SetupPageContent() {
                   type="button"
                   onClick={() => setDuration(block.durationLabel as typeof duration)}
                   className={cn(
-                    "flex h-full flex-col gap-3 rounded-2xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f61ff] focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950",
+                    "flex h-full flex-col gap-3 rounded-2xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF7A70] focus-visible:ring-offset-2 focus-visible:ring-offset-white",
                     duration === block.durationLabel
-                      ? "border-[#4f61ff] bg-white/10 shadow-md shadow-[#4f61ff]/20 ring-1 ring-[#4f61ff]/40"
-                      : "border-white/10 bg-white/5 hover:border-[#4f61ff]/60 hover:bg-white/10 hover:shadow-md hover:shadow-[#4f61ff]/20",
+                      ? "border-[#FF7A70] bg-[#FF7A70]/10 shadow-md shadow-[#FF7A70]/20 ring-1 ring-[#FF7A70]/40"
+                      : "border-[#EDE5E0] bg-white/95 hover:border-[#FF7A70]/60 hover:bg-white hover:shadow-md hover:shadow-[#FF7A70]/20",
                   )}
                 >
                   <div className="flex items-start gap-3">
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                         duration === block.durationLabel
-                          ? "bg-[linear-gradient(120deg,_#4c6fff_0%,_#6b5bff_35%,_#a855f7_70%,_#38bdf8_100%)] text-white"
-                          : "bg-white/10 text-[#9aa7ff]"
+                          ? "bg-gradient-to-r from-[#FF7A70] to-[#6EC8FF] text-white"
+                          : "bg-[#F3F4F6] text-[#FF7A70]"
                       }`}
                     >
                       <Clock className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-white">{block.label}</p>
-                      <p className="text-sm text-white/70">{block.subtitle}</p>
+                      <p className="font-semibold text-[#1A1A1A]">{block.label}</p>
+                      <p className="text-sm text-[#777777]">{block.subtitle}</p>
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-white/60">
+                  <span className="text-xs font-semibold text-[#777777]">
                     {duration === block.durationLabel ? "Selected" : "Tap to switch"}
                   </span>
                 </button>
@@ -794,64 +796,64 @@ function SetupPageContent() {
           </div>
 
           <aside className="relative isolate animate-slide-up delay-150 lg:sticky lg:top-28 lg:self-start">
-            <div className="absolute -top-10 -right-8 h-28 w-28 rounded-full bg-[#4f61ff]/30 blur-3xl" aria-hidden />
-            <div className="absolute -bottom-14 -left-6 h-40 w-40 rounded-full bg-[#38bdf8]/25 blur-3xl" aria-hidden />
-            <div className="relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-[#141c2f]/90 p-7 shadow-2xl shadow-black/40">
+            <div className="absolute -top-10 -right-8 h-28 w-28 rounded-full bg-[#FF7A70]/30 blur-3xl" aria-hidden />
+            <div className="absolute -bottom-14 -left-6 h-40 w-40 rounded-full bg-[#6EC8FF]/25 blur-3xl" aria-hidden />
+            <div className="relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border border-[#EDE5E0] bg-white/95 p-7 shadow-2xl shadow-black/10">
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white">
+                <span className="inline-flex items-center gap-2 rounded-full bg-[#FF7A70]/10 px-3 py-1 text-xs font-semibold text-[#FF7A70]">
                   <Sparkles className="h-3.5 w-3.5" />
                   Live Gemini Preview
                 </span>
-                <span className="text-xs font-semibold text-white/60">Realtime updates</span>
+                <span className="text-xs font-semibold text-[#777777]">Realtime updates</span>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.25em] text-white/50">Interview Persona</p>
-                  <h3 className="text-2xl font-semibold mt-1">
+                  <p className="text-xs uppercase tracking-[0.25em] text-[#777777]">Interview Persona</p>
+                  <h3 className="text-2xl font-semibold mt-1 text-[#1A1A1A]">
                     {selectedPersona.company} · {selectedPersona.role}
                   </h3>
-                  <p className="mt-3 text-sm text-white/70 leading-relaxed">{selectedPersona.tagline}</p>
+                  <p className="mt-3 text-sm text-[#777777] leading-relaxed">{selectedPersona.tagline}</p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="rounded-2xl border border-[#EDE5E0] bg-white p-4">
                   <div className="flex items-center gap-2">
-                    <MicVocal className="h-4 w-4 text-[#9aa7ff]" />
-                    <p className="text-sm font-semibold text-white">{selectedPersona.voiceStyle}</p>
+                    <MicVocal className="h-4 w-4 text-[#FF7A70]" />
+                    <p className="text-sm font-semibold text-[#1A1A1A]">{selectedPersona.voiceStyle}</p>
                   </div>
-                  <p className="mt-2 text-xs text-white/60">{selectedPersona.voiceBadge}</p>
-                  <p className="mt-3 text-xs font-semibold text-[#9aa7ff]">
+                  <p className="mt-2 text-xs text-[#777777]">{selectedPersona.voiceBadge}</p>
+                  <p className="mt-3 text-xs font-semibold text-[#FF7A70]">
                     Voice Selection: {activeVoiceStyle.label}
                     {activeVoiceStyle.badge ? ` · ${activeVoiceStyle.badge}` : ""}
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/50">
+                <div className="rounded-2xl border border-[#EDE5E0] bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#777777]">
                     Interview cues
                   </p>
-                  <ul className="mt-3 space-y-2 text-sm text-white/70">
+                  <ul className="mt-3 space-y-2 text-sm text-[#777777]">
                     {selectedPersona.jdSignals.map((signal) => (
                       <li key={signal} className="flex items-start gap-2">
-                        <Target className="h-4 w-4 text-[#4b6bff] mt-0.5" />
+                        <Target className="h-4 w-4 text-[#FF7A70] mt-0.5" />
                         <span>{signal}</span>
                       </li>
                     ))}
                     {selectedPersona.id === "amazon-pm" && (
                       <li className="flex items-start gap-2">
-                        <Sparkles className="h-4 w-4 text-[#f59e0b] mt-0.5" />
+                        <Sparkles className="h-4 w-4 text-[#FF7A70] mt-0.5" />
                         <span>Lean on STAR stories tied to Amazon Leadership Principles.</span>
                       </li>
                     )}
                     {selectedPersona.id === "google-analyst" && (
                       <li className="flex items-start gap-2">
-                        <Sparkles className="h-4 w-4 text-[#4b6bff] mt-0.5" />
+                        <Sparkles className="h-4 w-4 text-[#FF7A70] mt-0.5" />
                         <span>Explain the story behind your metrics and how you validated the data.</span>
                       </li>
                     )}
                     {selectedPersona.id === "meta-swe" && (
                       <li className="flex items-start gap-2">
-                        <Sparkles className="h-4 w-4 text-[#a855f7] mt-0.5" />
+                        <Sparkles className="h-4 w-4 text-[#FF7A70] mt-0.5" />
                         <span>Walk through the architecture decisions and how you guided teams through trade-offs.</span>
                       </li>
                     )}
@@ -860,9 +862,9 @@ function SetupPageContent() {
 
               </div>
 
-              <div className="mt-auto rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70">
-                <p className="font-semibold uppercase tracking-[0.25em] text-white/60">Session summary</p>
-                <div className="mt-3 grid gap-2 text-white/70">
+              <div className="mt-auto rounded-2xl border border-[#EDE5E0] bg-white p-4 text-xs text-[#777777]">
+                <p className="font-semibold uppercase tracking-[0.25em] text-[#777777]">Session summary</p>
+                <div className="mt-3 grid gap-2 text-[#777777]">
                   <span>• {technicalPercent}% technical · {behavioralPercent}% behavioral</span>
                   <span>
                     • Focus:{" "}
