@@ -45,12 +45,6 @@ const progressSteps = [
 
 export default function EnhancedNavHeader() {
   const pathname = usePathname()
-  const breadcrumbs = breadcrumbMap[pathname] || []
-  const isMinimalHeader = pathname === "/mock" || pathname === "/results"
-  
-  // Calculate progress
-  const currentStepIndex = progressSteps.findIndex(step => pathname.startsWith(step.path))
-  const progress = currentStepIndex >= 0 ? ((currentStepIndex + 1) / progressSteps.length) * 100 : 0
 
   return (
     <motion.header 
@@ -81,143 +75,34 @@ export default function EnhancedNavHeader() {
             </div>
           </Link>
 
-          {/* Breadcrumbs */}
-          {breadcrumbs.length > 0 && !isMinimalHeader && (
-            <nav className="hidden md:flex items-center space-x-3" aria-label="Breadcrumb">
-              {breadcrumbs.map((item, index) => {
-                const Icon = item.icon
-                const isLast = index === breadcrumbs.length - 1
-                
-                return (
-                  <div key={item.href} className="flex items-center">
-                    {index > 0 && (
-                      <div className="mx-3 text-[#D1D5DB]">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200",
-                        isLast
-                          ? "text-[#1A1A1A] bg-[#F3F4F6]"
-                          : "text-[#777777] hover:text-[#1A1A1A] hover:bg-[#F9FAFB]"
-                      )}
-                    >
-                      {Icon && <Icon className="w-4 h-4" />}
-                      <span>{item.label}</span>
-                      {item.completed && (
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                      )}
-                    </Link>
-                  </div>
-                )
-              })}
-            </nav>
-          )}
-
-          {/* Progress Bar */}
-          {!isMinimalHeader && progress > 0 && (
-            <div className="hidden lg:flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                {progressSteps.map((step, index) => {
-                  const isActive = pathname.startsWith(step.path)
-                  const isCompleted = index < currentStepIndex
-                  const Icon = step.icon
-                  
-                  return (
-                    <div key={step.path} className="flex items-center">
-                      <div className={cn(
-                        "flex items-center justify-center w-8 h-8 rounded-full text-xs font-medium transition-all duration-200",
-                        isCompleted 
-                          ? "bg-green-500 text-white" 
-                          : isActive 
-                            ? "bg-[#FF7A70] text-white" 
-                            : "bg-[#F3F4F6] text-[#9CA3AF]"
-                      )}>
-                        {isCompleted ? (
-                          <CheckCircle className="w-4 h-4" />
-                        ) : (
-                          <Icon className="w-4 h-4" />
-                        )}
-                      </div>
-                      {index < progressSteps.length - 1 && (
-                        <div className={cn(
-                          "w-8 h-0.5 mx-3 transition-colors duration-200",
-                          isCompleted ? "bg-green-500" : "bg-[#E5E7EB]"
-                        )} />
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-              <div className="text-xs text-[#777777] font-medium">
-                {Math.round(progress)}% Complete
-              </div>
-            </div>
-          )}
-
           {/* Main Navigation */}
-          {!isMinimalHeader && (
-            <nav className="flex items-center gap-3">
-              <Link
-                href="/setup"
-                className={cn(
-                  "rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
-                  pathname === "/setup" || pathname === "/results"
-                    ? "bg-[#FFE7E4] text-[#FF7A70] shadow-sm"
-                    : "text-[#777777] hover:bg-[#FFF2ED] hover:text-[#1A1A1A]"
-                )}
-              >
-                <Briefcase className="w-4 h-4 mr-1.5 inline" />
-                Job Interviews
-              </Link>
-              <Link
-                href="/sim"
-                className={cn(
-                  "rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
-                  pathname === "/sim"
-                    ? "bg-[#E8F4FF] text-[#6EC8FF] shadow-sm"
-                    : "text-[#777777] hover:bg-[#E8F4FF] hover:text-[#1A1A1A]"
-                )}
-              >
-                <Headphones className="w-4 h-4 mr-1.5 inline" />
-                CS Training
-              </Link>
-            </nav>
-          )}
-
-          {/* Back Button for Interview/Results */}
-          {(pathname === "/mock" || pathname === "/results") && (
+          <nav className="flex items-center gap-3">
             <Link
               href="/setup"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[#777777] hover:bg-[#F3F4F6] hover:text-[#1A1A1A] transition-all duration-200 hover:scale-105"
+              className={cn(
+                "rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
+                pathname === "/setup" || pathname === "/results"
+                  ? "bg-[#FFE7E4] text-[#FF7A70] shadow-sm"
+                  : "text-[#777777] hover:bg-[#FFF2ED] hover:text-[#1A1A1A]"
+              )}
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Back to Setup</span>
+              <Briefcase className="w-4 h-4 mr-1.5 inline" />
+              Job Interviews
             </Link>
-          )}
+            <Link
+              href="/sim"
+              className={cn(
+                "rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
+                pathname === "/sim"
+                  ? "bg-[#E8F4FF] text-[#6EC8FF] shadow-sm"
+                  : "text-[#777777] hover:bg-[#E8F4FF] hover:text-[#1A1A1A]"
+              )}
+            >
+              <Headphones className="w-4 h-4 mr-1.5 inline" />
+              CS Training
+            </Link>
+          </nav>
         </div>
-
-        {/* Mobile Progress Bar */}
-        {!isMinimalHeader && progress > 0 && (
-          <div className="mt-4 lg:hidden">
-            <div className="flex items-center justify-between text-xs text-[#777777] mb-1">
-              <span>Progress</span>
-              <span>{Math.round(progress)}% Complete</span>
-            </div>
-            <div className="w-full bg-[#E5E7EB] rounded-full h-2">
-              <motion.div
-                className="bg-gradient-to-r from-[#FF7A70] to-[#6EC8FF] h-2 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              />
-            </div>
-          </div>
-        )}
       </div>
     </motion.header>
   )

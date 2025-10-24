@@ -6,6 +6,7 @@ import NextLink from "next/link"
 import { cn } from "@/lib/utils"
 import { InterviewerAvatar } from "@/components/interviewer-avatar"
 import { InsightsDrawer } from "@/components/interview/insights-drawer"
+import EnhancedNavHeader from "@/components/enhanced-nav-header"
 import { Mic, MicOff, Video, VideoOff, MessageSquare, Maximize2, LogOut, ArrowLeft, Volume2, Check } from "lucide-react"
 import type { InterviewPlan, InterviewSetupPayload, PersonaConfig } from "@/lib/gemini"
 import { SETUP_CACHE_KEY, PLAN_CACHE_KEY } from "@/lib/cache-keys"
@@ -119,7 +120,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
           setInterviewPlan(mockPlan)
           setPlanLoading(false)
         }
-    } catch (error) {
+      } catch (error) {
         console.error("Failed to load interview plan:", error)
         setPlanError("Failed to load interview plan")
         setPlanLoading(false)
@@ -169,7 +170,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
       setIsMuted(true)
       setMicState('finished')
       setInterviewerStatus('thinking')
-      stopRecorder()
+        stopRecorder()
       
       // Show response toast
       setShowResponseToast(true)
@@ -219,7 +220,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
     }
     
     sessionStorage.setItem('mockly_interview_responses', JSON.stringify(responsesData))
-    router.push("/results")
+      router.push("/results")
   }, [questions, questionResponses, interviewPlan, router])
 
   const handleExit = useCallback(() => {
@@ -228,7 +229,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
 
   // Handle speech support check without causing hydration mismatch
   const [isClient, setIsClient] = useState(false)
-  
+
   useEffect(() => {
     setIsClient(true)
   }, [])
@@ -240,7 +241,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
 
   // Don't render if speech not supported (only on client)
   if (isClient && !isSpeechSupported) {
-    return (
+  return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-slate-200 p-8 text-center">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -253,54 +254,35 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
           <Button onClick={() => router.push("/setup")} className="w-full">
             Back to Setup
           </Button>
+          </div>
         </div>
-      </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Clean Header */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          {/* Logo */}
-          <NextLink href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">M</span>
-            </div>
-            <span className="text-slate-700 font-medium">Mockly</span>
-          </NextLink>
-
-          {/* Progress */}
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-slate-600">
-              Question {currentQuestionIndex + 1} of {totalQuestions}
-          </div>
-            <div className="w-24 h-1 bg-slate-200 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-blue-600 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              />
-        </div>
-          </div>
-
-          {/* Exit */}
-          <button
-            onClick={handleExit}
-            className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm">Exit</span>
-          </button>
-      </div>
-      </header>
+    <div className="relative min-h-screen bg-gradient-to-b from-[#FFF8F5] to-[#FDFCFB] text-[#1A1A1A]">
+      <EnhancedNavHeader />
 
       {/* Main Content */}
       <main className="flex-1 flex">
         {/* Interview Content */}
         <div className="flex-1 flex flex-col">
+          {/* Question Progress */}
+          <div className="bg-white/95 border-b border-[#EDE5E0] px-6 py-3">
+            <div className="max-w-4xl mx-auto flex items-center justify-between">
+              <div className="text-sm text-[#777777]">
+                Question {currentQuestionIndex + 1} of {totalQuestions}
+              </div>
+              <div className="w-24 h-1 bg-slate-200 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-blue-600 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                />
+              </div>
+            </div>
+          </div>
           {/* Question Card - Visual Anchor */}
           <div className="flex-1 flex items-center justify-center p-8">
             {/* Transition overlay */}
@@ -561,12 +543,12 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
               {isCameraOn ? (
                 <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                   <span className="text-white font-semibold text-lg">You</span>
-                </div>
+          </div>
               ) : (
                 <div className="flex flex-col items-center justify-center space-y-2">
                   <VideoOff className="w-8 h-8 text-slate-400" />
                   <span className="text-sm text-slate-500">Camera initializing...</span>
-            </div>
+              </div>
           )}
               <div className="absolute top-2 right-2">
           <button
@@ -578,10 +560,10 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
                 >
                   {isCameraOn ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
           </button>
-        </div>
+              </div>
             </motion.div>
-      </div>
-        </div>
+              </div>
+              </div>
       </main>
 
       {/* Response Toast */}
@@ -596,7 +578,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
             <div className="bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2">
               <Check className="w-4 h-4" />
               <span className="text-sm font-medium">Response recorded ✓</span>
-          </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

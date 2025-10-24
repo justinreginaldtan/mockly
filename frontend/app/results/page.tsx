@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { ProgressBar } from "@/components/progress-bar"
 import { SuccessAnimation } from "@/components/success-animation"
 import { StepIndicator } from "@/components/step-indicator"
+import EnhancedNavHeader from "@/components/enhanced-nav-header"
 
 type EvaluationData = {
   overallScore: number
@@ -311,26 +312,7 @@ export default function ResultsPage() {
     <div className="relative min-h-screen bg-gradient-to-b from-[#FFF8F5] to-[#FDFCFB] text-[#1A1A1A]">
       {showAnimation && <SuccessAnimation onComplete={() => setShowAnimation(false)} />}
 
-      <header className="sticky top-0 z-30 border-b border-[#EDE5E0] bg-white/85 backdrop-blur">
-        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-3 py-4 md:px-8">
-          <div className="flex items-center gap-3">
-            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[#E0D6CF] bg-white/90 shadow-[0_10px_24px_-16px_rgba(26,26,26,0.45)]">
-              <span className="font-display text-sm font-semibold text-[#1A1A1A]">Mock</span>
-            </div>
-            <div className="flex flex-col leading-tight">
-              <span className="font-display text-lg font-semibold tracking-tight text-[#1A1A1A]">Mockly</span>
-              <span className="text-xs font-body font-medium text-[#777777]">Step 4 · Coach Card recap</span>
-            </div>
-          </div>
-          <div className="hidden items-center gap-6 md:flex">
-            <ProgressBar currentStep={4} totalSteps={4} />
-            <div className="flex items-center gap-2 text-xs font-medium text-[#777777]">
-              <span className="rounded-full bg-[#FFE7E4] px-2.5 py-1 font-semibold text-[#FF7A70]">Gemini</span>
-              <span className="rounded-full bg-[#FFE7E4] px-2.5 py-1 font-semibold text-[#FF7A70]">ElevenLabs</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <EnhancedNavHeader />
 
       <motion.main
         className="mx-auto max-w-screen-lg space-y-12 px-2 py-16 md:px-8 md:py-24"

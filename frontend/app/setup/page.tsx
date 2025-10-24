@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/loading-states"
 import EnhancedNavHeader from "@/components/enhanced-nav-header"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ProgressBar } from "@/components/progress-bar"
 import { Slider } from "@/components/ui/slider"
 import { cn } from "@/lib/utils"
 import type { InterviewPlan, InterviewSetupPayload } from "@/lib/gemini"
@@ -471,21 +470,21 @@ function SetupPageContent() {
   ])
 
   return (
-    <div className="min-h-screen flex flex-col bg-[radial-gradient(circle_at_top,_rgba(79,97,255,0.45),_rgba(12,15,25,0.95))] text-white">
+    <div className="relative min-h-screen bg-gradient-to-b from-[#FFF8F5] to-[#FDFCFB] text-[#1A1A1A]">
       <EnhancedNavHeader />
 
       <main className="flex-1 container mx-auto px-6 py-16">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
           <div className="space-y-12 animate-slide-up">
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1 text-sm font-semibold text-white shadow-sm shadow-[#4f61ff]/30">
-                <Sparkles className="h-4 w-4 animate-pulse" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#EDE5E0] bg-white px-4 py-1 text-sm font-semibold text-[#777777] shadow-sm">
+                <Sparkles className="h-4 w-4 text-[#FF7A70]" />
                 Gemini is shaping your interviewer
               </div>
-              <h1 className="text-4xl font-semibold tracking-tight leading-tight">
+              <h1 className="text-4xl font-semibold tracking-tight leading-tight text-[#1A1A1A]">
                 Customize the vibe, depth, and voice before you hop into the hot seat.
               </h1>
-              <p className="text-lg text-white/70 max-w-2xl">
+              <p className="text-lg text-[#777777] max-w-2xl">
                 Pick the company persona, balance technical vs. behavioral, and let Gemini build a script that mirrors the
                 interviews you’re walking into.
               </p>
