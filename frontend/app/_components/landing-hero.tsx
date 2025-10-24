@@ -6,6 +6,7 @@ import Image from "next/image"
 import { Briefcase, Headset, Sparkles, Mic, BarChart3, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import EnhancedNavHeader from "@/components/enhanced-nav-header"
+import { OpticallyCenteredIcon } from "@/components/optically-centered-icon"
 
 const sectionVariants = {
   hidden: { opacity: 1, y: 0 },
@@ -58,8 +59,8 @@ export default function LandingHero() {
               <div className="absolute inset-0 bg-gradient-to-br from-[#FF7A70]/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
               <div className="relative">
-                <div className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-[#FF7A70] to-[#FF9A70] shadow-lg">
-                  <Briefcase className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-white" />
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF7A70] to-[#FF9A70] shadow-lg">
+                  <OpticallyCenteredIcon icon={Briefcase} className="h-8 w-8 text-white" />
                 </div>
 
                 <h2 className="mt-6 font-display text-2xl font-semibold text-[#1A1A1A]">
@@ -88,8 +89,10 @@ export default function LandingHero() {
 
                 <Link href="/setup" className="block mt-8">
                   <Button className="w-full bg-[#FF7A70] text-white hover:bg-[#ff6157] shadow-lg group-hover:scale-105 transition-transform">
-                    <Briefcase className="mr-2 h-4 w-4 flex-shrink-0" />
-                    Start Interview Practice
+                    <div className="flex items-center justify-center">
+                      <Briefcase className="mr-2 h-4 w-4" />
+                      Start Interview Practice
+                    </div>
                   </Button>
                 </Link>
               </div>
@@ -106,8 +109,8 @@ export default function LandingHero() {
               <div className="absolute inset-0 bg-gradient-to-br from-[#6EC8FF]/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
               <div className="relative">
-                <div className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-[#6EC8FF] to-[#5AB5F0] shadow-lg">
-                  <Headset className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-white" />
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#6EC8FF] to-[#5AB5F0] shadow-lg">
+                  <OpticallyCenteredIcon icon={Headset} className="h-8 w-8 text-white" />
                 </div>
 
                 <h2 className="mt-6 font-display text-2xl font-semibold text-[#1A1A1A]">
@@ -136,8 +139,10 @@ export default function LandingHero() {
 
                 <Link href="/sim" className="block mt-8">
                   <Button className="w-full bg-[#6EC8FF] text-white hover:bg-[#5AB5F0] shadow-lg group-hover:scale-105 transition-transform">
-                    <Headset className="mr-2 h-4 w-4 flex-shrink-0" />
-                    Start CS Training
+                    <div className="flex items-center justify-center">
+                      <Headset className="mr-2 h-4 w-4" />
+                      Start CS Training
+                    </div>
                   </Button>
                 </Link>
               </div>
@@ -227,14 +232,18 @@ export default function LandingHero() {
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link href="/setup">
               <Button size="lg" className="bg-[#FF7A70] text-white hover:bg-[#ff6157] shadow-lg">
-                <Briefcase className="mr-2 h-5 w-5 flex-shrink-0" />
-                Practice Interviews
+                <div className="flex items-center justify-center">
+                  <Briefcase className="mr-2 h-5 w-5" />
+                  Practice Interviews
+                </div>
               </Button>
             </Link>
             <Link href="/sim">
               <Button size="lg" variant="outline" className="border-[#6EC8FF] text-[#6EC8FF] hover:bg-[#6EC8FF] hover:text-white shadow-lg">
-                <Headset className="mr-2 h-5 w-5 flex-shrink-0" />
-                Train Customer Service
+                <div className="flex items-center justify-center">
+                  <Headset className="mr-2 h-5 w-5" />
+                  Train Customer Service
+                </div>
               </Button>
             </Link>
           </div>
