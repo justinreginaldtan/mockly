@@ -58,7 +58,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
   const [isTransitioning, setIsTransitioning] = useState(false)
 
   // Speech recording
-  const { isSupported: isSpeechSupported, status: recorderStatus, transcript, start: startRecorder, stop: stopRecorder } = useSpeechRecorder({
+  const { isSupported: isSpeechSupported, status: recorderStatus, transcript, start: startRecorder, stop: stopRecorder, reset: resetRecorder } = useSpeechRecorder({
     onFinal: (finalTranscript) => {
       console.log("Final transcript:", finalTranscript)
     }
@@ -178,6 +178,9 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
       setIsTransitioning(true)
       setShowQuestionTransition(true)
       
+      // Clear the transcript from previous question
+      resetRecorder()
+      
       // Brief fade to white
       setTimeout(() => {
         setCurrentQuestionIndex(prev => prev + 1)
@@ -191,7 +194,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
         setInterviewerStatus('idle')
       }, 350)
     }
-  }, [currentQuestionIndex, totalQuestions])
+  }, [currentQuestionIndex, totalQuestions, resetRecorder])
 
   const handleExit = useCallback(() => {
     router.push("/setup")
@@ -203,6 +206,11 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
   useEffect(() => {
     setIsClient(true)
   }, [])
+
+  // Reset transcript when question changes
+  useEffect(() => {
+    resetRecorder()
+  }, [currentQuestionIndex, resetRecorder])
 
   // Don't render if speech not supported (only on client)
   if (isClient && !isSpeechSupported) {
