@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import Link from "next/link"
 import Image from "next/image"
-import { Briefcase, Headphones, Sparkles, Mic, BarChart3, Zap } from "lucide-react"
+import { Briefcase, Headset, Sparkles, Mic, BarChart3, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import EnhancedNavHeader from "@/components/enhanced-nav-header"
 
@@ -58,8 +58,8 @@ export default function LandingHero() {
               <div className="absolute inset-0 bg-gradient-to-br from-[#FF7A70]/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
               <div className="relative">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF7A70] to-[#FF9A70] shadow-lg">
-                  <Briefcase className="h-8 w-8 text-white flex-shrink-0" />
+                <div className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-[#FF7A70] to-[#FF9A70] shadow-lg">
+                  <Briefcase className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-white" />
                 </div>
 
                 <h2 className="mt-6 font-display text-2xl font-semibold text-[#1A1A1A]">
@@ -106,8 +106,8 @@ export default function LandingHero() {
               <div className="absolute inset-0 bg-gradient-to-br from-[#6EC8FF]/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
               <div className="relative">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#6EC8FF] to-[#5AB5F0] shadow-lg">
-                  <Headphones className="h-8 w-8 text-white flex-shrink-0" />
+                <div className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-[#6EC8FF] to-[#5AB5F0] shadow-lg">
+                  <Headset className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-white" />
                 </div>
 
                 <h2 className="mt-6 font-display text-2xl font-semibold text-[#1A1A1A]">
@@ -136,7 +136,7 @@ export default function LandingHero() {
 
                 <Link href="/sim" className="block mt-8">
                   <Button className="w-full bg-[#6EC8FF] text-white hover:bg-[#5AB5F0] shadow-lg group-hover:scale-105 transition-transform">
-                    <Headphones className="mr-2 h-4 w-4 flex-shrink-0" />
+                    <Headset className="mr-2 h-4 w-4 flex-shrink-0" />
                     Start CS Training
                   </Button>
                 </Link>
@@ -233,7 +233,7 @@ export default function LandingHero() {
             </Link>
             <Link href="/sim">
               <Button size="lg" variant="outline" className="border-[#6EC8FF] text-[#6EC8FF] hover:bg-[#6EC8FF] hover:text-white shadow-lg">
-                <Headphones className="mr-2 h-5 w-5 flex-shrink-0" />
+                <Headset className="mr-2 h-5 w-5 flex-shrink-0" />
                 Train Customer Service
               </Button>
             </Link>
