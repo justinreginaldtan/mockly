@@ -48,6 +48,9 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [interviewPlan, setInterviewPlan] = useState<InterviewPlan | null>(null)
   const [isVoicePlaying, setIsVoicePlaying] = useState(false)
+  const [voiceError, setVoiceError] = useState<string | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const hasPlayedCurrentQuestion = useRef(false)
   const [planLoading, setPlanLoading] = useState(true)
   const [planError, setPlanError] = useState<string | null>(null)
 
@@ -77,12 +80,15 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
   useEffect(() => {
     const loadPlan = async () => {
       try {
-        const cached = localStorage.getItem(PLAN_CACHE_KEY)
-      if (cached) {
+        const cached =
+          sessionStorage.getItem(PLAN_CACHE_KEY) ??
+          localStorage.getItem(PLAN_CACHE_KEY)
+
+        if (cached) {
           const plan = JSON.parse(cached) as InterviewPlan
           setInterviewPlan(plan)
           setPlanLoading(false)
-    } else {
+        } else {
           // Fallback to mock data for demo
           const mockPlan: InterviewPlan = {
             questions: [
@@ -239,6 +245,87 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
     resetRecorder()
   }, [currentQuestionIndex, resetRecorder])
 
+  // Play voice when question changes
+  useEffect(() => {
+    if (currentQuestion && interviewPlan?.persona && !hasPlayedCurrentQuestion.current) {
+      hasPlayedCurrentQuestion.current = true
+      playQuestionVoice()
+    }
+  }, [currentQuestionIndex]) // Only depend on currentQuestionIndex to prevent multiple triggers
+
+  // Reset the play flag when question changes
+  useEffect(() => {
+    hasPlayedCurrentQuestion.current = false
+  }, [currentQuestionIndex])
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
+
+  const playQuestionVoice = async () => {
+    if (!currentQuestion || !interviewPlan?.persona) return
+
+    try {
+      setIsVoicePlaying(true)
+      setVoiceError(null)
+
+      // Stop any existing audio
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+
+      // Mark as played to prevent duplicate calls
+      hasPlayedCurrentQuestion.current = true
+
+      const response = await fetch("/api/voice-question", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          personaId: interviewPlan.persona.personaId,
+          voiceStyleId: interviewPlan.persona.voiceStyleId || "professional",
+          questionText: currentQuestion.prompt,
+          questionId: currentQuestion.id
+        }),
+      })
+
+        if (!response.ok) {
+        throw new Error("Failed to generate voice")
+      }
+
+      const data = await response.json()
+      if (!data.audioUrl) {
+        throw new Error("No audio URL returned")
+      }
+
+      const audio = new Audio(data.audioUrl)
+      audioRef.current = audio
+      
+      audio.onended = () => {
+        setIsVoicePlaying(false)
+        audioRef.current = null
+      }
+      
+      audio.onerror = () => {
+        setIsVoicePlaying(false)
+        setVoiceError("Failed to play audio")
+        audioRef.current = null
+      }
+
+      await audio.play()
+      } catch (error) {
+      console.error("Voice playback failed:", error)
+      setIsVoicePlaying(false)
+      setVoiceError("Voice playback failed")
+    }
+  }
+
   // Don't render if speech not supported (only on client)
   if (isClient && !isSpeechSupported) {
   return (
@@ -272,7 +359,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
             <div className="max-w-4xl mx-auto flex items-center justify-between">
               <div className="text-sm text-[#777777]">
                 Question {currentQuestionIndex + 1} of {totalQuestions}
-              </div>
+          </div>
               <div className="w-24 h-1 bg-slate-200 rounded-full overflow-hidden">
                 <motion.div
                   className="h-full bg-blue-600 rounded-full"
@@ -280,7 +367,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
                 />
-              </div>
+        </div>
             </div>
           </div>
           {/* Question Card - Visual Anchor */}
@@ -318,7 +405,7 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
                       <div className="w-8 h-8 bg-slate-200 rounded-full animate-pulse mx-auto"></div>
                       <div className="h-6 bg-slate-200 rounded animate-pulse"></div>
                       <div className="h-4 bg-slate-200 rounded animate-pulse w-3/4 mx-auto"></div>
-                  </div>
+      </div>
                   ) : planError ? (
                     <div className="text-center">
                       <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -332,9 +419,37 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
                     <div className="space-y-6">
                       {/* Question */}
                       <div className="space-y-3">
-                        <h2 className="text-2xl font-medium text-slate-900 leading-relaxed">
-                          {currentQuestionText}
-                        </h2>
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1">
+                            <h2 className="text-2xl font-medium text-slate-900 leading-relaxed">
+                              {currentQuestionText}
+                            </h2>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {isVoicePlaying ? (
+                              <div className="flex items-center gap-2 text-blue-600">
+                                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                                <span className="text-sm">Playing...</span>
+                              </div>
+                            ) : (
+          <button
+                                onClick={playQuestionVoice}
+                                disabled={!currentQuestion || !interviewPlan?.persona}
+                                className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                </svg>
+                                Play Question
+          </button>
+          )}
+        </div>
+      </div>
+                        {voiceError && (
+                          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-red-600">{voiceError}</p>
+                  </div>
+                        )}
                         <div className="flex items-center justify-center space-x-2 text-sm text-slate-500">
                           <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                           <span>
@@ -342,8 +457,8 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
                              micState === 'listening' ? 'Mic will activate when you unmute' :
                              micState === 'recording' ? 'Listening...' : 'Response recorded'}
                           </span>
-        </div>
-        </div>
+                </div>
+          </div>
 
                       {/* Transcript Display */}
                       {transcript && (
@@ -356,8 +471,8 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
                           <div className="text-slate-900">{transcript}</div>
                         </motion.div>
                       )}
-          </div>
-        )}
+        </div>
+      )}
             </div>
               </motion.div>
             </AnimatePresence>
