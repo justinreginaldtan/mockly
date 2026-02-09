@@ -99,7 +99,7 @@ export default function CoachCard({ empathy, clarity, resolution, tip, summary, 
                 </div>
                 <h4 className="text-lg font-bold text-[#1A1A1A]">Key Insight</h4>
               </div>
-              <p className="text-[#1A1A1A] leading-relaxed font-medium">"{tip}"</p>
+              <p className="text-[#1A1A1A] leading-relaxed font-medium">&ldquo;{tip}&rdquo;</p>
             </div>
           </div>
 
@@ -142,7 +142,7 @@ export default function CoachCard({ empathy, clarity, resolution, tip, summary, 
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 p-6 border border-green-200">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-200/30 to-emerald-200/30 rounded-full -translate-y-12 translate-x-12"></div>
                 <div className="relative">
-                  <p className="text-[#1A1A1A] leading-relaxed font-medium">"{idealResponse}"</p>
+                  <p className="text-[#1A1A1A] leading-relaxed font-medium">&ldquo;{idealResponse}&rdquo;</p>
                 </div>
               </div>
             </div>
@@ -167,5 +167,4 @@ export default function CoachCard({ empathy, clarity, resolution, tip, summary, 
     </motion.div>
   )
 }
-
 

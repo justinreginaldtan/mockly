@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter, DM_Sans } from "next/font/google"
 import { PageTransition } from "@/components/page-transition"
 import "./globals.css"
@@ -20,6 +20,7 @@ const body = DM_Sans({
 
 export const metadata: Metadata = {
   title: "Mockly – Your AI Interview Coach",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   description:
     "Practice interviews with personalized voice feedback and real-time coaching from your friendly AI coach, Mockly.",
   keywords: [
@@ -59,8 +60,11 @@ export const metadata: Metadata = {
     description: "Practice interviews with instant feedback and real-time voice coaching.",
     images: ["/og-mockly.png"],
   },
-  themeColor: "#FF7A70",
   manifest: "/site.webmanifest",
+}
+
+export const viewport: Viewport = {
+  themeColor: "#FF7A70",
 }
 
 export default function RootLayout({

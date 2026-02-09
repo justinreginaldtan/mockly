@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { generateLlmText } from "@/lib/llm"
+import { recoverJsonCandidate } from "@/lib/json-recovery"
 
 type EvaluationResult = {
   empathy: number
@@ -15,13 +16,6 @@ function clampScore(value: unknown): number {
   const num = typeof value === "number" ? value : Number(value)
   if (!Number.isFinite(num)) return 0
   return Math.max(0, Math.min(100, Math.round(num)))
-}
-
-function sanitizeJsonText(text: string): string {
-  return text
-    .replace(/^```[a-zA-Z]*\n?/g, "")
-    .replace(/```\s*$/g, "")
-    .trim()
 }
 
 function generatePerfectAnswer(question: string): EvaluationResult {
@@ -132,15 +126,13 @@ export async function POST(request: Request) {
       return NextResponse.json(perfectAnswer, { status: 200 })
     }
 
-    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
-    if (!apiKey) {
+    const hasAnyProviderKey = Boolean(
+      process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.OPENAI_API_KEY
+    )
+    if (!hasAnyProviderKey) {
       const fallback = heuristicFallback(question, answer)
       return NextResponse.json(fallback, { status: 200 })
     }
-
-    const modelId = process.env.GEMINI_MODEL_ID || "gemini-2.5-flash"
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: modelId })
 
     const prompt = [
       "You are a customer-service trainer. Evaluate the trainee's spoken reply to a customer.",
@@ -163,38 +155,44 @@ export async function POST(request: Request) {
       `Trainee answer: ${answer}`,
     ].join("\n")
 
-    const result = await model.generateContent(prompt)
-
-    const text = result.response.text()
-    const cleaned = sanitizeJsonText(text)
-
-    let parsed: Partial<EvaluationResult>
     try {
-      parsed = JSON.parse(cleaned)
-    } catch {
+      const result = await generateLlmText(prompt, {
+        geminiModels: [
+          process.env.GEMINI_MODEL_ID || "",
+          process.env.GEMINI_MODEL || "",
+          "gemini-2.5-flash",
+        ].filter(Boolean),
+        openAiModel: process.env.OPENAI_MODEL || "gpt-5-mini",
+        temperature: 0.2,
+      })
+      const parsed = recoverJsonCandidate<Partial<EvaluationResult>>(result.text)
+      if (!parsed) {
+        const fallback = heuristicFallback(question, answer)
+        return NextResponse.json({ ...fallback, mode: "fallback", reasonCode: "INVALID_MODEL_JSON" }, { status: 200 })
+      }
+
+      const evaluation: EvaluationResult = {
+        empathy: clampScore(parsed.empathy),
+        clarity: clampScore(parsed.clarity),
+        resolution: clampScore(parsed.resolution),
+        tip: typeof parsed.tip === "string" && parsed.tip.trim() ? parsed.tip.trim() : "Acknowledge their concern and propose a clear next step.",
+        summary: typeof parsed.summary === "string" && parsed.summary.trim() ? parsed.summary.trim() : "Clear, empathetic structure recommended.",
+        tips: Array.isArray(parsed.tips) && parsed.tips.length > 0
+          ? parsed.tips.filter((tip) => typeof tip === "string" && tip.trim()).slice(0, 3)
+          : ["Acknowledge the customer's feelings", "Be specific about next steps", "Confirm understanding"],
+        idealResponse: typeof parsed.idealResponse === "string" && parsed.idealResponse.trim()
+          ? parsed.idealResponse.trim()
+          : "Thank you for bringing this to my attention. I understand your concern and will help you resolve this issue.",
+      }
+
+      return NextResponse.json({ ...evaluation, mode: "live" })
+    } catch (error) {
+      console.error("[Evaluate-Answer] LLM evaluation failed, using heuristic fallback", error)
       const fallback = heuristicFallback(question, answer)
-      return NextResponse.json(fallback, { status: 200 })
+      return NextResponse.json({ ...fallback, mode: "fallback", reasonCode: "EVALUATION_FAILED" }, { status: 200 })
     }
-
-    const evaluation: EvaluationResult = {
-      empathy: clampScore(parsed.empathy),
-      clarity: clampScore(parsed.clarity),
-      resolution: clampScore(parsed.resolution),
-      tip: typeof parsed.tip === "string" && parsed.tip.trim() ? parsed.tip.trim() : "Acknowledge their concern and propose a clear next step.",
-      summary: typeof parsed.summary === "string" && parsed.summary.trim() ? parsed.summary.trim() : "Clear, empathetic structure recommended.",
-      tips: Array.isArray(parsed.tips) && parsed.tips.length > 0 
-        ? parsed.tips.filter(tip => typeof tip === "string" && tip.trim()).slice(0, 3)
-        : ["Acknowledge the customer's feelings", "Be specific about next steps", "Confirm understanding"],
-      idealResponse: typeof parsed.idealResponse === "string" && parsed.idealResponse.trim() 
-        ? parsed.idealResponse.trim() 
-        : "Thank you for bringing this to my attention. I understand your concern and will help you resolve this issue.",
-    }
-
-    return NextResponse.json(evaluation)
   } catch (error) {
     console.error("evaluate-answer error", error)
     return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 })
   }
 }
-
-

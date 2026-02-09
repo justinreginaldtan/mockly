@@ -20,6 +20,8 @@ import { ProgressBar } from "@/components/progress-bar"
 import { SuccessAnimation } from "@/components/success-animation"
 import { StepIndicator } from "@/components/step-indicator"
 import EnhancedNavHeader from "@/components/enhanced-nav-header"
+import { speakWithBrowserTts } from "@/lib/browser-tts"
+import type { ProviderStatusPayload } from "@/lib/provider-status"
 
 type EvaluationData = {
   overallScore: number
@@ -71,11 +73,40 @@ export default function ResultsPage() {
   const [error, setError] = useState<string | null>(null)
   const [recapAudioUrl, setRecapAudioUrl] = useState<string | null>(null)
   const [recapLoading, setRecapLoading] = useState(false)
+  const [providerStatus, setProviderStatus] = useState<ProviderStatusPayload | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => setShowAnimation(false), 2000)
     return () => clearTimeout(timer)
   }, [])
+
+  useEffect(() => {
+    let active = true
+    void fetch("/api/provider-status")
+      .then((response) => response.json())
+      .then((data) => {
+        if (active) {
+          setProviderStatus(data as ProviderStatusPayload)
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setProviderStatus(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (recapAudioUrl) {
+        URL.revokeObjectURL(recapAudioUrl)
+      }
+    }
+  }, [recapAudioUrl])
 
   useEffect(() => {
     async function fetchEvaluation() {
@@ -153,11 +184,20 @@ export default function ResultsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           text: summaryText,
-          voiceId: 'default'
+          voice: 'mentor'
         })
       })
       
-      if (!response.ok) throw new Error('Voice generation failed')
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { message?: string; error?: string; fallbackAvailable?: boolean }
+          | null
+        if (payload?.fallbackAvailable) {
+          await speakWithBrowserTts(summaryText)
+          return
+        }
+        throw new Error(payload?.message || payload?.error || 'Voice generation failed')
+      }
       
       const audioBlob = await response.blob()
       const audioUrl = URL.createObjectURL(audioBlob)
@@ -340,6 +380,28 @@ export default function ResultsPage() {
                 <Sparkles className="h-4 w-4 text-[#FF7A70]" />
                 Gemini analysis
               </div>
+              {providerStatus && (
+                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                  <span
+                    className={`rounded-full border px-3 py-1 ${
+                      providerStatus.llm.mode === "live"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-amber-200 bg-amber-50 text-amber-700"
+                    }`}
+                  >
+                    {providerStatus.llm.mode === "live" ? "Live AI" : "AI Fallback"}
+                  </span>
+                  <span
+                    className={`rounded-full border px-3 py-1 ${
+                      providerStatus.voice.mode === "live"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-amber-200 bg-amber-50 text-amber-700"
+                    }`}
+                  >
+                    {providerStatus.voice.mode === "live" ? "Live Voice" : "Voice Fallback Ready"}
+                  </span>
+                </div>
+              )}
               <h1 className="font-display text-3xl font-semibold tracking-tight text-[#1A1A1A] md:text-4xl lg:text-5xl">
                 {evaluation.overallScore >= 90 ? "Outstanding performance!" : evaluation.overallScore >= 70 ? "You're interview-ready." : "Keep practicing!"}
               </h1>
@@ -467,7 +529,7 @@ export default function ResultsPage() {
                 </span>
               </div>
               <p className="mt-4 font-body text-sm font-medium leading-relaxed italic">
-                "{snippet.quote}"
+                &ldquo;{snippet.quote}&rdquo;
               </p>
               <div className="mt-4 rounded-2xl bg-[#FFF2ED] px-4 py-3 text-xs font-body font-semibold text-[#FF7A70]">
                 {snippet.strength ? 'Positive signal' : 'Area for improvement'}
@@ -551,8 +613,7 @@ export default function ResultsPage() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          whileHover="hover"
-          variants={hoverVariants}
+          whileHover={{ scale: 1.02 }}
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-2">
@@ -592,8 +653,7 @@ export default function ResultsPage() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          whileHover="hover"
-          variants={hoverVariants}
+          whileHover={{ scale: 1.02 }}
         >
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">

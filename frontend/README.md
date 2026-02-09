@@ -1,12 +1,12 @@
 # Mockly – AI Communication Training Platform
 
-An AI-powered training platform featuring two realistic simulation modes: **Job Interview Practice** and **Customer Service Training**. Both powered by Google Gemini for intelligent evaluation and ElevenLabs for natural voice synthesis.
+An AI-powered training platform featuring two realistic simulation modes: **Job Interview Practice** and **Customer Service Training**. Powered by OpenAI (default) with Gemini fallback for intelligent evaluation and ElevenLabs for natural voice synthesis.
 
 ## Features
 
 ### Job Interview Simulator
 - **Persona-Based Interviews**: Practice with AI interviewers from Google, Amazon, Meta, Cisco, and more
-- **Personalized Questions**: Gemini generates questions based on your resume and target job description
+- **Personalized Questions**: AI generates questions based on your resume and target job description
 - **Customizable Setup**: Adjust technical vs. behavioral mix, focus areas, voice style, and duration
 - **Live Interview Experience**: Real-time speech recognition with camera/audio controls
 - **Multiple Visual Themes**: Zoom-style, Google Meet-style, or Minimal interface
@@ -25,7 +25,7 @@ An AI-powered training platform featuring two realistic simulation modes: **Job 
 ## Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
-- **AI**: Google Gemini (question generation & evaluation)
+- **AI**: OpenAI (default) with Gemini fallback (question generation & evaluation)
 - **Voice**: ElevenLabs (text-to-speech)
 - **Speech Recognition**: Web Speech API
 - **Styling**: Tailwind CSS v4
@@ -44,10 +44,15 @@ npm install
 ```env
 # Required for AI features
 GEMINI_API_KEY=your_gemini_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+
+# Provider routing
+AI_PRIMARY_PROVIDER=openai
 
 # Optional
 GEMINI_MODEL=gemini-1.5-pro-latest
+OPENAI_MODEL=gpt-5-mini
 ```
 
 **Get API Keys:**
@@ -71,13 +76,13 @@ npm run dev
 - Entry: Landing page → `/setup`
 - Flow: Configure persona → `/mock` (live interview) → `/results` (evaluation)
 - Use Case: Prepare for job interviews with AI interviewer
-- AI Models: Gemini (questions + evaluation), ElevenLabs (interviewer voice)
+- AI Models: OpenAI default with Gemini fallback (questions + evaluation), ElevenLabs (interviewer voice)
 
 **2. Customer Service Training**
 - Entry: Landing page → `/sim`
 - Flow: Single-page scenario generator with adaptive difficulty
 - Use Case: Train customer service representatives with realistic scenarios
-- AI Models: Gemini (scenarios + evaluation), ElevenLabs (customer voice)
+- AI Models: OpenAI default with Gemini fallback (scenarios + evaluation), ElevenLabs (customer voice)
 
 ### Directory Structure
 
@@ -183,10 +188,12 @@ hooks/
 
 All API routes are fully implemented with graceful fallbacks to mock data when API keys are not configured.
 
-### Gemini Integration
-- **Model**: gemini-1.5-pro-latest (configurable via `GEMINI_MODEL` env var)
+### LLM Integration
+- **Default Provider**: OpenAI (`AI_PRIMARY_PROVIDER=openai`)
+- **Default OpenAI Model**: `gpt-5-mini` (configurable via `OPENAI_MODEL`)
+- **Gemini Fallback**: optional via `GEMINI_API_KEY` and `GEMINI_MODEL`
 - **Features**: Question generation, scenario creation, performance evaluation
-- **Fallback**: Returns mock data if API key missing or on error
+- **Fallback**: Returns mock/heuristic data if providers fail or keys are missing
 
 ### ElevenLabs Integration
 - **Features**: Natural voice synthesis for interviewer/customer personas
@@ -206,10 +213,13 @@ Create `.env.local` in the frontend directory:
 ```env
 # Required for AI features
 GEMINI_API_KEY=your_gemini_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
 
 # Optional
 GEMINI_MODEL=gemini-1.5-pro-latest
+AI_PRIMARY_PROVIDER=openai
+OPENAI_MODEL=gpt-5-mini
 ```
 
 **Note:** The app gracefully falls back to mock data if API keys are not provided, so you can explore the UI without keys.

@@ -6,6 +6,7 @@
     "build": "next build",
     "dev": "next dev --hostname localhost",
     "lint": "eslint .",
+    "smoke:e2e": "node scripts/smoke-e2e.mjs",
     "start": "next start"
   },
   "dependencies": {

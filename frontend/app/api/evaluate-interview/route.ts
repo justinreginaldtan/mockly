@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { generateLlmText } from "@/lib/llm"
+import { recoverJsonCandidate } from "@/lib/json-recovery"
 
 export type InterviewEvaluationResult = {
   overallScore: number
@@ -31,13 +32,6 @@ type EvaluationRequest = {
   questions: QuestionResponse[]
   jobSummary?: string
   resumeSummary?: string
-}
-
-function sanitizeJsonText(text: string): string {
-  return text
-    .replace(/^```[a-zA-Z]*\n?/g, "")
-    .replace(/```\s*$/g, "")
-    .trim()
 }
 
 function generateMockEvaluation(questions: QuestionResponse[]): InterviewEvaluationResult {
@@ -81,25 +75,18 @@ function generateMockEvaluation(questions: QuestionResponse[]): InterviewEvaluat
   }
 }
 
-async function evaluateWithGemini(
+async function evaluateWithLlm(
   questions: QuestionResponse[],
   persona?: string,
   jobSummary?: string,
   resumeSummary?: string
 ): Promise<InterviewEvaluationResult> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY not configured")
+  const hasAnyProviderKey = Boolean(
+    process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.OPENAI_API_KEY
+  )
+  if (!hasAnyProviderKey) {
+    throw new Error("No LLM provider key configured")
   }
-
-  const modelId = process.env.GEMINI_MODEL || "gemini-1.5-pro-latest"
-  const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({
-    model: modelId,
-    generationConfig: {
-      responseMimeType: "application/json"
-    }
-  })
 
   // Build comprehensive prompt
   const qaSection = questions.map((q, idx) =>
@@ -116,6 +103,7 @@ async function evaluateWithGemini(
     "Interview Questions and Responses:",
     qaSection,
     "",
+    "Return ONLY strict JSON (no markdown, no commentary).",
     "Provide a comprehensive evaluation in the following JSON format:",
     "{",
     '  "overallScore": <number 0-100>,',
@@ -143,18 +131,23 @@ async function evaluateWithGemini(
     "- evidenceSnippets include 5-6 actual quotes from the candidate's responses",
     "- strengths and weakAreas are specific and evidence-based",
     "- upgradePlan provides actionable, practical advice",
-    "- followUpQuestions are relevant to weak areas identified"
+    "- followUpQuestions are relevant to weak areas identified",
+    "- strengths and weakAreas must be concise and recruiter-friendly",
+    "- at least one upgradePlan item should directly reference STAR framing"
   ].join("\n")
 
-  const result = await model.generateContent(prompt)
-  const text = result.response.text()
-  const cleaned = sanitizeJsonText(text)
-
-  let parsed: Partial<InterviewEvaluationResult>
-  try {
-    parsed = JSON.parse(cleaned)
-  } catch (parseError) {
-    console.error("[Evaluate-Interview] Failed to parse Gemini response:", parseError)
+  const result = await generateLlmText(prompt, {
+    geminiModels: [
+      process.env.GEMINI_MODEL || "",
+      "gemini-1.5-pro-latest",
+      "gemini-1.5-flash-latest",
+    ].filter(Boolean),
+    openAiModel: process.env.OPENAI_MODEL || "gpt-5-mini",
+    temperature: 0.2,
+  })
+  const parsed = recoverJsonCandidate<Partial<InterviewEvaluationResult>>(result.text)
+  if (!parsed) {
+    console.error("[Evaluate-Interview] Failed to parse model response")
     throw new Error("Invalid response format from AI")
   }
 
@@ -230,17 +223,17 @@ export async function POST(request: Request) {
       }
     }
 
-    // Try to evaluate with Gemini, fall back to mock if unavailable
+    // Try to evaluate with configured LLM providers, fall back to mock if unavailable
     let evaluation: InterviewEvaluationResult
     try {
-      evaluation = await evaluateWithGemini(
+      evaluation = await evaluateWithLlm(
         body.questions,
         body.persona,
         body.jobSummary,
         body.resumeSummary
       )
-    } catch (geminiError) {
-      console.warn("[Evaluate-Interview] Gemini evaluation failed, using mock data:", geminiError)
+    } catch (llmError) {
+      console.warn("[Evaluate-Interview] LLM evaluation failed, using mock data:", llmError)
       evaluation = generateMockEvaluation(body.questions)
     }
 

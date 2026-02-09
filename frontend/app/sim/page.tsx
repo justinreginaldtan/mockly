@@ -12,6 +12,8 @@ import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/loading-states"
 import EnhancedNavHeader from "@/components/enhanced-nav-header"
+import { speakWithBrowserTts, stopBrowserTts } from "@/lib/browser-tts"
+import type { ProviderStatusPayload } from "@/lib/provider-status"
 
 type EvaluationFeedback = {
   empathy: number
@@ -42,6 +44,8 @@ export default function SimPage() {
   const [showClickToStart, setShowClickToStart] = useState<boolean>(true)
   const [micStream, setMicStream] = useState<MediaStream | null>(null)
   const [micPermissionGranted, setMicPermissionGranted] = useState<boolean>(false)
+  const [voiceFallbackActive, setVoiceFallbackActive] = useState<boolean>(false)
+  const [providerStatus, setProviderStatus] = useState<ProviderStatusPayload | null>(null)
   const [nightmareMode, setNightmareMode] = useState<boolean>(false)
   const [nightmareIntensity, setNightmareIntensity] = useState<number>(0)
   const [audioChaos, setAudioChaos] = useState<boolean>(false)
@@ -131,6 +135,26 @@ export default function SimPage() {
     console.log("[Sim] Speech recorder status:", status)
   }, [status])
 
+  useEffect(() => {
+    let active = true
+    void fetch("/api/provider-status")
+      .then((response) => response.json())
+      .then((data) => {
+        if (active) {
+          setProviderStatus(data as ProviderStatusPayload)
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setProviderStatus(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
   const canRecord = useMemo(() => {
     return isSupported && 
            !loadingScenario && 
@@ -149,6 +173,7 @@ export default function SimPage() {
       } catch {}
       audioRef.current = null
     }
+    stopBrowserTts()
   }, [])
 
 
@@ -257,6 +282,7 @@ export default function SimPage() {
         signal: ttsController.signal,
       })
       if (tts.ok) {
+        setVoiceFallbackActive(false)
         const blob = await tts.blob()
         const audioUrl = URL.createObjectURL(blob)
         console.log(`[Sim] TTS audio generated (${blob.size} bytes), creating object URL: ${audioUrl}`)
@@ -288,9 +314,19 @@ export default function SimPage() {
                })
       } else {
         // Non-fatal: allow user to proceed even if TTS fails
-        const msg = await tts.text().catch(() => "TTS failed")
+        const payload = (await tts.json().catch(() => null)) as
+          | { message?: string; error?: string; fallbackAvailable?: boolean }
+          | null
+        const msg = payload?.message || payload?.error || "TTS failed"
         console.warn("TTS failed", msg)
-               setAudioFinished(true) // Enable mic if TTS fails
+        setVoiceFallbackActive(true)
+        try {
+          await speakWithBrowserTts(scenarioPrompt)
+        } catch (fallbackError) {
+          console.warn("Browser TTS fallback failed", fallbackError)
+        } finally {
+          setAudioFinished(true) // Enable mic if TTS fails
+        }
       }
       pendingTtsRef.current = null
     } catch (e) {
@@ -308,7 +344,32 @@ export default function SimPage() {
       pendingTtsRef.current = null
       isGeneratingScenarioRef.current = false
     }
-  }, [difficulty, reset, stopAudio])
+  }, [difficulty, reset, shouldInitializeRecorder, stopAudio])
+
+  const decideNextScenario = useCallback(
+    ({
+      empathy,
+      resolution,
+      difficulty: current,
+    }: {
+      empathy: number
+      resolution: number
+      difficulty: typeof difficulty
+    }) => {
+      let direction: "harder" | "easier" | "same" = "same"
+      if (empathy >= 75 && resolution >= 75) direction = "harder"
+      else if (empathy < 40 || resolution < 40) direction = "easier"
+      const next = nextDifficulty(current, direction)
+      console.log(`[Sim] Difficulty decision: ${current} --(${direction})-> ${next}`)
+      if (next !== current) {
+        setDifficulty(next)
+        debounceTimerRef.current = window.setTimeout(() => {
+          fetchScenario(next)
+        }, 300)
+      }
+    },
+    [fetchScenario],
+  )
 
   const evaluateResponse = useCallback(async () => {
     console.log("[Sim] evaluateResponse called with:", { 
@@ -386,7 +447,7 @@ export default function SimPage() {
       console.log("[Sim] Evaluation finished, setting evaluating to false")
       setEvaluating(false)
     }
-  }, [prompt, transcript, scenarioId, perfectScoresMode, difficulty])
+  }, [prompt, transcript, scenarioId, perfectScoresMode, difficulty, decideNextScenario])
 
   // Initialize speech recorder on mount (no auto-start)
   useEffect(() => {
@@ -408,6 +469,12 @@ export default function SimPage() {
       }
     }
   }, [micStream])
+
+  useEffect(() => {
+    return () => {
+      stopBrowserTts()
+    }
+  }, [])
 
 
   // Don't auto-fetch first scenario - wait for user click
@@ -545,6 +612,7 @@ export default function SimPage() {
       })
       
       if (ttsRes.ok) {
+        setVoiceFallbackActive(false)
         const blob = await ttsRes.blob()
         const audioUrl = URL.createObjectURL(blob)
         console.log(`[Sim] TTS audio generated (${blob.size} bytes)`)
@@ -576,9 +644,19 @@ export default function SimPage() {
         console.log("[Sim] First scenario audio play() resolved successfully")
         
       } else {
-        const msg = await ttsRes.text().catch(() => "TTS failed")
+        const payload = (await ttsRes.json().catch(() => null)) as
+          | { message?: string; error?: string; fallbackAvailable?: boolean }
+          | null
+        const msg = payload?.message || payload?.error || "TTS failed"
         console.warn("[Sim] First scenario TTS failed", msg)
-        setAudioFinished(true) // Enable mic if TTS fails
+        setVoiceFallbackActive(true)
+        try {
+          await speakWithBrowserTts(scenarioPrompt)
+        } catch (fallbackError) {
+          console.warn("Browser TTS fallback failed for first scenario", fallbackError)
+        } finally {
+          setAudioFinished(true) // Enable mic if TTS fails
+        }
       }
       
     } catch (error) {
@@ -676,29 +754,6 @@ export default function SimPage() {
     })
   }
 
-  function decideNextScenario({
-    empathy,
-    resolution,
-    difficulty: current,
-  }: {
-    empathy: number
-    resolution: number
-    difficulty: typeof difficulty
-  }) {
-    let direction: "harder" | "easier" | "same" = "same"
-    if (empathy >= 75 && resolution >= 75) direction = "harder"
-    else if (empathy < 40 || resolution < 40) direction = "easier"
-    const next = nextDifficulty(current, direction)
-    console.log(`[Sim] Difficulty decision: ${current} --(${direction})-> ${next}`)
-    if (next !== current) {
-      setDifficulty(next)
-      // Debounce the scenario fetch to prevent rapid calls
-      debounceTimerRef.current = window.setTimeout(() => {
-        fetchScenario(next)
-      }, 300)
-    }
-  }
-
   return (
     <div 
       className="min-h-screen w-full bg-[#FFF8F5]"
@@ -774,6 +829,28 @@ export default function SimPage() {
                   <span>Instant feedback</span>
                 </div>
               </motion.div>
+              {providerStatus && (
+                <div className="mt-4 flex justify-center gap-2 text-xs font-semibold">
+                  <span
+                    className={`rounded-full border px-3 py-1 ${
+                      providerStatus.llm.mode === "live"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-amber-200 bg-amber-50 text-amber-700"
+                    }`}
+                  >
+                    {providerStatus.llm.mode === "live" ? "Live AI" : "AI Fallback"}
+                  </span>
+                  <span
+                    className={`rounded-full border px-3 py-1 ${
+                      voiceFallbackActive || providerStatus.voice.mode !== "live"
+                        ? "border-amber-200 bg-amber-50 text-amber-700"
+                        : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    }`}
+                  >
+                    {voiceFallbackActive || providerStatus.voice.mode !== "live" ? "Voice Fallback Active" : "Live Voice"}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -783,6 +860,28 @@ export default function SimPage() {
 
         {/* Main Content */}
         <div className="mx-auto max-w-6xl px-4 py-12">
+          {providerStatus && (
+            <div className="mb-4 flex flex-wrap gap-2 text-xs font-semibold">
+              <span
+                className={`rounded-full border px-3 py-1 ${
+                  providerStatus.llm.mode === "live"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-amber-200 bg-amber-50 text-amber-700"
+                }`}
+              >
+                {providerStatus.llm.mode === "live" ? "Live AI" : "AI Fallback"}
+              </span>
+              <span
+                className={`rounded-full border px-3 py-1 ${
+                  voiceFallbackActive || providerStatus.voice.mode !== "live"
+                    ? "border-amber-200 bg-amber-50 text-amber-700"
+                    : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                }`}
+              >
+                {voiceFallbackActive || providerStatus.voice.mode !== "live" ? "Voice Fallback Active" : "Live Voice"}
+              </span>
+            </div>
+          )}
           <div className="grid gap-10 lg:grid-cols-3">
             {/* Left Column - Scenario & Controls */}
             <div className="lg:col-span-2 space-y-8">
@@ -840,7 +939,7 @@ export default function SimPage() {
               </Button>
             </div>
                     <div className="bg-[#F8F9FA] rounded-2xl p-6 border border-[#E9ECEF]">
-                      <p className="text-[#1A1A1A] leading-relaxed font-medium">"{prompt}"</p>
+                      <p className="text-[#1A1A1A] leading-relaxed font-medium">&ldquo;{prompt}&rdquo;</p>
           </div>
         </div>
                 </motion.div>
@@ -865,7 +964,7 @@ export default function SimPage() {
                       </div>
                     </div>
                     <div className="bg-[#F0F9FF] rounded-2xl p-6 border border-[#BFDBFE]">
-                      <p className="text-[#1A1A1A] leading-relaxed font-medium">"{transcript}"</p>
+                      <p className="text-[#1A1A1A] leading-relaxed font-medium">&ldquo;{transcript}&rdquo;</p>
                     </div>
                   </div>
                 </motion.div>
@@ -987,7 +1086,7 @@ export default function SimPage() {
                   <div className="space-y-3 text-sm text-[#666666]">
                     <div className="flex items-start gap-3">
                       <span className="text-[#FF7A70] mt-1">•</span>
-                      <span>Listen actively and acknowledge the customer's concerns</span>
+                      <span>Listen actively and acknowledge the customer&apos;s concerns</span>
                     </div>
                     <div className="flex items-start gap-3">
                       <span className="text-[#FF7A70] mt-1">•</span>
@@ -1131,5 +1230,3 @@ function nextDifficulty(
   if (direction === "harder") return order[Math.min(order.length - 1, idx + 1)]
   return order[Math.max(0, idx - 1)]
 }
-
-

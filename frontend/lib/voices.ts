@@ -21,7 +21,7 @@ export const VOICE_STYLE_OPTIONS: VoiceStyleOption[] = [
   {
     id: "mentor",
     label: "Mentor · Calm guidance",
-    elevenLabsVoiceId: "1t1EeRixsJrKbiF1zwM6",
+    elevenLabsVoiceId: "CwhRBWXzGAHq8TQ4Fs17",
     previewText: "Hey there! I'm Avery, your calm technical mentor. Let's walk through your stories together and dig into the impact you drove.",
     greetingText: "Hey there! I'm Avery, your Google mentor for today. Take a breath and get ready to walk me through your proudest work.",
     description: "Measured pace, warm tone. Great for easing nerves before day-of interview.",
@@ -35,7 +35,7 @@ export const VOICE_STYLE_OPTIONS: VoiceStyleOption[] = [
   {
     id: "recruiter",
     label: "Recruiter · Energetic",
-    elevenLabsVoiceId: "kPzsL2i3teMYv0FxEYQ6",
+    elevenLabsVoiceId: "FGY2WhTYpPnrIDTdsKH5",
     previewText: "Hi! I'm Britney, your high-energy recruiter. I'm here to keep the pace up and get you ready for that first-round screen.",
     greetingText: "Hi there! Britney here—I'm running this mock screen like a fast-paced recruiter. Ready when you are!",
     description: "Upbeat, keeps momentum high to mirror real phone-screens.",
@@ -49,7 +49,7 @@ export const VOICE_STYLE_OPTIONS: VoiceStyleOption[] = [
   {
     id: "principal",
     label: "Principal Engineer · Direct",
-    elevenLabsVoiceId: "xMagNCpMgZ83QOEsHNre",
+    elevenLabsVoiceId: "IKne3meq5aSn9XLyUdCD",
     previewText: "This is Arjun, your principal engineer mock interviewer. Expect direct questions and thoughtful follow-ups.",
     greetingText: "Arjun here. I'm treating this like a principal engineer loop—let's focus on clarity and depth in your answers.",
     description: "Fast-paced and analytical, tests your confidence under pressure.",
@@ -63,7 +63,7 @@ export const VOICE_STYLE_OPTIONS: VoiceStyleOption[] = [
   {
     id: "security-coach",
     label: "Security Coach · Measured",
-    elevenLabsVoiceId: "xMagNCpMgZ83QOEsHNre",
+    elevenLabsVoiceId: "SAz9YHcvj6GT2YYXdXww",
     previewText: "Hi, I’m your Cisco SOC lead today. Let’s walk through your containment calls and automation wins together.",
     greetingText: "Thanks for joining. I’ll treat this like a Cisco escalation—walk me through the incident and what you recommended.",
     description: "Calm, analytical cadence that mirrors incident-review debriefs.",
@@ -85,7 +85,7 @@ export const PERSONA_VOICE_DEFAULTS: Record<string, VoiceStyleOption["id"]> = {
 
 const voiceLookup = new Map(VOICE_STYLE_OPTIONS.map((option) => [option.id, option]))
 
-export const ELEVENLABS_MODEL_ID = process.env.ELEVENLABS_MODEL_ID ?? "eleven_monolingual_v1"
+export const ELEVENLABS_MODEL_ID = process.env.ELEVENLABS_MODEL_ID ?? "eleven_multilingual_v2"
 
 export function getVoiceStyleOption(id: string | undefined | null): VoiceStyleOption {
   if (!id) {

@@ -1,16 +1,7 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { generateLlmText } from './llm'
+import { recoverJsonCandidate } from './json-recovery'
 
 import { mockEvaluationResults, mockInterviewQuestions } from './mock-data'
-
-const DEFAULT_GEMINI_MODELS = [
-  process.env.GEMINI_MODEL,
-  'gemini-1.5-pro-latest',
-  'gemini-1.5-flash-latest',
-].filter((value): value is string => Boolean(value && value.trim()))
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY
-
-const geminiClient = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null
 
 export interface PersonaConfig {
   personaId: string
@@ -68,45 +59,18 @@ export interface EvaluationSummary {
 }
 
 async function generateContentText(parts: Array<{ text: string }>): Promise<string> {
-  if (!geminiClient) {
-    throw new Error('GEMINI_API_KEY is not set')
-  }
-  let lastError: unknown
-
-  for (const modelName of DEFAULT_GEMINI_MODELS) {
-    try {
-      const model = geminiClient.getGenerativeModel({
-        model: modelName,
-        generationConfig: {
-          responseMimeType: 'application/json',
-        },
-      })
-      const result = await model.generateContent({
-        contents: [
-          {
-            role: 'user',
-            parts,
-          },
-        ],
-      })
-
-      const text = result.response?.text()
-      if (!text || text.trim().length === 0) {
-        throw new Error('Empty Gemini response')
-      }
-
-      return text
-    } catch (error) {
-      lastError = error
-
-      const status = typeof error === 'object' && error && 'status' in error ? (error as { status?: number }).status : undefined
-      if (status !== 404) {
-        break
-      }
-    }
-  }
-
-  throw lastError ?? new Error('Unable to generate Gemini response')
+  const prompt = parts.map((part) => part.text).join('\n\n')
+  const result = await generateLlmText(prompt, {
+    geminiModels: [
+      process.env.GEMINI_MODEL || '',
+      'gemini-2.5-flash',
+      'gemini-1.5-pro-latest',
+      'gemini-1.5-flash-latest',
+    ].filter(Boolean),
+    openAiModel: process.env.OPENAI_MODEL || 'gpt-5-mini',
+    temperature: 0.2,
+  })
+  return result.text
 }
 
 function buildQuestionPrompt(config: PersonaConfig, resumeSummary?: string, jobSummary?: string): string {
@@ -116,7 +80,10 @@ function buildQuestionPrompt(config: PersonaConfig, resumeSummary?: string, jobS
     `Technical weighting: ${config.technicalWeight}%. Duration: ${config.duration}.`,
     resumeSummary ? `Candidate background: ${resumeSummary}.` : null,
     jobSummary ? `Job description summary: ${jobSummary}.` : null,
-    'Provide a JSON array of 5-6 questions. Each question should include: id, prompt, optional focusArea, optional followUps (array of 1-2 strings).',
+    'Return ONLY strict JSON (no markdown, no commentary).',
+    'Provide a JSON array of 5-6 questions.',
+    'Each question object must include: id (string), prompt (string), optional focusArea (string), optional followUps (array of 1-2 strings).',
+    'Keep prompts concise and interview-realistic.',
   ]
     .filter(Boolean)
     .join('\n')
@@ -128,24 +95,20 @@ function buildEvaluationPrompt(input: EvaluationInput): string {
     `Persona: ${input.persona.company} ${input.persona.role}. Focus areas: ${input.persona.focusAreas.join(', ') || 'general'}.`,
     input.questionId ? `Question ID: ${input.questionId}.` : null,
     `Transcript:\n${input.transcript}`,
-    'Return JSON with overallScore (0-100), strengths (array), weakAreas (array), jdCoverage (object with hit, partial, miss as percentages totaling 100), insights (array of coaching tips), evidenceSnippets (array of objects with type hit|partial|miss, skill, quote, optional matchedRequirement).',
+    'Return ONLY strict JSON (no markdown, no commentary).',
+    'JSON fields required: overallScore (0-100), strengths (array), weakAreas (array), jdCoverage (object with hit, partial, miss totaling 100), insights (array of coaching tips), evidenceSnippets (array of objects with type hit|partial|miss, skill, quote, optional matchedRequirement).',
   ]
     .filter(Boolean)
     .join('\n')
 }
 
 function safeParseJSON<T>(payload: string): T | null {
-  try {
-    const trimmed = payload.trim()
-    const markdownFencePattern = /^```(?:json)?\s*([\s\S]*?)\s*```$/i
-    const match = trimmed.match(markdownFencePattern)
-    const jsonContent = match ? match[1] : trimmed
-
-    return JSON.parse(jsonContent) as T
-  } catch (error) {
-    console.error('Failed to parse Gemini response as JSON', error)
+  const parsed = recoverJsonCandidate<T>(payload)
+  if (!parsed) {
+    console.error('Failed to parse model response as JSON')
     return null
   }
+  return parsed
 }
 
 export async function generateInterviewPlan(
@@ -153,8 +116,11 @@ export async function generateInterviewPlan(
   resumeSummary?: string,
   jobSummary?: string,
 ): Promise<InterviewPlan> {
-  if (!GEMINI_API_KEY) {
-    console.warn('GEMINI_API_KEY missing, falling back to mock interview questions.')
+  const hasAnyProviderKey = Boolean(
+    process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.OPENAI_API_KEY,
+  )
+  if (!hasAnyProviderKey) {
+    console.warn('No LLM API key configured, falling back to mock interview questions.')
     return {
       persona: config,
       questions: mockInterviewQuestions.map((question) => ({
@@ -162,7 +128,7 @@ export async function generateInterviewPlan(
         prompt: question.question,
         focusArea: question.focusArea,
       })),
-      guidance: 'Mock data in use. Supply GEMINI_API_KEY for live generation.',
+      guidance: 'Mock data in use. Supply GEMINI_API_KEY or OPENAI_API_KEY for live generation.',
     }
   }
 
@@ -173,7 +139,7 @@ export async function generateInterviewPlan(
 
     const parsed = safeParseJSON<InterviewQuestion[]>(raw)
     if (!parsed || !Array.isArray(parsed)) {
-      throw new Error('Gemini returned invalid interview plan JSON')
+      throw new Error('LLM returned invalid interview plan JSON')
     }
 
     return {
@@ -181,7 +147,7 @@ export async function generateInterviewPlan(
       questions: parsed,
     }
   } catch (error) {
-    console.error('Failed to generate interview plan via Gemini. Using mock data.', error)
+    console.error('Failed to generate interview plan via LLM. Using mock data.', error)
     return {
       persona: config,
       questions: mockInterviewQuestions.map((question) => ({
@@ -189,14 +155,17 @@ export async function generateInterviewPlan(
         prompt: question.question,
         focusArea: question.focusArea,
       })),
-      guidance: 'Gemini generation failed. Mock questions provided instead.',
+      guidance: 'Fallback mode active (LLM_PARSE_FAILED). Mock questions provided.',
     }
   }
 }
 
 export async function evaluateInterviewAnswer(input: EvaluationInput): Promise<EvaluationSummary> {
-  if (!GEMINI_API_KEY) {
-    console.warn('GEMINI_API_KEY missing, falling back to mock evaluation data.')
+  const hasAnyProviderKey = Boolean(
+    process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.OPENAI_API_KEY,
+  )
+  if (!hasAnyProviderKey) {
+    console.warn('No LLM API key configured, falling back to mock evaluation data.')
     return {
       overallScore: mockEvaluationResults.overallScore,
       strengths: mockEvaluationResults.strengths,
@@ -219,12 +188,12 @@ export async function evaluateInterviewAnswer(input: EvaluationInput): Promise<E
 
     const parsed = safeParseJSON<EvaluationSummary>(raw)
     if (!parsed) {
-      throw new Error('Gemini returned invalid evaluation JSON')
+      throw new Error('LLM returned invalid evaluation JSON')
     }
 
     return parsed
   } catch (error) {
-    console.error('Failed to evaluate interview answer via Gemini. Using mock evaluation.', error)
+    console.error('Failed to evaluate interview answer via LLM. Using mock evaluation.', error)
     return {
       overallScore: mockEvaluationResults.overallScore,
       strengths: mockEvaluationResults.strengths,

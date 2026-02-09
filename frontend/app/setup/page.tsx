@@ -26,6 +26,8 @@ import { cn } from "@/lib/utils"
 import type { InterviewPlan, InterviewSetupPayload } from "@/lib/gemini"
 import { SETUP_CACHE_KEY, PLAN_CACHE_KEY } from "@/lib/cache-keys"
 import { resolvePersonaVoice, VOICE_STYLE_OPTIONS } from "@/lib/voices"
+import { speakWithBrowserTts, stopBrowserTts } from "@/lib/browser-tts"
+import type { ProviderStatusPayload } from "@/lib/provider-status"
 
 type FocusAreaId =
   | "leadership"
@@ -177,6 +179,7 @@ function SetupPageContent() {
   const [startError, setStartError] = useState<string | null>(null)
   const [previewingPersonaId, setPreviewingPersonaId] = useState<string | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
+  const [providerStatus, setProviderStatus] = useState<ProviderStatusPayload | null>(null)
   const [focusAreas, setFocusAreas] = useState<Record<FocusAreaId, boolean>>(() => {
     return focusAreaOptions.reduce((acc, option) => {
       acc[option.id] = defaultPersona.recommendedFocusAreas.includes(option.id)
@@ -239,11 +242,32 @@ function SetupPageContent() {
   }, [selectedPersonaId, updateScrollState])
 
   useEffect(() => {
+    let active = true
+    void fetch("/api/provider-status")
+      .then((response) => response.json())
+      .then((data) => {
+        if (active) {
+          setProviderStatus(data as ProviderStatusPayload)
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setProviderStatus(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
     return () => {
       if (previewAudioRef.current) {
         previewAudioRef.current.pause()
         previewAudioRef.current = null
       }
+      stopBrowserTts()
     }
   }, [])
 
@@ -294,6 +318,7 @@ function SetupPageContent() {
           previewAudioRef.current.pause()
           previewAudioRef.current = null
         }
+        stopBrowserTts()
         setPreviewingPersonaId(null)
         return
       }
@@ -302,6 +327,7 @@ function SetupPageContent() {
         previewAudioRef.current.pause()
         previewAudioRef.current = null
       }
+      stopBrowserTts()
 
       setPreviewError(null)
       setPreviewingPersonaId(personaId)
@@ -323,14 +349,26 @@ function SetupPageContent() {
           }),
         })
 
-        if (!response.ok) {
-          const message = await response.text().catch(() => "")
-          throw new Error(message || "Unable to generate preview audio.")
-        }
+        const data = (await response.json().catch(() => null)) as
+          | {
+              success?: boolean
+              audioUrl?: string
+              message?: string
+              error?: string
+              fallbackAvailable?: boolean
+            }
+          | null
 
-        const data = (await response.json()) as { audioUrl?: string; error?: string }
-        if (!data?.audioUrl) {
-          throw new Error(data?.error ?? "No audio returned from ElevenLabs.")
+        if (!response.ok || !data?.audioUrl) {
+          const fallbackAllowed = Boolean(data?.fallbackAvailable)
+          const message = data?.message || data?.error || "Unable to generate preview audio."
+          if (fallbackAllowed) {
+            await speakWithBrowserTts(voiceConfig.previewText)
+            setPreviewError("Voice fallback active (browser TTS).")
+            setPreviewingPersonaId(null)
+            return
+          }
+          throw new Error(message)
         }
 
         const audio = new Audio(data.audioUrl)
@@ -421,13 +459,13 @@ function SetupPageContent() {
       })
 
       if (!response.ok) {
-        const message = await response.text().catch(() => "")
-        throw new Error(message || "Gemini could not shape the interview.")
+        const errorPayload = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(errorPayload?.error || "AI could not shape the interview.")
       }
 
       const data = await response.json().catch(() => null) as { success?: boolean; plan?: unknown; error?: string } | null
       if (!data?.success || !data.plan) {
-        throw new Error(data?.error ?? "Gemini returned an incomplete interview plan.")
+        throw new Error(data?.error ?? "AI returned an incomplete interview plan.")
       }
 
       if (typeof window !== "undefined") {
@@ -447,7 +485,7 @@ function SetupPageContent() {
       const message =
         error instanceof Error && error.message
           ? error.message
-          : "Gemini is busy. Try again in a few seconds."
+          : "AI is busy. Try again in a few seconds."
       setStartError(message)
       if (typeof window !== "undefined") {
         window.sessionStorage.removeItem(PLAN_CACHE_KEY)
@@ -479,13 +517,37 @@ function SetupPageContent() {
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#EDE5E0] bg-white px-4 py-1 text-sm font-semibold text-[#777777] shadow-sm">
                 <Sparkles className="h-4 w-4 text-[#FF7A70]" />
-                Gemini is shaping your interviewer
+                AI is shaping your interviewer
               </div>
+              {providerStatus && (
+                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                  <span
+                    className={cn(
+                      "rounded-full border px-3 py-1",
+                      providerStatus.llm.mode === "live"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-amber-200 bg-amber-50 text-amber-700",
+                    )}
+                  >
+                    {providerStatus.llm.mode === "live" ? "Live AI" : "Fallback AI"}
+                  </span>
+                  <span
+                    className={cn(
+                      "rounded-full border px-3 py-1",
+                      providerStatus.voice.mode === "live"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-amber-200 bg-amber-50 text-amber-700",
+                    )}
+                  >
+                    {providerStatus.voice.mode === "live" ? "Live Voice" : "Voice Fallback Ready"}
+                  </span>
+                </div>
+              )}
               <h1 className="text-4xl font-semibold tracking-tight leading-tight text-[#1A1A1A]">
                 Customize the vibe, depth, and voice before you hop into the hot seat.
               </h1>
               <p className="text-lg text-[#777777] max-w-2xl">
-                Pick the company persona, balance technical vs. behavioral, and let Gemini build a script that mirrors the
+                Pick the company persona, balance technical vs. behavioral, and let AI build a script that mirrors the
                 interviews you’re walking into.
               </p>
             </div>
@@ -602,7 +664,7 @@ function SetupPageContent() {
                 </button>
               </div>
               {previewError && (
-                <p className="mt-2 text-xs text-amber-300">{previewError}</p>
+                <p className="mt-2 text-xs text-amber-700">{previewError}</p>
               )}
             </section>
 
@@ -610,7 +672,7 @@ function SetupPageContent() {
               <div className="space-y-2">
                 <h2 className="text-xl font-semibold text-[#1A1A1A]">Question mix</h2>
                 <p className="text-sm text-[#777777]">
-                  Gemini balances technical depth with behavioral storytelling—adjust to match the interview stage.
+                  AI balances technical depth with behavioral storytelling—adjust to match the interview stage.
                 </p>
               </div>
 
@@ -651,7 +713,7 @@ function SetupPageContent() {
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-[#1A1A1A]">Emphasize these stories</h2>
                 <span className="text-xs uppercase tracking-[0.25em] text-[#777777]">
-                  Gemini will anchor to your resume
+                  AI will anchor to your resume
                 </span>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
@@ -802,7 +864,7 @@ function SetupPageContent() {
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2 rounded-full bg-[#FF7A70]/10 px-3 py-1 text-xs font-semibold text-[#FF7A70]">
                   <Sparkles className="h-3.5 w-3.5" />
-                  Live Gemini Preview
+                  Live AI Preview
                 </span>
                 <span className="text-xs font-semibold text-[#777777]">Realtime updates</span>
               </div>

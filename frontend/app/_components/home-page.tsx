@@ -286,7 +286,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 Configure your training
               </h2>
             <p className="font-body text-base font-medium leading-relaxed max-sm:text-sm max-sm:leading-snug">
-              Mockly customizes every training session to your company's specific scenarios and customer service standards. 
+              Mockly customizes every training session to your company specific scenarios and customer service standards.
               Our AI analyzes your materials to create personalized training experiences.
             </p>
           </div>
@@ -514,7 +514,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.24 }}
               >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8F7A6F]">
-                  <BarChart3 className="h-4 w-4 text-[#FF7A70]" /> Sample scenarios you'll practice
+                  <BarChart3 className="h-4 w-4 text-[#FF7A70]" /> Sample scenarios you will practice
                 </div>
                 <ul className="mt-4 space-y-4">
                   {trainingSummary.scenarioPreview.map((scenario, index) => (
@@ -523,7 +523,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                         <span>Scenario {index + 1}</span>
                         <span className="text-[#7A6C64]">{scenario.focus}</span>
                       </div>
-                      <p className="mt-2 font-body text-sm font-medium leading-relaxed">"{scenario.prompt}"</p>
+                      <p className="mt-2 font-body text-sm font-medium leading-relaxed">&ldquo;{scenario.prompt}&rdquo;</p>
                     </li>
                   ))}
                 </ul>
@@ -603,7 +603,7 @@ export default function HomePage({ HeroComponent = Hero }: HomePageProps) {
                 Start your training session
               </h2>
               <p className="max-w-2xl font-body text-base font-medium leading-relaxed max-sm:text-sm max-sm:leading-snug">
-              Your AI customer, training scenarios, and feedback metrics are ready. Start practicing when you're prepared to speak and
+              Your AI customer, training scenarios, and feedback metrics are ready. Start practicing when you are prepared to speak and
               receive detailed coaching feedback moments after you finish.
             </p>
             </div>

@@ -6,6 +6,7 @@ import {
   resolvePersonaVoice,
   type PersonaVoiceConfig,
 } from "@/lib/voices"
+import { mapElevenLabsError, type VoiceApiError, type VoiceErrorCode } from "@/lib/voice-api"
 import { sanitizeTextForTTS } from "@/lib/text-sanitizer"
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY ?? ""
@@ -16,6 +17,16 @@ interface VoiceRequestPayload {
   personaId?: string
   voiceStyleId?: string
   preview?: boolean
+}
+
+function buildVoiceError(code: VoiceErrorCode, message: string): VoiceApiError {
+  return {
+    success: false,
+    provider: "elevenlabs",
+    code,
+    message,
+    fallbackAvailable: true,
+  }
 }
 
 function toBase64AudioUrl(buffer: ArrayBuffer, mimeType = "audio/mpeg"): string {
@@ -40,25 +51,24 @@ function resolveVoiceConfig(payload: VoiceRequestPayload): { text: string; voice
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as VoiceRequestPayload
+    const body = (await request.json().catch(() => ({}))) as VoiceRequestPayload
     const { text, voice } = resolveVoiceConfig(body)
 
     if (!text) {
       return NextResponse.json(
-        { success: false, error: "No text provided for synthesis." },
+        buildVoiceError("VOICE_TEXT_REQUIRED", "No text provided for synthesis."),
         { status: 400 },
       )
     }
 
     if (!hasElevenLabsApiKey()) {
-      return NextResponse.json({
-        success: true,
-        mocked: true,
-        text,
-        audioUrl: null,
-        voiceStyleId: voice.styleId,
-        voiceLabel: voice.label,
-      })
+      return NextResponse.json(
+        buildVoiceError(
+          "VOICE_PROVIDER_UNAVAILABLE",
+          "ElevenLabs API key is missing. Using browser voice fallback.",
+        ),
+        { status: 503 },
+      )
     }
 
     const response = await fetch(`${ELEVENLABS_BASE_URL}/v1/text-to-speech/${voice.elevenLabsVoiceId}`, {
@@ -80,20 +90,16 @@ export async function POST(request: Request) {
     })
 
     if (!response.ok) {
-      const message = await response.text().catch(() => "Failed to generate audio with ElevenLabs.")
-      return NextResponse.json(
-        {
-          success: false,
-          error: message || "Failed to generate audio with ElevenLabs.",
-        },
-        { status: 502 },
-      )
+      const rawMessage = await response.text().catch(() => "")
+      return NextResponse.json(mapElevenLabsError(response.status, rawMessage), { status: 502 })
     }
 
     const arrayBuffer = await response.arrayBuffer()
 
     return NextResponse.json({
       success: true,
+      provider: "elevenlabs",
+      mode: "live",
       audioUrl: toBase64AudioUrl(arrayBuffer),
       voiceStyleId: voice.styleId,
       voiceLabel: voice.label,
@@ -101,6 +107,9 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error("voice-question error", error)
-    return NextResponse.json({ success: false, error: "Failed to generate voice" }, { status: 500 })
+    return NextResponse.json(
+      buildVoiceError("VOICE_REQUEST_FAILED", "Failed to generate voice with ElevenLabs."),
+      { status: 500 },
+    )
   }
 }

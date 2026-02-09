@@ -15,6 +15,8 @@ import { useSpeechRecorder } from "@/hooks/use-speech-recorder"
 import { Waveform } from "@/components/waveform"
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
+import { speakWithBrowserTts, stopBrowserTts } from "@/lib/browser-tts"
+import type { ProviderStatusPayload } from "@/lib/provider-status"
 
 // Clean, minimal theme system
 const theme = {
@@ -49,6 +51,8 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
   const [interviewPlan, setInterviewPlan] = useState<InterviewPlan | null>(null)
   const [isVoicePlaying, setIsVoicePlaying] = useState(false)
   const [voiceError, setVoiceError] = useState<string | null>(null)
+  const [voiceFallbackActive, setVoiceFallbackActive] = useState(false)
+  const [providerStatus, setProviderStatus] = useState<ProviderStatusPayload | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const hasPlayedCurrentQuestion = useRef(false)
   const [planLoading, setPlanLoading] = useState(true)
@@ -136,7 +140,27 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
     loadPlan()
   }, [])
 
-  const questions = interviewPlan?.questions || []
+  useEffect(() => {
+    let active = true
+    void fetch("/api/provider-status")
+      .then((response) => response.json())
+      .then((data) => {
+        if (active) {
+          setProviderStatus(data as ProviderStatusPayload)
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setProviderStatus(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const questions = useMemo(() => interviewPlan?.questions ?? [], [interviewPlan?.questions])
   const currentQuestion = questions[currentQuestionIndex]
   const currentQuestionText = currentQuestion?.prompt || ""
   const totalQuestions = questions.length
@@ -245,14 +269,6 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
     resetRecorder()
   }, [currentQuestionIndex, resetRecorder])
 
-  // Play voice when question changes
-  useEffect(() => {
-    if (currentQuestion && interviewPlan?.persona && !hasPlayedCurrentQuestion.current) {
-      hasPlayedCurrentQuestion.current = true
-      playQuestionVoice()
-    }
-  }, [currentQuestionIndex]) // Only depend on currentQuestionIndex to prevent multiple triggers
-
   // Reset the play flag when question changes
   useEffect(() => {
     hasPlayedCurrentQuestion.current = false
@@ -265,53 +281,65 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
         audioRef.current.pause()
         audioRef.current = null
       }
+      stopBrowserTts()
     }
   }, [])
 
-  const playQuestionVoice = async () => {
+  const playQuestionVoice = useCallback(async () => {
     if (!currentQuestion || !interviewPlan?.persona) return
 
     try {
       setIsVoicePlaying(true)
       setVoiceError(null)
+      setVoiceFallbackActive(false)
 
-      // Stop any existing audio
       if (audioRef.current) {
         audioRef.current.pause()
         audioRef.current = null
       }
+      stopBrowserTts()
 
-      // Mark as played to prevent duplicate calls
       hasPlayedCurrentQuestion.current = true
 
       const response = await fetch("/api/voice-question", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           personaId: interviewPlan.persona.personaId,
           voiceStyleId: interviewPlan.persona.voiceStyleId || "professional",
           questionText: currentQuestion.prompt,
-          questionId: currentQuestion.id
+          questionId: currentQuestion.id,
         }),
       })
 
-        if (!response.ok) {
-        throw new Error("Failed to generate voice")
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            success?: boolean
+            audioUrl?: string
+            message?: string
+            fallbackAvailable?: boolean
+          }
+        | null
+
+      if (!response.ok || !payload?.audioUrl) {
+        if (payload?.fallbackAvailable) {
+          setVoiceFallbackActive(true)
+          setVoiceError("Voice fallback active (browser TTS).")
+          await speakWithBrowserTts(currentQuestion.prompt)
+          setIsVoicePlaying(false)
+          return
+        }
+        throw new Error(payload?.message || "Failed to generate voice")
       }
 
-      const data = await response.json()
-      if (!data.audioUrl) {
-        throw new Error("No audio URL returned")
-      }
-
-      const audio = new Audio(data.audioUrl)
+      const audio = new Audio(payload.audioUrl)
       audioRef.current = audio
-      
+
       audio.onended = () => {
         setIsVoicePlaying(false)
         audioRef.current = null
       }
-      
+
       audio.onerror = () => {
         setIsVoicePlaying(false)
         setVoiceError("Failed to play audio")
@@ -319,12 +347,20 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
       }
 
       await audio.play()
-      } catch (error) {
+    } catch (error) {
       console.error("Voice playback failed:", error)
       setIsVoicePlaying(false)
       setVoiceError("Voice playback failed")
     }
-  }
+  }, [currentQuestion, interviewPlan?.persona])
+
+  // Play voice when question changes
+  useEffect(() => {
+    if (currentQuestion && interviewPlan?.persona && !hasPlayedCurrentQuestion.current) {
+      hasPlayedCurrentQuestion.current = true
+      void playQuestionVoice()
+    }
+  }, [currentQuestion, interviewPlan?.persona, playQuestionVoice])
 
   // Don't render if speech not supported (only on client)
   if (isClient && !isSpeechSupported) {
@@ -369,6 +405,30 @@ export default function MockInterviewPage({ searchParams }: MockInterviewPagePro
                 />
         </div>
             </div>
+            {providerStatus && (
+              <div className="max-w-4xl mx-auto mt-2 flex flex-wrap gap-2 text-xs font-semibold">
+                <span
+                  className={cn(
+                    "rounded-full border px-2 py-0.5",
+                    providerStatus.llm.mode === "live"
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "border-amber-200 bg-amber-50 text-amber-700",
+                  )}
+                >
+                  {providerStatus.llm.mode === "live" ? "Live AI" : "AI Fallback"}
+                </span>
+                <span
+                  className={cn(
+                    "rounded-full border px-2 py-0.5",
+                    voiceFallbackActive || providerStatus.voice.mode !== "live"
+                      ? "border-amber-200 bg-amber-50 text-amber-700"
+                      : "border-emerald-200 bg-emerald-50 text-emerald-700",
+                  )}
+                >
+                  {voiceFallbackActive || providerStatus.voice.mode !== "live" ? "Voice Fallback Active" : "Live Voice"}
+                </span>
+              </div>
+            )}
           </div>
           {/* Question Card - Visual Anchor */}
           <div className="flex-1 flex items-center justify-center p-8">
