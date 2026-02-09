@@ -53,6 +53,8 @@ export default function SimPage() {
   const [visualEffects, setVisualEffects] = useState<boolean>(false)
   const [typedResponse, setTypedResponse] = useState<string>("")
   const [lastSubmittedResponse, setLastSubmittedResponse] = useState<string>("")
+  const [backupRecording, setBackupRecording] = useState<boolean>(false)
+  const [isTranscribing, setIsTranscribing] = useState<boolean>(false)
   const devActivationTimerRef = useRef<number | null>(null)
   const devInactivityTimerRef = useRef<number | null>(null)
   const keysDownRef = useRef<{ d: boolean; b: boolean }>({ d: false, b: false })
@@ -65,6 +67,8 @@ export default function SimPage() {
   const nightmareAudioRefs = useRef<HTMLAudioElement[]>([])
   const nightmareTimeoutRef = useRef<number | null>(null)
   const visualEffectTimeoutRef = useRef<number | null>(null)
+  const backupRecorderRef = useRef<MediaRecorder | null>(null)
+  const backupChunksRef = useRef<Blob[]>([])
 
   // Only initialize speech recorder after first user interaction and audio finishes
   const shouldInitializeRecorder = !showClickToStart && firstInteractionHandledRef.current && audioFinished
@@ -132,6 +136,37 @@ export default function SimPage() {
   })
 
   const isListening = status === "listening"
+  const isMediaRecorderSupported = useMemo(
+    () => typeof window !== "undefined" && typeof MediaRecorder !== "undefined",
+    [],
+  )
+  const backupRecorderPreferred =
+    !isSupported ||
+    (typeof recorderError === "string" &&
+      /speech recognition service is unavailable|service not allowed|language not supported/i.test(recorderError))
+  const canRecordWithBackup = useMemo(() => {
+    return (
+      isMediaRecorderSupported &&
+      !loadingScenario &&
+      !ttsLoading &&
+      !evaluating &&
+      !isTranscribing &&
+      audioFinished &&
+      !showClickToStart &&
+      shouldInitializeRecorder &&
+      micPermissionGranted
+    )
+  }, [
+    isMediaRecorderSupported,
+    loadingScenario,
+    ttsLoading,
+    evaluating,
+    isTranscribing,
+    audioFinished,
+    showClickToStart,
+    shouldInitializeRecorder,
+    micPermissionGranted,
+  ])
 
   // Debug status changes
   useEffect(() => {
@@ -168,6 +203,7 @@ export default function SimPage() {
            shouldInitializeRecorder &&
            micPermissionGranted
   }, [isSupported, loadingScenario, ttsLoading, evaluating, audioFinished, showClickToStart, shouldInitializeRecorder, micPermissionGranted])
+  const micButtonDisabled = backupRecorderPreferred ? !canRecordWithBackup : !canRecord || isTranscribing
 
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
@@ -376,78 +412,68 @@ export default function SimPage() {
     [fetchScenario],
   )
 
+  const submitResponseForEvaluation = useCallback(
+    async (answer: string): Promise<boolean> => {
+      const cleanAnswer = answer.trim()
+      if (!cleanAnswer) {
+        setError("Response is empty.")
+        return false
+      }
+      if (!prompt) return false
+
+      setError(null)
+      setEvaluating(true)
+      setLastSubmittedResponse(cleanAnswer)
+      try {
+        const payload = {
+          question: prompt,
+          answer: cleanAnswer,
+          demoPerfect: perfectScoresMode,
+        }
+        const res = await fetch("/api/evaluate-answer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+
+        if (!res.ok) {
+          const msg = await res.text().catch(() => "Failed to evaluate.")
+          throw new Error(msg || "Failed to evaluate.")
+        }
+
+        const evaluation = await res.json()
+        const empathy = clampPercent(Number(evaluation.empathy))
+        const clarity = clampPercent(Number(evaluation.clarity))
+        const resolution = clampPercent(Number(evaluation.resolution))
+        const tip: string = String(
+          evaluation.tip ?? "Acknowledge the customer's feelings and propose a clear next step.",
+        )
+        const summary: string | undefined = evaluation.summary || undefined
+        const tips: string[] | undefined =
+          Array.isArray(evaluation.tips) && evaluation.tips.length > 0
+            ? evaluation.tips.filter((t: unknown) => typeof t === "string" && t.trim()).slice(0, 3)
+            : undefined
+        const idealResponse: string | undefined = evaluation.idealResponse || undefined
+
+        setFeedback({ empathy, clarity, resolution, tip, summary, tips, idealResponse })
+        decideNextScenario({ empathy, resolution, difficulty })
+        return true
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Unexpected error during evaluation."
+        setError(msg)
+        return false
+      } finally {
+        setEvaluating(false)
+      }
+    },
+    [prompt, perfectScoresMode, decideNextScenario, difficulty],
+  )
+
   const evaluateResponse = useCallback(async () => {
     const spokenResponse = transcript.trim()
     if (!spokenResponse) return
-    if (!prompt) return
-
-    console.log("[Sim] evaluateResponse called with:", {
-      hasTranscript: true,
-      transcriptLength: spokenResponse.length,
-      hasPrompt: true,
-      promptLength: prompt.length,
-      scenarioId,
-    })
-
-    setError(null)
-    setEvaluating(true)
-    setLastSubmittedResponse(spokenResponse)
-    try {
-      const payload = { 
-        question: prompt, 
-        answer: spokenResponse,
-        demoPerfect: perfectScoresMode
-      }
-      console.log("[Sim] Submitting evaluation payload:", payload)
-      console.log("[Sim] transcript captured: true")
-      
-      const res = await fetch("/api/evaluate-answer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-      
-      console.log("[Sim] Evaluation API response status:", res.status)
-      
-      if (!res.ok) {
-        const msg = await res.text().catch(() => "Failed to evaluate.")
-        console.error("[Sim] Evaluation API error:", res.status, msg)
-        throw new Error(msg || "Failed to evaluate.")
-      }
-      
-      const evaluation = await res.json()
-      console.log("[Sim] Evaluation response received:", evaluation)
-      const empathy = clampPercent(Number(evaluation.empathy))
-      const clarity = clampPercent(Number(evaluation.clarity))
-      const resolution = clampPercent(Number(evaluation.resolution))
-      const tip: string = String(
-        evaluation.tip ?? "Acknowledge the customer's feelings and propose a clear next step.",
-      )
-      const summary: string | undefined = evaluation.summary || undefined
-      const tips: string[] | undefined = Array.isArray(evaluation.tips) && evaluation.tips.length > 0 
-        ? evaluation.tips.filter((t: unknown) => typeof t === "string" && t.trim()).slice(0, 3)
-        : undefined
-      const idealResponse: string | undefined = evaluation.idealResponse || undefined
-
-      console.log(`[Sim] Feedback received for scenario ${scenarioId}: empathy=${empathy}, clarity=${clarity}, resolution=${resolution}`)
-      console.log("[Sim] feedback received: true")
-      
-      const evaluationData = { empathy, clarity, resolution, tip, summary, tips, idealResponse }
-      console.log("[Sim] Setting feedback state:", evaluationData)
-      setFeedback(evaluationData)
-      console.log("[Sim] Feedback set, CoachCard should now display")
-
-      decideNextScenario({ empathy, resolution, difficulty })
-    } catch (e) {
-      console.error("[Sim] Evaluation failed:", e)
-      const msg = e instanceof Error ? e.message : "Unexpected error during evaluation."
-      console.error("[Sim] Setting error state:", msg)
-      setError(msg)
-    } finally {
-      console.log("[Sim] Evaluation finished, setting evaluating to false")
-      setEvaluating(false)
-    }
-  }, [prompt, transcript, scenarioId, perfectScoresMode, difficulty, decideNextScenario])
+    await submitResponseForEvaluation(spokenResponse)
+  }, [submitResponseForEvaluation, transcript])
 
   const evaluateTypedResponse = useCallback(async () => {
     const typed = typedResponse.trim()
@@ -455,53 +481,11 @@ export default function SimPage() {
       setError("Type a response before submitting.")
       return
     }
-    if (!prompt) return
-
-    setError(null)
-    setEvaluating(true)
-    setLastSubmittedResponse(typed)
-
-    try {
-      const payload = {
-        question: prompt,
-        answer: typed,
-        demoPerfect: perfectScoresMode,
-      }
-      const res = await fetch("/api/evaluate-answer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-
-      if (!res.ok) {
-        const msg = await res.text().catch(() => "Failed to evaluate.")
-        throw new Error(msg || "Failed to evaluate.")
-      }
-
-      const evaluation = await res.json()
-      const empathy = clampPercent(Number(evaluation.empathy))
-      const clarity = clampPercent(Number(evaluation.clarity))
-      const resolution = clampPercent(Number(evaluation.resolution))
-      const tip: string = String(
-        evaluation.tip ?? "Acknowledge the customer's feelings and propose a clear next step.",
-      )
-      const summary: string | undefined = evaluation.summary || undefined
-      const tips: string[] | undefined =
-        Array.isArray(evaluation.tips) && evaluation.tips.length > 0
-          ? evaluation.tips.filter((t: unknown) => typeof t === "string" && t.trim()).slice(0, 3)
-          : undefined
-      const idealResponse: string | undefined = evaluation.idealResponse || undefined
-
-      setFeedback({ empathy, clarity, resolution, tip, summary, tips, idealResponse })
-      decideNextScenario({ empathy, resolution, difficulty })
+    const success = await submitResponseForEvaluation(typed)
+    if (success) {
       setTypedResponse("")
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Unexpected error during evaluation."
-      setError(msg)
-    } finally {
-      setEvaluating(false)
     }
-  }, [prompt, typedResponse, perfectScoresMode, decideNextScenario, difficulty])
+  }, [typedResponse, submitResponseForEvaluation])
 
   // Initialize speech recorder on mount (no auto-start)
   useEffect(() => {
@@ -527,6 +511,19 @@ export default function SimPage() {
   useEffect(() => {
     return () => {
       stopBrowserTts()
+    }
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      const recorder = backupRecorderRef.current
+      if (recorder && recorder.state !== "inactive") {
+        try {
+          recorder.stop()
+        } catch {}
+      }
+      backupRecorderRef.current = null
+      backupChunksRef.current = []
     }
   }, [])
 
@@ -560,6 +557,103 @@ export default function SimPage() {
     previousStatusRef.current = status
   }, [evaluateResponse, status, transcript])
 
+  const stopBackupRecording = useCallback(() => {
+    const recorder = backupRecorderRef.current
+    if (!recorder || recorder.state === "inactive") {
+      return
+    }
+    try {
+      recorder.stop()
+    } catch (error) {
+      console.error("[Sim] Failed to stop backup recorder:", error)
+      setBackupRecording(false)
+    }
+  }, [])
+
+  const startBackupRecording = useCallback(async () => {
+    if (!isMediaRecorderSupported) {
+      setError("Backup recording is not supported in this browser.")
+      return
+    }
+
+    const stream = await initializeMicrophone()
+    if (!stream) {
+      setError("Microphone access is required for backup recording.")
+      return
+    }
+
+    setError(null)
+    backupChunksRef.current = []
+
+    try {
+      const preferredType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/mp4")
+          ? "audio/mp4"
+          : ""
+      const recorder = preferredType ? new MediaRecorder(stream, { mimeType: preferredType }) : new MediaRecorder(stream)
+
+      recorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data && event.data.size > 0) {
+          backupChunksRef.current.push(event.data)
+        }
+      }
+
+      recorder.onstop = async () => {
+        setBackupRecording(false)
+        const chunks = backupChunksRef.current
+        backupChunksRef.current = []
+
+        const audioBlob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" })
+        if (audioBlob.size === 0) {
+          setError("No audio captured. Please try recording again.")
+          return
+        }
+
+        setIsTranscribing(true)
+        try {
+          const formData = new FormData()
+          const extension = recorder.mimeType.includes("mp4") ? "m4a" : "webm"
+          formData.append("audio", audioBlob, `response.${extension}`)
+
+          const response = await fetch("/api/transcribe", {
+            method: "POST",
+            body: formData,
+          })
+          const payload = (await response.json().catch(() => null)) as
+            | { text?: string; error?: string; detail?: string }
+            | null
+
+          if (!response.ok) {
+            const message =
+              payload?.error || payload?.detail || "Failed to transcribe audio. Try typed response as fallback."
+            throw new Error(message)
+          }
+
+          const text = typeof payload?.text === "string" ? payload.text.trim() : ""
+          if (!text) {
+            throw new Error("Transcription returned empty text. Please try again.")
+          }
+
+          await submitResponseForEvaluation(text)
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to transcribe audio."
+          setError(message)
+        } finally {
+          setIsTranscribing(false)
+        }
+      }
+
+      backupRecorderRef.current = recorder
+      recorder.start()
+      setBackupRecording(true)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to start backup recording."
+      setError(message)
+      setBackupRecording(false)
+    }
+  }, [initializeMicrophone, isMediaRecorderSupported, submitResponseForEvaluation])
+
   const onMicClick = useCallback(async () => {
     console.log(`[Sim] Mic clicked - canRecord: ${canRecord}, audioFinished: ${audioFinished}, isListening: ${isListening}`)
     
@@ -571,6 +665,24 @@ export default function SimPage() {
     
     // Handle first user interaction
     await handleFirstUserInteraction()
+
+    if (isTranscribing) {
+      console.log("[Sim] Mic click ignored - transcription in progress")
+      return
+    }
+
+    if (backupRecorderPreferred) {
+      if (!canRecordWithBackup) {
+        console.log("[Sim] Backup recorder click ignored - canRecordWithBackup is false")
+        return
+      }
+      if (backupRecording) {
+        stopBackupRecording()
+      } else {
+        await startBackupRecording()
+      }
+      return
+    }
     
     if (!canRecord) {
       console.log("[Sim] Mic click ignored - canRecord is false")
@@ -599,7 +711,25 @@ export default function SimPage() {
         console.log("[Sim] Speech recording started successfully")
       }
     }
-  }, [canRecord, audioFinished, isListening, status, start, stop, reset, transcript, handleFirstUserInteraction, micPermissionGranted, initializeMicrophone])
+  }, [
+    canRecord,
+    audioFinished,
+    isListening,
+    status,
+    start,
+    stop,
+    reset,
+    transcript,
+    handleFirstUserInteraction,
+    micPermissionGranted,
+    initializeMicrophone,
+    isTranscribing,
+    backupRecorderPreferred,
+    canRecordWithBackup,
+    backupRecording,
+    stopBackupRecording,
+    startBackupRecording,
+  ])
 
   const onNextScenario = useCallback(() => {
     console.log("[Sim] Next scenario requested - clearing transcript and resetting states")
@@ -1033,20 +1163,30 @@ export default function SimPage() {
               {/* Microphone Controls */}
               <div className="flex flex-col items-center space-y-8">
                 <div className="relative">
-          <Waveform isActive={isListening || isSpeechDetected} />
+          <Waveform isActive={isListening || isSpeechDetected || backupRecording} />
                   <MicButton
-                    isListening={isListening}
+                    isListening={isListening || backupRecording}
                     onClick={onMicClick}
-                    disabled={!canRecord}
+                    disabled={micButtonDisabled}
                   />
-                  {isListening && (
+                  {(isListening || backupRecording) && (
                     <div className="absolute inset-0 rounded-full border-4 border-[#FF7A70]/30 animate-ping"></div>
                   )}
                 </div>
                 
                 <div className="text-center">
                   <div className="text-sm font-medium text-[#1A1A1A] mb-2">
-            {recorderError ? (
+            {isTranscribing ? (
+                      <span className="flex items-center gap-2 text-[#6EC8FF]">
+                        <div className="w-2 h-2 rounded-full bg-[#6EC8FF] animate-pulse"></div>
+                        Transcribing your response...
+                      </span>
+            ) : backupRecording ? (
+                      <span className="flex items-center gap-2 text-[#FF7A70]">
+                        <div className="w-2 h-2 rounded-full bg-[#FF7A70] animate-pulse"></div>
+                        Recording (backup mode)... click to stop
+                      </span>
+            ) : recorderError ? (
                       <span className="text-red-600 flex items-center gap-2">
                         <span>⚠️</span> {recorderError}
                       </span>
@@ -1070,6 +1210,11 @@ export default function SimPage() {
                       </span>
             )}
           </div>
+                  {backupRecorderPreferred && (
+                    <div className="text-xs text-[#666666]">
+                      Arc/Brave can block browser speech recognition. Backup recorder mode is active.
+                    </div>
+                  )}
             </div>
                 {prompt && (
                   <div className="w-full max-w-2xl rounded-3xl border border-[#E7E9EE] bg-white/90 p-5 shadow-xl">
