@@ -295,7 +295,8 @@ export function useSpeechRecorder({
             message = "Microphone not available or in use by another application."
             break
           case "network":
-            message = "Network error occurred during speech recognition."
+            message =
+              "Speech recognition service is unavailable on this browser/network. Try Chrome, disable Brave Shields/VPN, or submit a typed response."
             break
           case "service-not-allowed":
             message = "Speech recognition service not allowed."

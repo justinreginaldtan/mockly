@@ -10,6 +10,7 @@ import { Waveform } from "@/components/waveform"
 import { useSpeechRecorder } from "@/hooks/use-speech-recorder"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import { LoadingState } from "@/components/loading-states"
 import EnhancedNavHeader from "@/components/enhanced-nav-header"
 import { speakWithBrowserTts, stopBrowserTts } from "@/lib/browser-tts"
@@ -50,6 +51,8 @@ export default function SimPage() {
   const [nightmareIntensity, setNightmareIntensity] = useState<number>(0)
   const [audioChaos, setAudioChaos] = useState<boolean>(false)
   const [visualEffects, setVisualEffects] = useState<boolean>(false)
+  const [typedResponse, setTypedResponse] = useState<string>("")
+  const [lastSubmittedResponse, setLastSubmittedResponse] = useState<string>("")
   const devActivationTimerRef = useRef<number | null>(null)
   const devInactivityTimerRef = useRef<number | null>(null)
   const keysDownRef = useRef<{ d: boolean; b: boolean }>({ d: false, b: false })
@@ -215,6 +218,8 @@ export default function SimPage() {
     isGeneratingScenarioRef.current = true
     setError(null)
     setFeedback(null)
+    setTypedResponse("")
+    setLastSubmittedResponse("")
     setLoadingScenario(true)
     setAudioFinished(false)
     // Only set userInteractionRequired to false for subsequent scenarios (not the first one)
@@ -372,30 +377,25 @@ export default function SimPage() {
   )
 
   const evaluateResponse = useCallback(async () => {
-    console.log("[Sim] evaluateResponse called with:", { 
-      hasTranscript: !!transcript, 
-      transcriptLength: transcript?.length || 0,
-      hasPrompt: !!prompt,
-      promptLength: prompt?.length || 0,
-      scenarioId 
+    const spokenResponse = transcript.trim()
+    if (!spokenResponse) return
+    if (!prompt) return
+
+    console.log("[Sim] evaluateResponse called with:", {
+      hasTranscript: true,
+      transcriptLength: spokenResponse.length,
+      hasPrompt: true,
+      promptLength: prompt.length,
+      scenarioId,
     })
-    
-    if (!transcript) {
-      console.log("[Sim] No transcript available for evaluation")
-      return
-    }
-    
-    if (!prompt) {
-      console.log("[Sim] No prompt available for evaluation")
-      return
-    }
-    console.log(`[Sim] Evaluating response for scenario ${scenarioId}, transcript: "${transcript}"`)
+
     setError(null)
     setEvaluating(true)
+    setLastSubmittedResponse(spokenResponse)
     try {
       const payload = { 
         question: prompt, 
-        answer: transcript,
+        answer: spokenResponse,
         demoPerfect: perfectScoresMode
       }
       console.log("[Sim] Submitting evaluation payload:", payload)
@@ -448,6 +448,60 @@ export default function SimPage() {
       setEvaluating(false)
     }
   }, [prompt, transcript, scenarioId, perfectScoresMode, difficulty, decideNextScenario])
+
+  const evaluateTypedResponse = useCallback(async () => {
+    const typed = typedResponse.trim()
+    if (!typed) {
+      setError("Type a response before submitting.")
+      return
+    }
+    if (!prompt) return
+
+    setError(null)
+    setEvaluating(true)
+    setLastSubmittedResponse(typed)
+
+    try {
+      const payload = {
+        question: prompt,
+        answer: typed,
+        demoPerfect: perfectScoresMode,
+      }
+      const res = await fetch("/api/evaluate-answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const msg = await res.text().catch(() => "Failed to evaluate.")
+        throw new Error(msg || "Failed to evaluate.")
+      }
+
+      const evaluation = await res.json()
+      const empathy = clampPercent(Number(evaluation.empathy))
+      const clarity = clampPercent(Number(evaluation.clarity))
+      const resolution = clampPercent(Number(evaluation.resolution))
+      const tip: string = String(
+        evaluation.tip ?? "Acknowledge the customer's feelings and propose a clear next step.",
+      )
+      const summary: string | undefined = evaluation.summary || undefined
+      const tips: string[] | undefined =
+        Array.isArray(evaluation.tips) && evaluation.tips.length > 0
+          ? evaluation.tips.filter((t: unknown) => typeof t === "string" && t.trim()).slice(0, 3)
+          : undefined
+      const idealResponse: string | undefined = evaluation.idealResponse || undefined
+
+      setFeedback({ empathy, clarity, resolution, tip, summary, tips, idealResponse })
+      decideNextScenario({ empathy, resolution, difficulty })
+      setTypedResponse("")
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unexpected error during evaluation."
+      setError(msg)
+    } finally {
+      setEvaluating(false)
+    }
+  }, [prompt, typedResponse, perfectScoresMode, decideNextScenario, difficulty])
 
   // Initialize speech recorder on mount (no auto-start)
   useEffect(() => {
@@ -552,6 +606,8 @@ export default function SimPage() {
     
     // Clear transcript and feedback for fresh start
     reset()
+    setTypedResponse("")
+    setLastSubmittedResponse("")
     setFeedback(null)
     setError(null)
     
@@ -567,6 +623,8 @@ export default function SimPage() {
     setShowClickToStart(false)
     setUserInteractionRequired(false)
     firstInteractionHandledRef.current = true
+    setTypedResponse("")
+    setLastSubmittedResponse("")
     
     // Initialize microphone stream
     await initializeMicrophone()
@@ -946,7 +1004,7 @@ export default function SimPage() {
               )}
 
               {/* Your Response Card */}
-              {transcript && (
+              {(transcript || lastSubmittedResponse) && (
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -964,7 +1022,9 @@ export default function SimPage() {
                       </div>
                     </div>
                     <div className="bg-[#F0F9FF] rounded-2xl p-6 border border-[#BFDBFE]">
-                      <p className="text-[#1A1A1A] leading-relaxed font-medium">&ldquo;{transcript}&rdquo;</p>
+                      <p className="text-[#1A1A1A] leading-relaxed font-medium">
+                        &ldquo;{(transcript.trim() || lastSubmittedResponse).trim()}&rdquo;
+                      </p>
                     </div>
                   </div>
                 </motion.div>
@@ -1011,6 +1071,27 @@ export default function SimPage() {
             )}
           </div>
             </div>
+                {prompt && (
+                  <div className="w-full max-w-2xl rounded-3xl border border-[#E7E9EE] bg-white/90 p-5 shadow-xl">
+                    <div className="mb-3 text-sm font-semibold text-[#1A1A1A]">Mic not working? Type your response.</div>
+                    <Textarea
+                      value={typedResponse}
+                      onChange={(event) => setTypedResponse(event.target.value)}
+                      rows={5}
+                      placeholder="Type how you'd respond to the customer..."
+                      className="resize-none border-[#DDE3EA] bg-white"
+                      disabled={loadingScenario || evaluating || !prompt}
+                    />
+                    <div className="mt-3 flex justify-end">
+                      <Button
+                        onClick={() => void evaluateTypedResponse()}
+                        disabled={!typedResponse.trim() || loadingScenario || evaluating || !prompt}
+                      >
+                        {evaluating ? "Scoring..." : "Submit typed response"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
         </div>
 
