@@ -22,6 +22,7 @@ import { StepIndicator } from "@/components/step-indicator"
 import EnhancedNavHeader from "@/components/enhanced-nav-header"
 import { speakWithBrowserTts } from "@/lib/browser-tts"
 import type { ProviderStatusPayload } from "@/lib/provider-status"
+import { SETUP_CACHE_KEY } from "@/lib/cache-keys"
 
 type EvaluationData = {
   overallScore: number
@@ -129,11 +130,22 @@ export default function ResultsPage() {
           return
         }
 
+        const cachedSetup = sessionStorage.getItem(SETUP_CACHE_KEY)
+        const setupPayload = cachedSetup
+          ? (JSON.parse(cachedSetup) as { resumeSummary?: string; jobSummary?: string } | null)
+          : null
+
+        const requestPayload = {
+          ...questionResponses,
+          resumeSummary: setupPayload?.resumeSummary,
+          jobSummary: setupPayload?.jobSummary,
+        }
+
         // Call evaluation API
         const response = await fetch('/api/evaluate-interview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(questionResponses)
+          body: JSON.stringify(requestPayload)
         })
         
         if (!response.ok) {
@@ -334,7 +346,7 @@ export default function ResultsPage() {
             <Link href="/">
               <Button variant="outline">Back to Home</Button>
             </Link>
-            <Link href="/setup">
+            <Link href="/setup/materials">
               <Button>Start Interview</Button>
             </Link>
           </div>
@@ -669,7 +681,7 @@ export default function ResultsPage() {
               <Link href="/">
                 <Button variant="outline">Start new interview</Button>
               </Link>
-              <Link href="/setup">
+              <Link href="/setup/materials">
                 <Button className="group">
                   Run another drill
                   <ChevronRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />

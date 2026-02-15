@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Button, buttonVariants, type VariantProps } from './button'
+import { Button } from './button'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 

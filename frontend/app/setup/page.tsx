@@ -24,10 +24,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
 import { cn } from "@/lib/utils"
 import type { InterviewPlan, InterviewSetupPayload } from "@/lib/gemini"
-import { SETUP_CACHE_KEY, PLAN_CACHE_KEY } from "@/lib/cache-keys"
+import { PLAN_CACHE_KEY, SETUP_CACHE_KEY } from "@/lib/cache-keys"
 import { resolvePersonaVoice, VOICE_STYLE_OPTIONS } from "@/lib/voices"
 import { speakWithBrowserTts, stopBrowserTts } from "@/lib/browser-tts"
 import type { ProviderStatusPayload } from "@/lib/provider-status"
+import type { FocusAreaId as TailoringFocusAreaId, MaterialsSessionPayload } from "@/lib/interview-materials"
+import { getLatestHistoryAsSession, getMaterialsSession, saveMaterialsSession } from "@/lib/materials-storage"
 
 type FocusAreaId =
   | "leadership"
@@ -162,6 +164,7 @@ function SetupPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const recommendedPersonaId = searchParams.get("recommended")
+  const tailoredRequested = searchParams.get("tailored") === "1"
   const defaultPersonaId = useMemo(
     () => allPersonas.find((persona) => persona.id === recommendedPersonaId)?.id ?? allPersonas[0].id,
     [recommendedPersonaId],
@@ -172,7 +175,7 @@ function SetupPageContent() {
   )
 
   const [selectedPersonaId, setSelectedPersonaId] = useState<typeof allPersonas[number]["id"]>(defaultPersona.id)
-  const [technicalWeight, setTechnicalWeight] = useState([defaultPersona.recommendedWeight])
+  const [technicalWeight, setTechnicalWeight] = useState<number[]>([defaultPersona.recommendedWeight])
   const [duration, setDuration] = useState<"short" | "standard">("standard")
   const [voiceStyle, setVoiceStyle] = useState<string>(() => resolvePersonaVoice(defaultPersona.id).styleId)
   const [isStarting, setIsStarting] = useState(false)
@@ -180,6 +183,7 @@ function SetupPageContent() {
   const [previewingPersonaId, setPreviewingPersonaId] = useState<string | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [providerStatus, setProviderStatus] = useState<ProviderStatusPayload | null>(null)
+  const [materialsSession, setMaterialsSession] = useState<MaterialsSessionPayload | null>(null)
   const [focusAreas, setFocusAreas] = useState<Record<FocusAreaId, boolean>>(() => {
     return focusAreaOptions.reduce((acc, option) => {
       acc[option.id] = defaultPersona.recommendedFocusAreas.includes(option.id)
@@ -194,6 +198,7 @@ function SetupPageContent() {
 
   const personaCarouselRef = useRef<HTMLDivElement | null>(null)
   const previewAudioRef = useRef<HTMLAudioElement | null>(null)
+  const tailoringAppliedRef = useRef(false)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
 
@@ -260,6 +265,61 @@ function SetupPageContent() {
       active = false
     }
   }, [])
+
+  useEffect(() => {
+    const sessionPayload = getMaterialsSession()
+    if (sessionPayload) {
+      setMaterialsSession(sessionPayload)
+      return
+    }
+
+    if (!tailoredRequested) {
+      return
+    }
+
+    const latestFromHistory = getLatestHistoryAsSession()
+    if (latestFromHistory) {
+      saveMaterialsSession(latestFromHistory)
+      setMaterialsSession(latestFromHistory)
+    }
+  }, [tailoredRequested])
+
+  useEffect(() => {
+    if (!materialsSession || tailoringAppliedRef.current) {
+      return
+    }
+
+    const recommendedPersonaId = allPersonas.find((item) => item.id === materialsSession.tailoring.recommendedPersonaId)?.id
+    if (recommendedPersonaId) {
+      setSelectedPersonaId(recommendedPersonaId)
+      setVoiceStyle(resolvePersonaVoice(recommendedPersonaId).styleId)
+    }
+
+    const focusFromTailoring = new Set<FocusAreaId>(
+      (materialsSession.tailoring.recommendedFocusAreas as TailoringFocusAreaId[]).filter((item): item is FocusAreaId =>
+        focusAreaOptions.some((option) => option.id === item),
+      ),
+    )
+
+    if (focusFromTailoring.size > 0) {
+      setFocusAreas(
+        focusAreaOptions.reduce(
+          (acc, option) => {
+            acc[option.id] = focusFromTailoring.has(option.id)
+            return acc
+          },
+          {} as Record<FocusAreaId, boolean>,
+        ),
+      )
+    }
+
+    const technical = Number(materialsSession.tailoring.recommendedTechnicalWeight)
+    if (Number.isFinite(technical)) {
+      setTechnicalWeight([Math.max(0, Math.min(100, Math.round(technical)))])
+    }
+
+    tailoringAppliedRef.current = true
+  }, [materialsSession])
 
   useEffect(() => {
     return () => {
@@ -426,6 +486,10 @@ function SetupPageContent() {
     }
     setPreviewingPersonaId(null)
 
+    const tailoredContext = materialsSession?.tailoring.additionalContext?.trim()
+    const resumeSummary = materialsSession?.resume.summary?.trim()
+    const jobSummary = materialsSession?.job.summary?.trim()
+
     const payload: InterviewSetupPayload = {
       persona: {
         personaId: selectedPersona.id,
@@ -436,8 +500,10 @@ function SetupPageContent() {
         voiceStyleId: activeVoiceStyle.styleId,
         technicalWeight: technicalPercent,
         duration,
-        additionalContext: selectedPersona.tagline,
+        additionalContext: [selectedPersona.tagline, tailoredContext].filter(Boolean).join(" "),
       },
+      resumeSummary: resumeSummary || undefined,
+      jobSummary: jobSummary || undefined,
     }
 
     setIsStarting(true)
@@ -503,6 +569,7 @@ function SetupPageContent() {
     activeVoiceStyle.styleId,
     technicalPercent,
     duration,
+    materialsSession,
     router,
     isStarting,
   ])
@@ -541,6 +608,19 @@ function SetupPageContent() {
                   >
                     {providerStatus.voice.mode === "live" ? "Live Voice" : "Voice Fallback Ready"}
                   </span>
+                </div>
+              )}
+              {materialsSession && (
+                <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
+                  <span className="rounded-full border border-[#FF7A70]/30 bg-[#FF7A70]/10 px-3 py-1 text-[#FF7A70]">
+                    Tailored from resume + job listing
+                  </span>
+                  <Link
+                    href="/setup/materials"
+                    className="rounded-full border border-[#EDE5E0] bg-white px-3 py-1 text-[#777777] transition hover:border-[#FF7A70]/50 hover:text-[#1A1A1A]"
+                  >
+                    Edit materials
+                  </Link>
                 </div>
               )}
               <h1 className="text-4xl font-semibold tracking-tight leading-tight text-[#1A1A1A]">

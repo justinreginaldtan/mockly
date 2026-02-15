@@ -952,7 +952,7 @@ export default function SimPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#FFF8F5] via-[#FDFCFB] to-[#FFF0EA]">
             {/* Mode Switcher Button */}
             <div className="absolute top-6 right-6">
-              <Link href="/setup">
+              <Link href="/setup/materials">
                 <Button variant="outline" size="sm" className="group border-[#FF7A70]/30 hover:bg-[#FFE7E4] hover:border-[#FF7A70]">
                   Try Job Interview Mode
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

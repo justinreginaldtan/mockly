@@ -10,6 +10,24 @@ const persona = {
   duration: "standard",
 }
 
+function buildMaterialsFormData() {
+  const formData = new FormData()
+  const resumeText = [
+    "Jordan Lee",
+    "Software Engineer Intern",
+    "Built React dashboards, optimized API latency by 30%, and collaborated with product/design partners.",
+    "Skills: JavaScript, TypeScript, SQL, React, Next.js",
+  ].join("\n")
+
+  formData.append("resume", new File([resumeText], "resume.txt", { type: "text/plain" }))
+  formData.append(
+    "jobText",
+    "Hiring a Software Engineer Intern to build backend services, collaborate cross-functionally, and ship product features.",
+  )
+  formData.append("jobUrl", "https://example.com/jobs/software-engineer-intern")
+  return formData
+}
+
 const checks = [
   {
     name: "provider-status",
@@ -39,6 +57,25 @@ const checks = [
       return {
         ok: payload?.success === true && questionCount > 0,
         detail: `${guidance},questions=${questionCount}`,
+      }
+    },
+  },
+  {
+    name: "materials-analyze",
+    path: "/api/interview-materials/analyze",
+    init: () => ({
+      method: "POST",
+      body: buildMaterialsFormData(),
+    }),
+    assess: async (response) => {
+      const payload = await response.json()
+      const recommendation = payload?.data?.tailoring
+      return {
+        ok:
+          payload?.success === true &&
+          typeof recommendation?.recommendedPersonaId === "string" &&
+          Array.isArray(recommendation?.recommendedFocusAreas),
+        detail: `${payload?.mode ?? "?"},persona=${recommendation?.recommendedPersonaId ?? "?"}`,
       }
     },
   },
@@ -152,7 +189,8 @@ const checks = [
 async function runCheck(check) {
   const url = `${baseUrl}${check.path}`
   try {
-    const response = await fetch(url, check.init)
+    const init = typeof check.init === "function" ? check.init() : check.init
+    const response = await fetch(url, init)
     const assessed = await check.assess(response)
     return {
       name: check.name,

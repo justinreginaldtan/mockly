@@ -87,7 +87,7 @@ export default function LandingHero() {
                   </li>
                 </ul>
 
-                <Link href="/setup" className="block mt-8">
+                <Link href="/setup/materials" className="block mt-8">
                   <Button className="w-full bg-[#FF7A70] text-white hover:bg-[#ff6157] shadow-lg group-hover:scale-105 transition-transform">
                     <div className="flex items-center justify-center">
                       <Briefcase className="mr-2 h-4 w-4" />
@@ -230,7 +230,7 @@ export default function LandingHero() {
             Choose your training mode and start practicing with AI-powered simulations
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link href="/setup">
+            <Link href="/setup/materials">
               <Button size="lg" className="bg-[#FF7A70] text-white hover:bg-[#ff6157] shadow-lg">
                 <div className="flex items-center justify-center">
                   <Briefcase className="mr-2 h-5 w-5" />

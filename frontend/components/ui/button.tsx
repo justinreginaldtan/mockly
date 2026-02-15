@@ -41,11 +41,12 @@ const buttonVariants = cva(
   },
 )
 
-interface ButtonProps extends React.ComponentProps<'button'>, VariantProps<typeof buttonVariants> {
+type NativeButtonProps = Omit<React.ComponentProps<'button'>, "onDrag" | "onDragStart" | "onDragEnd">
+
+interface ButtonProps extends NativeButtonProps, VariantProps<typeof buttonVariants> {
   asChild?: boolean
   loading?: boolean
   ripple?: boolean
-  hoverScale?: boolean
 }
 
 function Button({
@@ -55,13 +56,10 @@ function Button({
   asChild = false,
   loading = false,
   ripple = false,
-  hoverScale = true,
   children,
   disabled,
   ...props
 }: ButtonProps) {
-  const Comp = asChild ? Slot : motion.button
-
   const buttonContent = (
     <>
       {loading && (
@@ -110,17 +108,14 @@ function Button({
   }
 
   return (
-    <Comp
+    <button
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       disabled={disabled || loading}
-      whileHover={hoverScale ? { scale: 1.02 } : {}}
-      whileTap={hoverScale ? { scale: 0.98 } : {}}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
       {...props}
     >
       {buttonContent}
-    </Comp>
+    </button>
   )
 }
 

@@ -12,7 +12,10 @@ function validatePayload(body: unknown): InterviewSetupPayload {
     throw new Error("Invalid request body")
   }
 
-  const { persona, resumeSummary, jobSummary } = body as InterviewSetupPayload
+  const record = body as Record<string, unknown>
+  const persona = record.persona as Record<string, unknown> | undefined
+  const resumeSummary = record.resumeSummary
+  const jobSummary = record.jobSummary
 
   if (!persona || typeof persona !== "object") {
     throw new Error("Missing persona configuration")
@@ -28,7 +31,7 @@ function validatePayload(body: unknown): InterviewSetupPayload {
   ]
 
   for (const field of requiredFields) {
-    if ((persona as Record<string, unknown>)[field] === undefined || (persona as Record<string, unknown>)[field] === null) {
+    if (persona[field] === undefined || persona[field] === null) {
       throw new Error(`Persona field "${field}" is required`)
     }
   }

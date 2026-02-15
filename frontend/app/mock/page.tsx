@@ -35,11 +35,7 @@ const theme = {
   error: "bg-red-500",
 }
 
-interface MockInterviewPageProps {
-  searchParams: { [key: string]: string | string[] | undefined }
-}
-
-export default function MockInterviewPage({ searchParams }: MockInterviewPageProps) {
+export default function MockInterviewPage() {
   const router = useRouter()
   
   // Core state

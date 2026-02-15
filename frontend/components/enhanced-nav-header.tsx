@@ -78,10 +78,10 @@ export default function EnhancedNavHeader() {
           {/* Main Navigation */}
           <nav className="flex items-center gap-3">
             <Link
-              href="/setup"
+              href="/setup/materials"
               className={cn(
                 "rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
-                pathname === "/setup" || pathname === "/results"
+                pathname.startsWith("/setup") || pathname === "/results"
                   ? "bg-[#FFE7E4] text-[#FF7A70] shadow-sm"
                   : "text-[#777777] hover:bg-[#FFF2ED] hover:text-[#1A1A1A]"
               )}
